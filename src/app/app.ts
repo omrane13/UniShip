@@ -29,7 +29,7 @@ export class App implements OnInit {
   adminCurrentTab = signal<'users' | 'offers' | 'stocks' | 'logs' | 'support' | 'profile'>('users');
   companyCurrentTab = signal<'products' | 'requests' | 'offers' | 'team' | 'support' | 'orders' | 'profile'>('products');
   clientCurrentTab = signal<'browse' | 'orders' | 'support' | 'profile'>('browse');
-  driverCurrentTab = signal<'dashboard' | 'profile'>('dashboard');
+  driverCurrentTab = signal<'dashboard' | 'profile' | 'subscription'>('dashboard');
 
   // Profile management editing signals
   profileName = signal('');
@@ -115,10 +115,12 @@ export class App implements OnInit {
           this.loadAdminData();
         } else if (user.role === 'company') {
           this.loadCompanyData();
+          this.initSimulatorFromUser(user);
         } else if (user.role === 'client') {
           this.loadClientData();
         } else if (user.role === 'driver') {
           this.loadDriverData();
+          this.initDriverSimulatorFromUser(user);
         }
       } else {
         // Visitor default load
@@ -1011,5 +1013,419 @@ export class App implements OnInit {
     if (activeCompanies.length === 0) return 1;
     const revs = activeCompanies.map(u => this.getCompanyRevenue(u.id));
     return Math.max(...revs, 1);
+  }
+
+  // ==========================================
+  // TUNISIAN SUBSCRIPTION & BUSINESS MODEL SIMULATOR HELPERS
+  // ==========================================
+  selectedSimulatorPlan = signal<'starter' | 'pro' | 'premium' | null>(null);
+  selectedSimulatorCycle = signal<'monthly' | 'yearly'>('monthly');
+  showCheckoutModal = signal(false);
+  simulatedPaidMethod = signal<'konnect' | 'paymee' | 'virement' | 'cheque'>('konnect');
+  simulatedReferralInput = signal('');
+  
+  // Local sliding simulation overrides for local real-time sliders
+  simulatedOrdersVolumeCount = signal<number>(25);
+  simulatedCancellationRate = signal<number>(3.5);
+  simulatedClientRating = signal<number>(4.2);
+  simulatedInactivityDays = signal<number>(2);
+  simulatedPaymentDelayDays = signal<number>(0);
+  simulatedWarningsCount = signal<number>(0);
+
+  // 🚴 DELIVERER (LIVREUR) SUBSCRIPTIONS & EARNINGS MODEL
+  selectedDriverPlan = signal<'freelance' | 'partenaire' | 'pro' | null>(null);
+  selectedDriverCycle = signal<'monthly' | 'yearly'>('monthly');
+  showDriverCheckoutModal = signal(false);
+  simulatedDriverPaidMethod = signal<'konnect' | 'virement'>('konnect');
+
+  // Slider inputs for Livreurs
+  simulatedDriverMonthlyDeliveries = signal<number>(40);
+  simulatedDriverCancellationRate = signal<number>(2.0);
+  simulatedDriverRating = signal<number>(4.8);
+  simulatedDriverInactivityDays = signal<number>(1);
+  simulatedDriverWarningsCount = signal<number>(0);
+  simulatedDriverConsecutiveMonthsCount = signal<number>(2);
+  simulatedDriverReferralsCount = signal<number>(2);
+  simulatedDriverTopDriver = signal<boolean>(false);
+
+  // Distribution percents for different delivery types in Tunisia
+  simulatedDriverLocalPercent = signal<number>(60);
+  simulatedDriverRegionalPercent = signal<number>(30);
+  simulatedDriverNationalPercent = signal<number>(10);
+  simulatedDriverExpressPercent = signal<number>(20);
+
+  // Initialize interactive overrides when driver logs in
+  initDriverSimulatorFromUser(user: User) {
+    if (!user) return;
+    this.selectedDriverPlan.set(user.driverPlanId || 'freelance');
+    this.selectedDriverCycle.set(user.driverBillingCycle || 'monthly');
+    this.simulatedDriverMonthlyDeliveries.set(user.driverMonthlyDeliveriesCount ?? 40);
+    this.simulatedDriverCancellationRate.set(user.driverCancellationRate ?? 2.0);
+    this.simulatedDriverRating.set(user.driverAverageRating ?? 4.8);
+    this.simulatedDriverInactivityDays.set(user.driverInactivityDays ?? 1);
+    this.simulatedDriverWarningsCount.set(user.driverNonConformingWarningsCount ?? 0);
+    this.simulatedDriverConsecutiveMonthsCount.set(user.driverConsecutiveMonthsCount ?? 2);
+  }
+
+  // Open driver subscription checkout
+  openDriverSubscriptionCheckout(plan: 'freelance' | 'partenaire' | 'pro', cycle: 'monthly' | 'yearly') {
+    this.selectedDriverPlan.set(plan);
+    this.selectedDriverCycle.set(cycle);
+    this.showDriverCheckoutModal.set(true);
+  }
+
+  // Confirm driver subscription payment
+  async confirmDriverPlanSubscription() {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      const plan = this.selectedDriverPlan();
+      const cycle = this.selectedDriverCycle();
+      const gateway = this.simulatedDriverPaidMethod();
+
+      if (!plan) return;
+
+      const payload: Partial<User> = {
+        driverPlanId: plan,
+        driverBillingCycle: cycle,
+        driverPaymentMethod: gateway,
+        driverEntryFeePaid: true
+      };
+
+      await this.api.updateProfile(payload);
+      this.showDriverCheckoutModal.set(false);
+      
+      const updatedUser = this.api.currentUser();
+      if (updatedUser) {
+        this.api.currentUser.set({ ...updatedUser, ...payload });
+      }
+      this.successMessage.set(`Succès ! Votre forfait Coursier "${plan.toUpperCase()}" (${cycle === 'monthly' ? 'mensuel' : 'annuel'}) a été validé avec succès via ${gateway.toUpperCase()}.`);
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set('Erreur de souscription Livreur : ' + error.message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Live synchronizer for driver's real metrics (to simulated database backend)
+  async syncDriverSimulationMetrics() {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      const payload: Partial<User> = {
+        driverMonthlyDeliveriesCount: Number(this.simulatedDriverMonthlyDeliveries()),
+        driverCancellationRate: Number(this.simulatedDriverCancellationRate()),
+        driverAverageRating: Number(this.simulatedDriverRating()),
+        driverInactivityDays: Number(this.simulatedDriverInactivityDays()),
+        driverNonConformingWarningsCount: Number(this.simulatedDriverWarningsCount()),
+        driverConsecutiveMonthsCount: Number(this.simulatedDriverConsecutiveMonthsCount()),
+      };
+
+      await this.api.updateProfile(payload);
+      this.successMessage.set('⚙️ Indicateurs d’activité Livreur synchronisés avec succès. Vos calculs de performance et commissions s’adaptent en temps réel !');
+      
+      const updatedUser = this.api.currentUser();
+      if (updatedUser) {
+        this.api.currentUser.set({ ...updatedUser, ...payload });
+      }
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de la synchronisation.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Dynamic Multi-tier Tunisia Earning calculation engine
+  calculateDriverRealTimePayout(user: Partial<User> | null) {
+    if (!user) return { base: 0, express: 0, gross: 0, commission: 0, netBeforeBonus: 0, volumeBonus: 0, qualityBonus: 0, reliabilityBonus: 0, penalty: 0, net: 0, upgradeEligible: false };
+    
+    // Fallback if looking at active simulation values of current user
+    const isSimCurrent = user.id === this.api.currentUser()?.id;
+    
+    const plan = user.driverPlanId || 'freelance';
+    
+    let deliveries = user.driverMonthlyDeliveriesCount ?? 0;
+    let rating = user.driverAverageRating ?? 5.0;
+    let cancelRate = user.driverCancellationRate ?? 0;
+    let cMonths = user.driverConsecutiveMonthsCount ?? 0;
+    let referrals = 0;
+    let isTopDriver = false;
+    
+    let localPct = 60;
+    let regionalPct = 30;
+    let nationalPct = 10;
+    let expressPct = 20;
+
+    if (isSimCurrent) {
+      deliveries = Number(this.simulatedDriverMonthlyDeliveries());
+      rating = Number(this.simulatedDriverRating());
+      cancelRate = Number(this.simulatedDriverCancellationRate());
+      cMonths = Number(this.simulatedDriverConsecutiveMonthsCount());
+      referrals = Number(this.simulatedDriverReferralsCount());
+      isTopDriver = this.simulatedDriverTopDriver();
+      
+      localPct = Number(this.simulatedDriverLocalPercent());
+      regionalPct = Number(this.simulatedDriverRegionalPercent());
+      nationalPct = Number(this.simulatedDriverNationalPercent());
+      expressPct = Number(this.simulatedDriverExpressPercent());
+    }
+
+    // Distribute deliveries
+    const localCount = deliveries * (localPct / 100);
+    const regionalCount = deliveries * (regionalPct / 100);
+    const nationalCount = deliveries * (nationalPct / 100);
+    const expressCount = deliveries * (expressPct / 100);
+    
+    const baseEarnings = (localCount * 7) + (regionalCount * 11) + (nationalCount * 16);
+    const expressEarnings = expressCount * 3;
+    const grossEarnings = baseEarnings + expressEarnings;
+    
+    // Platform commission based on plan
+    let commPercent = 0.15; // freelance
+    if (plan === 'partenaire') {
+      commPercent = 0.10;
+    } else if (plan === 'pro') {
+      commPercent = 0.06;
+    }
+    
+    const commission = grossEarnings * commPercent;
+    const netBeforeBonus = grossEarnings - commission;
+    
+    // Volume bonus (only for Partenaire or Pro)
+    let volBonus = 0;
+    if (plan !== 'freelance') {
+      if (deliveries >= 100) {
+        volBonus = (deliveries * 3) + 50; // +3 TND per delivery + 50 TND fixed bonus
+      } else if (deliveries >= 60) {
+        volBonus = deliveries * 2; // +2 TND per delivery
+      } else if (deliveries >= 30) {
+        volBonus = deliveries * 1; // +1 TND per delivery
+      }
+    }
+    
+    // Special rewards
+    const qualityBonus = (rating >= 4.8 && plan !== 'freelance') ? 30 : 0;
+    const reliabilityBonus = (cancelRate === 0 && plan !== 'freelance') ? 20 : 0;
+    const topDriverBonus = isTopDriver ? 75 : 0;
+    const referralBonus = referrals * 20;
+    
+    // Penalty
+    let penalty = 0;
+    if (cancelRate > 15 && plan !== 'freelance') {
+      penalty = baseEarnings * 0.10; // -10% on gross earnings
+    }
+    
+    const net = netBeforeBonus + volBonus + qualityBonus + reliabilityBonus + topDriverBonus + referralBonus - penalty;
+    const upgradeEligible = cMonths >= 3 && deliveries >= 60;
+    
+    return {
+      base: baseEarnings,
+      express: expressEarnings,
+      gross: grossEarnings,
+      commission,
+      netBeforeBonus,
+      volumeBonus: volBonus,
+      qualityBonus: qualityBonus + topDriverBonus,
+      reliabilityBonus: reliabilityBonus + referralBonus,
+      penalty,
+      net,
+      upgradeEligible
+    };
+  }
+
+  // Initialize interactive overrides when company logs in
+  initSimulatorFromUser(user: User) {
+    if (!user) return;
+    this.simulatedOrdersVolumeCount.set(user.monthlyOrdersCount ?? 25);
+    this.simulatedCancellationRate.set(user.cancellationRate ?? 3.5);
+    this.simulatedClientRating.set(user.averageRating ?? 4.2);
+    this.simulatedInactivityDays.set(user.inactivityDays ?? 3);
+    this.simulatedPaymentDelayDays.set(user.paymentDelayDays ?? 0);
+    this.simulatedWarningsCount.set(user.nonConformingWarningsCount ?? 0);
+  }
+
+  // Triggered checkout
+  openSubscriptionCheckout(plan: 'starter' | 'pro' | 'premium', cycle: 'monthly' | 'yearly') {
+    this.selectedSimulatorPlan.set(plan);
+    this.selectedSimulatorCycle.set(cycle);
+    this.showCheckoutModal.set(true);
+  }
+
+  // Confirm simulated subscription payment via Tunisian gateways (Konnect / Paymee) or standard Transfer/Check
+  async confirmPlanSubscription() {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      const plan = this.selectedSimulatorPlan();
+      const cycle = this.selectedSimulatorCycle();
+      const gateway = this.simulatedPaidMethod();
+
+      if (!plan) return;
+
+      const payload: Partial<User> = {
+        planId: plan,
+        billingCycle: cycle,
+        paymentMethod: gateway,
+        entryFeePaid: true,
+        // Pro / Premium gets verified automatically
+        isVerifiedPartner: plan === 'pro' || plan === 'premium'
+      };
+
+      await this.api.updateProfile(payload);
+      this.showCheckoutModal.set(false);
+      this.successMessage.set(`Félicitations ! Abonnement au plan ${plan.toUpperCase()} (${cycle === 'monthly' ? 'mensuel' : 'annuel'}) activé avec succès via ${gateway.toUpperCase()}.`);
+      
+      const updatedUser = this.api.currentUser();
+      if (updatedUser) {
+        this.api.currentUser.set({ ...updatedUser, ...payload });
+      }
+      await this.loadCompanyData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de la facturation.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Change interactive metrics to synchronize with simulated backend
+  async syncSimulationMetrics() {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      const payload: Partial<User> = {
+        monthlyOrdersCount: Number(this.simulatedOrdersVolumeCount()),
+        cancellationRate: Number(this.simulatedCancellationRate()),
+        averageRating: Number(this.simulatedClientRating()),
+        inactivityDays: Number(this.simulatedInactivityDays()),
+        paymentDelayDays: Number(this.simulatedPaymentDelayDays()),
+        nonConformingWarningsCount: Number(this.simulatedWarningsCount())
+      };
+
+      await this.api.updateProfile(payload);
+      this.successMessage.set('Indicateurs de simulation de santé de compte et volume de commandes synchronisés avec succès. Les calculs adaptent automatiquement vos paliers.');
+      
+      const updatedUser = this.api.currentUser();
+      if (updatedUser) {
+        this.api.currentUser.set({ ...updatedUser, ...payload });
+      }
+      await this.loadCompanyData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de la synchronisation.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Confirm parrainage / Referral input
+  async submitSponsorship() {
+    this.clearMessages();
+    const code = this.simulatedReferralInput().trim();
+    if (!code) {
+      this.errorMessage.set('Veuillez entrer un code de parrainage de parrain.');
+      return;
+    }
+
+    this.loading.set(true);
+    try {
+      // Send code using profile update
+      await this.api.updateProfile({ referredByCode: code });
+      this.successMessage.set(`Code parrainage "${code}" appliqué avec succès ! Vous bénéficiez d'un mois offert pour votre parrain.`);
+      this.simulatedReferralInput.set('');
+      
+      const updatedUser = this.api.currentUser();
+      if (updatedUser) {
+        this.api.currentUser.set({ ...updatedUser, referredByCode: code });
+      }
+      await this.loadCompanyData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Code parrainage invalide.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Let Admin update any user's subscription metrics directly from admin panel
+  async adminUpdateUserPlanDetails(userId: string, updates: Partial<User>) {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      await this.api.updateUser(userId, updates);
+      this.successMessage.set(`Configuration du partenaire mise à jour avec succès.`);
+      await this.loadAdminData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de la mise à jour.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Execute End of Month Billing and Sla calculation simulation for all users
+  async simulateEndOfMonthBilling() {
+    this.clearMessages();
+    this.loading.set(true);
+    try {
+      // 1. Process Partner Companies (Enterprise SLA Contracts)
+      const companyUsers = this.users().filter(u => u.role === 'company');
+      for (const comp of companyUsers) {
+        const orderVol = comp.monthlyOrdersCount ?? 0;
+        let cMonths = comp.consecutiveMonthsCount ?? 0;
+        let newPlan = comp.planId;
+
+        if (orderVol >= 50) {
+          cMonths += 1;
+          if (cMonths >= 3) {
+            if (comp.planId === 'starter') {
+              newPlan = 'pro';
+            } else if (comp.planId === 'pro') {
+              newPlan = 'premium';
+            }
+            cMonths = 0;
+          }
+        } else {
+          cMonths = 0;
+        }
+
+        const updates: Partial<User> = {
+          consecutiveMonthsCount: cMonths,
+          planId: newPlan,
+        };
+        await this.api.updateUser(comp.id, updates);
+      }
+
+      // 2. Process Delivery Drivers (Livreurs SLA Performance Rewards)
+      const driverUsers = this.users().filter(u => u.role === 'driver');
+      for (const drv of driverUsers) {
+        const delivVol = drv.driverMonthlyDeliveriesCount ?? 0;
+        let cMonths = drv.driverConsecutiveMonthsCount ?? 0;
+        let newPlan = drv.driverPlanId;
+
+        if (delivVol >= 60) {
+          cMonths += 1;
+          if (cMonths >= 3) {
+            if (drv.driverPlanId === 'freelance' || !drv.driverPlanId) {
+              newPlan = 'partenaire';
+            } else if (drv.driverPlanId === 'partenaire') {
+              newPlan = 'pro';
+            }
+            cMonths = 0;
+          }
+        } else {
+          cMonths = 0;
+        }
+
+        const updates: Partial<User> = {
+          driverConsecutiveMonthsCount: cMonths,
+          driverPlanId: newPlan,
+        };
+        await this.api.updateUser(drv.id, updates);
+      }
+
+      this.successMessage.set('⚙️ Simulation de fin de mois exécutée ! Les indicateurs consécutifs ont été calculés et les méritants (Entreprises et Livreurs) ont été surclassés gratuitement.');
+      await this.loadAdminData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur de simulation.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

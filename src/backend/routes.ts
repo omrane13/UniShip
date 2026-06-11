@@ -250,7 +250,10 @@ apiRouter.put('/users/:id', (req: Request, res: Response): void => {
     return;
   }
 
-  const { role, status, color, name, phone, address } = req.body;
+  const { role, status, color, name, phone, address,
+          planId, billingCycle, paymentMethod, referralCode, referredByCode, isVerifiedPartner,
+          cancellationRate, averageRating, suspended, entryFeePaid, inactivityDays,
+          paymentDelayDays, nonConformingWarningsCount, monthlyOrdersCount } = req.body;
 
   if (color && targetUser.role === 'company') {
     if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
@@ -302,6 +305,24 @@ apiRouter.put('/users/:id', (req: Request, res: Response): void => {
   if (phone) targetUser.phone = phone;
   if (address) targetUser.address = address;
 
+  if (targetUser.role === 'company') {
+    if (planId !== undefined) targetUser.planId = planId;
+    if (billingCycle !== undefined) targetUser.billingCycle = billingCycle;
+    if (paymentMethod !== undefined) targetUser.paymentMethod = paymentMethod;
+    if (referralCode !== undefined) targetUser.referralCode = referralCode;
+    if (referredByCode !== undefined) targetUser.referredByCode = referredByCode;
+    if (isVerifiedPartner !== undefined) targetUser.isVerifiedPartner = !!isVerifiedPartner;
+    if (cancellationRate !== undefined) targetUser.cancellationRate = Number(cancellationRate);
+    if (averageRating !== undefined) targetUser.averageRating = Number(averageRating);
+    if (suspended !== undefined) targetUser.suspended = !!suspended;
+    if (entryFeePaid !== undefined) targetUser.entryFeePaid = !!entryFeePaid;
+    if (inactivityDays !== undefined) targetUser.inactivityDays = Number(inactivityDays);
+    if (paymentDelayDays !== undefined) targetUser.paymentDelayDays = Number(paymentDelayDays);
+    if (nonConformingWarningsCount !== undefined) targetUser.nonConformingWarningsCount = Number(nonConformingWarningsCount);
+    if (monthlyOrdersCount !== undefined) targetUser.monthlyOrdersCount = Number(monthlyOrdersCount);
+  };
+  if (address) targetUser.address = address;
+
   // Track product updates with changed company color
   if (color && targetUser.role === 'company') {
     dbStore.products.forEach(p => {
@@ -323,7 +344,10 @@ apiRouter.put('/profile', (req: Request, res: Response): void => {
     return;
   }
 
-  const { name, email, phone, address, logo, baseFee, perKmFee, zone, driverStatus, photo } = req.body;
+  const { name, email, phone, address, logo, baseFee, perKmFee, zone, driverStatus, photo,
+          planId, billingCycle, paymentMethod, referralCode, referredByCode, isVerifiedPartner,
+          cancellationRate, averageRating, suspended, entryFeePaid, inactivityDays,
+          paymentDelayDays, nonConformingWarningsCount, monthlyOrdersCount } = req.body;
 
   // Validate or enforce email uniqueness if it's being modified
   if (email && email.toLowerCase() !== u.email.toLowerCase()) {
@@ -340,6 +364,24 @@ apiRouter.put('/profile', (req: Request, res: Response): void => {
   if (phone !== undefined) u.phone = phone;
   if (address !== undefined) u.address = address;
   if (logo !== undefined && u.role === 'company') u.logo = logo;
+
+  // Subscriptions & Tunisia specific fields (if company)
+  if (u.role === 'company') {
+    if (planId !== undefined) u.planId = planId;
+    if (billingCycle !== undefined) u.billingCycle = billingCycle;
+    if (paymentMethod !== undefined) u.paymentMethod = paymentMethod;
+    if (referralCode !== undefined) u.referralCode = referralCode;
+    if (referredByCode !== undefined) u.referredByCode = referredByCode;
+    if (isVerifiedPartner !== undefined) u.isVerifiedPartner = !!isVerifiedPartner;
+    if (cancellationRate !== undefined) u.cancellationRate = Number(cancellationRate);
+    if (averageRating !== undefined) u.averageRating = Number(averageRating);
+    if (suspended !== undefined) u.suspended = !!suspended;
+    if (entryFeePaid !== undefined) u.entryFeePaid = !!entryFeePaid;
+    if (inactivityDays !== undefined) u.inactivityDays = Number(inactivityDays);
+    if (paymentDelayDays !== undefined) u.paymentDelayDays = Number(paymentDelayDays);
+    if (nonConformingWarningsCount !== undefined) u.nonConformingWarningsCount = Number(nonConformingWarningsCount);
+    if (monthlyOrdersCount !== undefined) u.monthlyOrdersCount = Number(monthlyOrdersCount);
+  }
 
   // Special Driver profile sync
   if (u.role === 'driver') {
@@ -781,7 +823,7 @@ apiRouter.post('/orders', (req: Request, res: Response): void => {
   };
 
   dbStore.orders.push(newOrder);
-  dbStore.log(u.id, u.name, 'PLACE_ORDER', `Création commande ${orderId} d’un montant de ${total}€`);
+  dbStore.log(u.id, u.name, 'PLACE_ORDER', `Création commande ${orderId} d’un montant de ${total} DTN`);
 
   res.json({
     message: 'Commande confirmée avec succès ! En attente d\'affectation d\'un livreur par l’entreprise.',
@@ -966,16 +1008,16 @@ PRODUITS ACHETÉS :
 `;
 
   o.items.forEach((it, i) => {
-    invoiceText += `${i+1}. ${it.productName} - Quantité: ${it.quantity} x ${it.price.toFixed(2)}€ = ${(it.price * it.quantity).toFixed(2)}€\n`;
+    invoiceText += `${i+1}. ${it.productName} - Quantité: ${it.quantity} x ${it.price.toFixed(2)} DTN = ${(it.price * it.quantity).toFixed(2)} DTN\n`;
   });
 
   invoiceText += `
-Frais de Livraison: ${o.driverFee.toFixed(2)}€ (Livreur: ${o.driverName})
+Frais de Livraison: ${o.driverFee.toFixed(2)} DTN (Livreur: ${o.driverName})
 Mode de Paiement: ${o.paymentMethod.toUpperCase()}
 Statut de Paiement: ${o.paymentStatus.toUpperCase()}
 
 -----------------------------------------
-TOTAL GÉNÉRAL : ${(o.total + o.driverFee).toFixed(2)} €
+TOTAL GÉNÉRAL : ${(o.total + o.driverFee).toFixed(2)} DTN
 -----------------------------------------
 Merci pour votre commande sur notre plateforme !
 =========================================

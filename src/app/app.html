@@ -1,51 +1,53 @@
 <!-- Top Live Role Playground Switcher Banner -->
-<div class="bg-slate-900 text-slate-100 py-3 px-4 shadow-md sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
-    <div class="flex items-center gap-2">
-      <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span class="font-medium tracking-wide">
-        <strong>Mode Bac à Sable (Playground) :</strong> Basculez instantanément de rôle pour tester le flux complet
-      </span>
-    </div>
-    
-    <div class="flex flex-wrap gap-1.5">
-      <button 
-        (click)="selectPlaygroundUser('visitor')"
-        [class]="!api.currentUser() ? 'bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
-        id="btn-role-visitor">
-        🛒 Mode Visiteur
-      </button>
+@if (api.currentUser()?.role === 'admin') {
+  <div class="bg-slate-900 text-slate-100 py-3 px-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-medium tracking-wide">
+          <strong>Mode Bac à Sable (Playground) :</strong> Basculez instantanément de rôle pour tester le flux complet
+        </span>
+      </div>
+      
+      <div class="flex flex-wrap gap-1.5">
+        <button 
+          (click)="selectPlaygroundUser('visitor')"
+          [class]="!api.currentUser() ? 'bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+          id="btn-role-visitor">
+          🛒 Mode Visiteur
+        </button>
 
-      <button 
-        (click)="selectPlaygroundUser('client')"
-        [class]="api.currentUser()?.role === 'client' ? 'bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
-        id="btn-role-client">
-        🛒 Client (Alice)
-      </button>
+        <button 
+          (click)="selectPlaygroundUser('client')"
+          [class]="api.currentUser()?.role === 'client' ? 'bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+          id="btn-role-client">
+          🛒 Client (Alice)
+        </button>
 
-      <button 
-        (click)="selectPlaygroundUser('company')"
-        [class]="api.currentUser()?.role === 'company' ? 'bg-blue-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
-        id="btn-role-company">
-        🏢 Partenaire (EcoShop)
-      </button>
+        <button 
+          (click)="selectPlaygroundUser('company')"
+          [class]="api.currentUser()?.role === 'company' ? 'bg-blue-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+          id="btn-role-company">
+          🏢 Partenaire (EcoShop)
+        </button>
 
-      <button 
-        (click)="selectPlaygroundUser('driver')"
-        [class]="api.currentUser()?.role === 'driver' ? 'bg-violet-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
-        id="btn-role-driver">
-        🚚 Livreur (Lucas)
-      </button>
+        <button 
+          (click)="selectPlaygroundUser('driver')"
+          [class]="api.currentUser()?.role === 'driver' ? 'bg-violet-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+          id="btn-role-driver">
+          🚚 Livreur (Lucas)
+        </button>
 
-      <button 
-        (click)="selectPlaygroundUser('admin')"
-        [class]="api.currentUser()?.role === 'admin' ? 'bg-red-500 text-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
-        id="btn-role-admin">
-        👑 Administrateur
-      </button>
+        <button 
+          (click)="selectPlaygroundUser('admin')"
+          [class]="api.currentUser()?.role === 'admin' ? 'bg-red-500 text-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+          id="btn-role-admin">
+          👑 Administrateur
+        </button>
+      </div>
     </div>
   </div>
-</div>
+}
 
 <!-- Main App Hub Shell -->
 <div class="min-h-screen bg-slate-50 flex flex-col antialiased">
@@ -213,7 +215,7 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
               <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">CA Total</span>
-              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.totalEarnings?.toFixed(2) }}€</p>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.totalEarnings?.toFixed(2) }} DTN</p>
             </div>
             <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
               <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Partenaires actifs</span>
@@ -280,7 +282,7 @@
                       <div class="space-y-1">
                         <div class="flex justify-between items-center text-xs font-semibold">
                           <span class="text-slate-800">{{ u.name }}</span>
-                          <span class="font-mono text-slate-900 font-bold">{{ getCompanyRevenue(u.id)?.toFixed(2) }} €</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ getCompanyRevenue(u.id)?.toFixed(2) }} DTN</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
                           <div class="h-full rounded-full transition-all duration-500" 
@@ -534,7 +536,7 @@
                       class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
                   </div>
                   <div class="flex flex-col gap-1">
-                    <span class="text-[10px] uppercase font-bold text-slate-500">Frais d'Entrée (€)</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Frais d'Entrée (DTN)</span>
                     <input 
                       type="number" 
                       [value]="newOfferFee()" 
@@ -583,12 +585,288 @@
                       <div class="w-px h-6 bg-slate-200"></div>
                       <div>
                         <span class="text-[9px] uppercase font-bold text-slate-400 block">Frais Fixes</span>
-                        <strong class="text-slate-700 font-extrabold text-sm">{{ of.entryFee }}€</strong>
+                        <strong class="text-slate-700 font-extrabold text-sm">{{ of.entryFee }} DTN</strong>
                       </div>
                     </div>
                   </div>
                 }
               </div>
+
+              <!-- Admin SLA contract supervisor & Month End Simulator -->
+              <div class="border-t border-slate-200 mt-8 pt-8 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
+                  <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                      <mat-icon class="text-indigo-600">admin_panel_settings</mat-icon>
+                      Supervision des SLA Contracts & Simulateur de Fin de Mois
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                      Chaque mois, les entreprises sont auditées. Celles qui dépassent 50 commandes/mois pendant 3 mois consécutifs gagnent un surclassement gratuit.
+                    </p>
+                  </div>
+                  <button 
+                    (click)="simulateEndOfMonthBilling()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4.5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2">
+                    <mat-icon class="text-sm">schedule_send</mat-icon> Simuler une Transition Fin de Mois
+                  </button>
+                </div>
+
+                <!-- Admin Partners Matrix Table -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
+                  <div class="p-4 bg-slate-100 border-b border-slate-200 text-left">
+                    <strong class="text-xs text-slate-800 uppercase tracking-tight">Matrice Contractuelle en Direct (Tunisie)</strong>
+                  </div>
+
+                  <div class="overflow-x-auto text-left">
+                    <table class="w-full text-xs" id="adminPartnersMatrix">
+                      <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold">
+                          <th class="py-2.5 px-4">Boutique partenaire</th>
+                          <th class="py-2.5 px-4 font-medium">Formule Actuelle</th>
+                          <th class="py-2.5 px-4 select-all text-center">Volume Comm. / Taux d'Annulation</th>
+                          <th class="py-2.5 px-4 text-center">Note Clients / Warns</th>
+                          <th class="py-2.5 px-4 text-center">Bonus consécutifs</th>
+                          <th class="py-2.5 px-4 text-right">Actions de Contrôle Rapides</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-150 bg-white">
+                        @for (u of users(); track u.id) {
+                          @if (u.role === 'company') {
+                            <tr class="hover:bg-slate-50/60">
+                              <td class="py-3 px-4 font-bold text-slate-800">
+                                <div class="flex items-center gap-1.5">
+                                  <span>{{ u.name }}</span>
+                                  @if (u.planId === 'pro' || u.planId === 'premium') {
+                                    <mat-icon class="text-indigo-600 text-xs" title="Partenaire Vérifié">verified</mat-icon>
+                                  }
+                                </div>
+                                <span class="text-[9px] text-slate-400 font-mono block">Code : {{ u.referralCode || 'N/A' }}</span>
+                              </td>
+                              <td class="py-3 px-4">
+                                <select 
+                                  #planSelect
+                                  (change)="adminUpdateUserPlanDetails(u.id, { planId: $any(planSelect.value) })"
+                                  class="bg-white border border-slate-200 p-1 rounded font-bold text-[10px]">
+                                  <option value="starter" [selected]="u.planId === 'starter'">starter (HT 149 TND)</option>
+                                  <option value="pro" [selected]="u.planId === 'pro' || !u.planId">pro (HT 349 TND)</option>
+                                  <option value="premium" [selected]="u.planId === 'premium'">premium (HT 790 TND)</option>
+                                </select>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Volume override inputs -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #volInput
+                                      type="number"
+                                      [value]="u.monthlyOrdersCount || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { monthlyOrdersCount: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Vol / m</span>
+                                  </div>
+
+                                  <!-- Cancellation Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #cancelInput
+                                      type="number"
+                                      step="0.5"
+                                      [value]="u.cancellationRate || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { cancellationRate: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Annul %</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Rating input -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #rateInput
+                                      type="number"
+                                      step="0.1"
+                                      [value]="u.averageRating || 5.0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { averageRating: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Note★</span>
+                                  </div>
+
+                                  <!-- Warnings Count -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #warnInput
+                                      type="number"
+                                      [value]="u.nonConformingWarningsCount || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { nonConformingWarningsCount: $any($event.target).valueAsNumber })"
+                                      class="w-9 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Warns</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-mono">{{ u.consecutiveMonthsCount ?? 0 }} / 3 mois</span>
+                                <span class="text-[9px] text-slate-400 block mt-0.5">&gt;= 50 comms/m</span>
+                              </td>
+                              <td class="py-3 px-4 text-right">
+                                <div class="flex justify-end gap-1">
+                                  <button 
+                                    (click)="adminUpdateUserPlanDetails(u.id, { isVerifiedPartner: !u.isVerifiedPartner })"
+                                    [class]="u.isVerifiedPartner ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'"
+                                    class="px-2 py-1 rounded font-bold text-[10px] flex items-center gap-0.5 leading-none">
+                                    <mat-icon class="text-[10px] leading-none">verified</mat-icon>
+                                    {{ u.isVerifiedPartner ? 'Vérifié' : 'Vérifier' }}
+                                  </button>
+                                  <button 
+                                    (click)="toggleUserActivation(u)"
+                                    [class]="u.status === 'active' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'"
+                                    class="px-2 py-1 rounded font-bold text-[10px] leading-none">
+                                    {{ u.status === 'active' ? 'Restreindre' : 'Activer' }}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          }
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Admin Delivery Drivers Matrix Table -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden mt-6">
+                  <div class="p-4 bg-slate-100 border-b border-slate-200 text-left flex items-center justify-between">
+                    <strong class="text-xs text-slate-800 uppercase tracking-tight">Matrice d'Engagement des Livreurs (Tunisie)</strong>
+                    <span class="text-[10px] text-indigo-700 bg-indigo-50 font-bold px-2 py-0.5 rounded">Objectif : >= 60 livs/m pour upgrade gratuit</span>
+                  </div>
+
+                  <div class="overflow-x-auto text-left">
+                    <table class="w-full text-xs" id="adminDriversMatrix">
+                      <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold">
+                          <th class="py-2.5 px-4">Livreur Coursier</th>
+                          <th class="py-2.5 px-4 font-medium">Forfait Actuel</th>
+                          <th class="py-2.5 px-4 text-center">Vol. Livraisons / Annul. %</th>
+                          <th class="py-2.5 px-4 text-center">Note★ / Alert Inactivité</th>
+                          <th class="py-2.5 px-4 text-center">Warns / Consécutifs</th>
+                          <th class="py-2.5 px-4 text-right">Fiche Financière / Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-150 bg-white">
+                        @for (u of users(); track u.id) {
+                          @if (u.role === 'driver') {
+                            <tr class="hover:bg-slate-50/60">
+                              <td class="py-3 px-4 font-bold text-slate-800">
+                                <div class="flex items-center gap-1.5">
+                                  <span>{{ u.name }}</span>
+                                  @if (u.driverPlanId === 'pro' || u.driverPlanId === 'partenaire') {
+                                    <mat-icon class="text-violet-600 text-xs" title="Livreur Certifié">verified</mat-icon>
+                                  }
+                                </div>
+                                <span class="text-[9px] text-slate-400 font-mono block">Tél : {{ u.phone || 'N/A' }}</span>
+                              </td>
+                              <td class="py-3 px-4">
+                                <select 
+                                  #drvPlanSelect
+                                  (change)="adminUpdateUserPlanDetails(u.id, { driverPlanId: $any(drvPlanSelect.value) })"
+                                  class="bg-white border border-slate-200 p-1 rounded font-bold text-[10px] text-violet-700">
+                                  <option value="freelance" [selected]="u.driverPlanId === 'freelance' || !u.driverPlanId">freelance (0 TND)</option>
+                                  <option value="partenaire" [selected]="u.driverPlanId === 'partenaire'">partenaire (49 TND)</option>
+                                  <option value="pro" [selected]="u.driverPlanId === 'pro'">pro (119 TND)</option>
+                                </select>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Volume override inputs -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverMonthlyDeliveriesCount || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { driverMonthlyDeliveriesCount: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Livs / m</span>
+                                  </div>
+
+                                  <!-- Cancellation Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      step="0.5"
+                                      [value]="u.driverCancellationRate || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { driverCancellationRate: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Annul %</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Rating input -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      step="0.1"
+                                      [value]="u.driverAverageRating || 5.0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { driverAverageRating: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Note★</span>
+                                  </div>
+
+                                  <!-- Inactivity Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverInactivityDays || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { driverInactivityDays: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Inactif d</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Warnings -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverNonConformingWarningsCount || 0"
+                                      (change)="adminUpdateUserPlanDetails(u.id, { driverNonConformingWarningsCount: $any($event.target).valueAsNumber })"
+                                      class="w-9 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Warns</span>
+                                  </div>
+
+                                  <!-- Consecutive Months -->
+                                  <div class="flex flex-col items-center">
+                                    <span class="text-[11px] font-black text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded font-mono">{{ u.driverConsecutiveMonthsCount ?? 0 }}/3 m</span>
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-1">SLA ok</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-right">
+                                <div class="flex flex-col items-end gap-1.5">
+                                  <div class="text-[11px]">
+                                    <span class="text-slate-400">Net estimé :</span>
+                                    <strong class="text-emerald-600 font-extrabold ml-1 font-mono">{{ calculateDriverRealTimePayout(u).net.toFixed(1) }} TND</strong>
+                                  </div>
+                                  <div class="flex justify-end gap-1">
+                                    <button 
+                                      (click)="toggleUserActivation(u)"
+                                      [class]="u.status === 'active' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'"
+                                      class="px-2 py-0.5 rounded font-bold text-[10px] leading-none">
+                                      {{ u.status === 'active' ? 'Restreindre' : 'Activer' }}
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          }
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
             </div>
           }
 
@@ -612,7 +890,7 @@
                               <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded text-white" [style.backgroundColor]="prod.companyColor">
                                 {{ prod.companyName }}
                               </span>
-                              <span class="text-xs font-bold">{{ prod.price?.toFixed(2) }}€</span>
+                              <span class="text-xs font-bold">{{ prod.price?.toFixed(2) }} DTN</span>
                             </div>
                             <h4 class="text-sm font-bold text-slate-800">{{ prod.name }}</h4>
                             <p class="text-[11px] text-slate-500 line-clamp-2 leading-tight">{{ prod.description }}</p>
@@ -1019,7 +1297,7 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
               <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Ventes Nettes</span>
-              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.salesSum?.toFixed(2) }}€</p>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.salesSum?.toFixed(2) }} DTN</p>
             </div>
             <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
               <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Produits enregistrés</span>
@@ -1058,7 +1336,7 @@
                       </div>
 
                       <div class="text-right flex flex-col items-end gap-1">
-                        <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} € (+ {{ o.driverFee?.toFixed(2) }}€ de livraison)</span>
+                        <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} DTN (+ {{ o.driverFee?.toFixed(2) }} DTN de livraison)</span>
                         
                         <!-- Status Pills -->
                         <span class="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded leading-none"
@@ -1087,9 +1365,9 @@
                             <div class="p-2.5 text-xs flex justify-between items-center bg-slate-50/50">
                               <div>
                                 <strong class="text-slate-800 font-bold">{{ item.productName }}</strong>
-                                <span class="text-slate-400 block text-[10px]">{{ item.price?.toFixed(2) }}€ x {{ item.quantity }}</span>
+                                <span class="text-slate-400 block text-[10px]">{{ item.price?.toFixed(2) }} DTN x {{ item.quantity }}</span>
                               </div>
-                              <span class="font-mono font-bold text-slate-700">{{ (item.price * item.quantity)?.toFixed(2) }}€</span>
+                              <span class="font-mono font-bold text-slate-700">{{ (item.price * item.quantity)?.toFixed(2) }} DTN</span>
                             </div>
                           }
                         </div>
@@ -1120,7 +1398,7 @@
                                           ★ {{ drv.rating }}
                                         </span>
                                       </div>
-                                      <p class="text-[10px] text-slate-400">Frais: {{ drv.calculatedFee || drv.baseFee || 4.50 }}€</p>
+                                      <p class="text-[10px] text-slate-400">Frais: {{ drv.calculatedFee || drv.baseFee || 4.50 }} DTN</p>
                                     </div>
                                     <button 
                                       (click)="assignDriverToOrder(o.id, drv)"
@@ -1151,7 +1429,7 @@
                                 </div>
                                 <div class="text-xs">
                                   <p class="font-bold text-slate-800">{{ o.driverName }}</p>
-                                  <p class="text-[10px] text-slate-400">Course payée : +{{ o.driverFee?.toFixed(2) }}€</p>
+                                  <p class="text-[10px] text-slate-400">Course payée : +{{ o.driverFee?.toFixed(2) }} DTN</p>
                                 </div>
                               </div>
 
@@ -1234,7 +1512,7 @@
                       class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
                   </div>
                   <div class="flex flex-col gap-1">
-                    <span class="text-[10px] uppercase font-bold text-slate-500">Prix unitaire (€)</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Prix unitaire (DTN)</span>
                     <input 
                       type="number" 
                       step="0.01" 
@@ -1309,7 +1587,7 @@
                           </div>
                         </td>
                         <td class="py-3 px-4 text-slate-500 font-medium">{{ p.category }}</td>
-                        <td class="py-3 px-4 font-bold">{{ p.price?.toFixed(2) }}€</td>
+                        <td class="py-3 px-4 font-bold">{{ p.price?.toFixed(2) }} DTN</td>
                         <td class="py-3 px-4">
                           <div class="flex items-center gap-1.5 font-bold">
                             <span class="h-1.5 w-1.5 rounded-full" [class]="p.stock <= p.threshold ? 'bg-rose-500 animate-ping':'bg-emerald-500'"></span>
@@ -1431,38 +1709,787 @@
 
           <!-- TAB CONTENT 3: Offres de la plateformes -->
           @if (companyCurrentTab() === 'offers') {
-            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-              <h3 class="text-base font-extrabold text-slate-900 mb-1">Nos Conditions Commerciales & Abonnements Activés</h3>
-              <p class="text-xs text-slate-500 mb-6 font-medium">L'administrateur définit des offres de partenariats personnalisés. Consultez vos frais d'accès et taux de commission.</p>
+            <div class="space-y-6 animate-in fade-in">
+              
+              <!-- Tunisian Pricing & Subscriptions Policy Header -->
+              <div class="bg-gradient-to-r from-emerald-600 via-indigo-600 to-slate-900 rounded-3xl p-6 text-white shadow-md text-left relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                  <mat-icon class="text-[200px] leading-none">business</mat-icon>
+                </div>
+                <span class="bg-white/20 text-white font-extrabold text-[10px] uppercase px-3 py-1 rounded-full inline-block mb-3 backdrop-blur-sm">
+                  Conditions Commerciales & Abonnements Tunisie
+                </span>
+                <h3 class="text-2xl font-black tracking-tight leading-tight">Portail de Tarification & Simulateur de Volume</h3>
+                <p class="text-xs text-white/80 mt-1 max-w-2xl leading-relaxed">
+                  Notre modèle s'adapte à votre croissance. Les abonnements fixes se règlent en Dinars Tunisiens (TND) HT (TVA 19%). Les paliers de commandes mensuelles réduisent automatiquement vos commissions de vente.
+                </p>
+                
+                <div class="flex flex-wrap items-center gap-4 mt-4 text-[11px] font-bold border-t border-white/10 pt-4 text-white/90">
+                  <span class="flex items-center gap-1"><mat-icon class="text-xs">payments</mat-icon> Gateways : Konnect, Paymee</span>
+                  <span class="text-white/30">•</span>
+                  <span class="flex items-center gap-1"><mat-icon class="text-xs">account_balance</mat-icon> Autres : Virement National, Chèque</span>
+                  <span class="text-white/30">•</span>
+                  <span class="flex items-center gap-1 text-yellow-300"><mat-icon class="text-xs font-semibold">stars</mat-icon> Booster de Palier Intégré</span>
+                </div>
+              </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @for (of of offers(); track of.id) {
-                  <div class="border border-slate-200 p-5 rounded-2xl flex flex-col justify-between"
-                    [class]="of.targetCompanyId === api.currentUser()?.id ? 'border-amber-400 bg-amber-50/10 shadow-md': 'border-slate-100 bg-slate-50/50'">
-                    
-                    <div>
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <strong class="text-sm font-bold text-slate-900">{{ of.title }}</strong>
-                        @if (of.targetCompanyId === api.currentUser()?.id) {
-                          <span class="bg-amber-100 text-amber-700 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wide">VOTRE CONTRAT SIGNÉ</span>
-                        }
+              <!-- Main Section Splitter -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Details & Simulator: Col 1 & 2 -->
+                <div class="lg:col-span-2 space-y-6 text-left">
+                  
+                  <!-- Subscriber Plan Cards Selection -->
+                  <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                      <div>
+                        <h4 class="text-sm font-extrabold text-slate-900 uppercase tracking-tight">Nos 3 Plans Complémentaires</h4>
+                        <p class="text-xs text-slate-500">Choisissez la formule correspondant à l'envergure de votre catalogue.</p>
                       </div>
-                      <p class="text-xs text-slate-500 mb-4">{{ of.description || 'Frais de gestion et d’accès standards appliqués.' }}</p>
+                      <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">TND (HT)</span>
                     </div>
 
-                    <div class="bg-white p-3 rounded-xl border border-slate-100/80 flex items-center justify-around text-center text-xs">
-                      <div>
-                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Taux Commission</span>
-                        <strong class="text-emerald-600 font-extrabold text-base">{{ of.commissionRate }}%</strong>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      
+                      <!-- Starter Plan Card -->
+                      <div class="border rounded-2xl p-4 flex flex-col justify-between transition-all"
+                        [class]="api.currentUser()?.planId === 'starter' ? 'border-emerald-500 bg-emerald-50/5 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">Starter</span>
+                            @if (api.currentUser()?.planId === 'starter') {
+                              <span class="bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase">Actif</span>
+                            }
+                          </div>
+                          <div class="text-slate-900 mb-2">
+                            <span class="text-xl font-black">149 TND</span>
+                            <span class="text-[10px] text-slate-400">/mois</span>
+                          </div>
+                          <p class="text-[10px] text-slate-500 leading-tight mb-3">Idéal pour les petites structures tunisiennes qui débutent.</p>
+                          
+                          <div class="space-y-1.5 border-t border-slate-100 pt-2 text-[10px] text-slate-600 mb-4">
+                            <span class="flex items-center gap-1 font-medium text-slate-700"><mat-icon class="text-xs text-emerald-600">check_circle</mat-icon> Max 30 produits</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-emerald-600">check_circle</mat-icon> Commission 8% /commande</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-emerald-600">check_circle</mat-icon> 1 compte principal</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-emerald-600">check_circle</mat-icon> 2 sous-comptes</span>
+                            <span class="flex items-center gap-1 text-slate-400 line-through"><mat-icon class="text-xs text-slate-300">cancel</mat-icon> Badge vérifié</span>
+                            <span class="flex items-center gap-1 text-slate-400"><mat-icon class="text-xs">info_outline</mat-icon> Frais entrée : 50 TND</span>
+                          </div>
+                        </div>
+
+                        <button 
+                          (click)="openSubscriptionCheckout('starter', 'monthly')"
+                          [class]="api.currentUser()?.planId === 'starter' ? 'w-full bg-slate-100 text-slate-600 cursor-not-allowed font-bold text-[10px] py-1.5 rounded-lg' : 'w-full bg-slate-900 text-white hover:bg-slate-800 font-bold text-[10px] py-1.5 rounded-lg transition-colors'">
+                          {{ api.currentUser()?.planId === 'starter' ? 'Plan Sélectionné' : 'Choisir Starter' }}
+                        </button>
                       </div>
-                      <div class="w-px h-6 bg-slate-200"></div>
+
+                      <!-- Pro Plan Card -->
+                      <div class="border rounded-2xl p-4 flex flex-col justify-between transition-all relative overflow-hidden"
+                        [class]="api.currentUser()?.planId === 'pro' || !api.currentUser()?.planId ? 'border-indigo-600 bg-indigo-50/5 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                        <div class="absolute right-0 top-0 bg-indigo-600 text-white font-extrabold text-[7px] py-0.5 px-2 rounded-bl-lg uppercase tracking-wide">
+                          Recommandé
+                        </div>
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-indigo-700">Pro</span>
+                            @if (api.currentUser()?.planId === 'pro' || !api.currentUser()?.planId) {
+                              <span class="bg-indigo-100 text-indigo-800 text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase">Actif</span>
+                            }
+                          </div>
+                          <div class="text-slate-900 mb-2">
+                            <span class="text-xl font-black">349 TND</span>
+                            <span class="text-[10px] text-slate-400">/mois</span>
+                          </div>
+                          <p class="text-[10px] text-slate-500 leading-tight mb-3">Le cœur de marché. Apporte le badge de confiance sur le catalogue.</p>
+                          
+                          <div class="space-y-1.5 border-t border-slate-100 pt-2 text-[10px] text-slate-600 mb-4">
+                            <span class="flex items-center gap-1 font-medium text-indigo-900"><mat-icon class="text-xs text-indigo-600">verified</mat-icon> Max 200 produits</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-indigo-600">check_circle</mat-icon> Commission 6% /commande</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-indigo-600">check_circle</mat-icon> Badge Partenaire vérifié</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-indigo-600">check_circle</mat-icon> 10 sous-comptes</span>
+                            <span class="flex items-center gap-1 text-slate-700 font-bold"><mat-icon class="text-xs text-indigo-600">trending_up</mat-icon> Stats avancées</span>
+                            <span class="flex items-center gap-1 text-slate-500"><mat-icon class="text-xs">info_outline</mat-icon> Frais entrée : 100 TND</span>
+                          </div>
+                        </div>
+
+                        <button 
+                          (click)="openSubscriptionCheckout('pro', 'monthly')"
+                          [class]="api.currentUser()?.planId === 'pro' || !api.currentUser()?.planId ? 'w-full bg-slate-100 text-slate-600 cursor-not-allowed font-bold text-[10px] py-1.5 rounded-lg' : 'w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold text-[10px] py-1.5 rounded-lg transition-colors'">
+                          {{ api.currentUser()?.planId === 'pro' || !api.currentUser()?.planId ? 'Plan Sélectionné' : 'Choisir Pro' }}
+                        </button>
+                      </div>
+
+                      <!-- Premium Plan Card -->
+                      <div class="border rounded-2xl p-4 flex flex-col justify-between transition-all"
+                        [class]="api.currentUser()?.planId === 'premium' ? 'border-amber-500 bg-amber-50/5 ring-1 ring-amber-500' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-amber-700">Premium</span>
+                            @if (api.currentUser()?.planId === 'premium') {
+                              <span class="bg-amber-100 text-amber-800 text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase">Actif</span>
+                            }
+                          </div>
+                          <div class="text-slate-900 mb-2">
+                            <span class="text-xl font-black">790 TND</span>
+                            <span class="text-[10px] text-slate-400">/mois</span>
+                          </div>
+                          <p class="text-[10px] text-slate-500 leading-tight mb-3">Pour les grandes enseignes tunisiennes à volume élevé.</p>
+                          
+                          <div class="space-y-1.5 border-t border-slate-100 pt-2 text-[10px] text-slate-600 mb-4">
+                            <span class="flex items-center gap-1 font-bold text-slate-800"><mat-icon class="text-xs text-amber-600">all_inclusive</mat-icon> Produits illimités</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-amber-600">check_circle</mat-icon> Commission 4% /commande</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-amber-600">check_circle</mat-icon> Couleur exclusivité</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-amber-600">check_circle</mat-icon> Sous-comptes illimités</span>
+                            <span class="flex items-center gap-1"><mat-icon class="text-xs text-amber-600">check_circle</mat-icon> Sync API & Manager</span>
+                            <span class="flex items-center gap-1 text-emerald-600 font-bold"><mat-icon class="text-xs text-emerald-600">done_all</mat-icon> Frais d'entrée Offerts</span>
+                          </div>
+                        </div>
+
+                        <button 
+                          (click)="openSubscriptionCheckout('premium', 'monthly')"
+                          [class]="api.currentUser()?.planId === 'premium' ? 'w-full bg-slate-100 text-slate-600 cursor-not-allowed font-bold text-[10px] py-1.5 rounded-lg' : 'w-full bg-slate-900 text-white hover:bg-slate-800 font-bold text-[10px] py-1.5 rounded-lg transition-colors'">
+                          {{ api.currentUser()?.planId === 'premium' ? 'Plan Sélectionné' : 'Choisir Premium' }}
+                        </button>
+                      </div>
+
+                    </div>
+                    
+                    <div class="bg-amber-50 rounded-xl p-3 border border-amber-200/50 mt-4 text-[10.5px] text-amber-900 leading-tight flex items-start gap-2">
+                      <mat-icon class="text-amber-700 text-sm mt-0.5">percent</mat-icon>
+                      <p>
+                        <strong>Option de Facturation Annuelle :</strong> Payez en une seule fois pour 1 an et bénéficiez de <strong>2 mois offerts</strong> (ex : Starter à 1490 TND/an au lieu de 1788 TND). Configurable lors du checkout.
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Dynamic Monthly Volume Milestones & Commission Simulator -->
+                  <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+                    <div class="flex items-center gap-3 mb-4">
+                      <span class="p-2 bg-indigo-50 text-indigo-700 rounded-xl">
+                        <mat-icon>dashboard_customize</mat-icon>
+                      </span>
                       <div>
-                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Frais d'Adhésion</span>
-                        <strong class="text-slate-700 font-extrabold text-base">{{ of.entryFee }}€</strong>
+                        <h4 class="text-sm font-extrabold text-slate-900 uppercase">Simulateur Interactif de Paliers & Commissions</h4>
+                        <p class="text-xs text-slate-500">Ajustez les curseurs pour observer l'adaptation instantanée de votre taux commercial réglé par contrat.</p>
+                      </div>
+                    </div>
+
+                    <!-- Simulator Controls -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4 mb-6">
+                      
+                      <!-- Row A: Volume Slider -->
+                      <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                          <span class="font-bold text-slate-700">Volume de commandes mensuelles estimé</span>
+                          <span class="bg-slate-900 text-white px-2 py-0.5 rounded font-bold text-[11px] font-mono">
+                            {{ simulatedOrdersVolumeCount() }} commandes /mois
+                          </span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="250" 
+                          step="1" 
+                          [value]="simulatedOrdersVolumeCount()"
+                          (input)="simulatedOrdersVolumeCount.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer" />
+                        <div class="flex justify-between text-[8px] text-slate-400 font-bold px-1 uppercase">
+                          <span>0 (Normal)</span>
+                          <span>Palier 50 (-1% com)</span>
+                          <span>Palier 100 (-2% com)</span>
+                          <span>Palier 200 (-3% com)</span>
+                        </div>
+                      </div>
+
+                      <!-- Sub Row: Other Metrics Controls -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200/50">
+                        <!-- Cancellation rate slider -->
+                        <div class="flex flex-col gap-1 text-xs">
+                          <div class="flex justify-between font-bold text-slate-600">
+                            <span>Taux d'annulation simulé</span>
+                            <span [class]="simulatedCancellationRate() > 10 ? 'text-rose-600 font-extrabold' : 'text-slate-800'">
+                              {{ simulatedCancellationRate() }}% 
+                              @if (simulatedCancellationRate() > 10) { (Pénalité +2%) }
+                            </span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="25" 
+                            step="0.5" 
+                            [value]="simulatedCancellationRate()"
+                            (input)="simulatedCancellationRate.set($any($event.target).valueAsNumber)"
+                            class="w-full accent-rose-500 h-1.5 bg-slate-200 rounded-lg cursor-pointer" />
+                        </div>
+
+                        <!-- Rating slider -->
+                        <div class="flex flex-col gap-1 text-xs">
+                          <div class="flex justify-between font-bold text-slate-600">
+                            <span>Note moyenne client</span>
+                            <span [class]="simulatedClientRating() < 3 ? 'text-rose-600 font-extrabold animate-pulse' : 'text-slate-800'">
+                              ★ {{ simulatedClientRating().toFixed(1) }} / 5.0
+                            </span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="1.0" 
+                            max="5.0" 
+                            step="0.1" 
+                            [value]="simulatedClientRating()"
+                            (input)="simulatedClientRating.set($any($event.target).valueAsNumber)"
+                            class="w-full h-1.5 accent-amber-500 bg-slate-200 rounded-lg cursor-pointer" />
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center gap-2 pt-2 border-t border-slate-200/45">
+                        <p class="text-[10px] text-slate-500">
+                          Cliquez pour envoyer ces indicateurs à votre base et actualiser vos droits et bonus :
+                        </p>
+                        <button 
+                          (click)="syncSimulationMetrics()"
+                          class="bg-slate-900 shadow-sm hover:bg-slate-800 text-white font-bold text-[10px] px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5">
+                          <mat-icon class="text-xs">sync</mat-icon> Appliquer l'état simulé
+                        </button>
+                      </div>
+
+                    </div>
+
+                    <!-- Dynamic Outputs Calculations Display -->
+                    <div class="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      <!-- Col A: Live commission calculator -->
+                      <div class="bg-indigo-50/40 border border-indigo-100 rounded-2xl p-4">
+                        <span class="text-[9px] font-extrabold uppercase text-indigo-500 block mb-2 tracking-wider">Calculateur de Commission Prise en Charge</span>
+                        
+                        <!-- Base -->
+                        <div class="flex items-center justify-between text-xs text-slate-600 py-1 border-b border-indigo-100/50">
+                          <span>Taux de base (Plan {{ (api.currentUser()?.planId || 'pro').toUpperCase() }})</span>
+                          <strong>
+                            {{ (api.currentUser()?.planId === 'starter' ? 8 : (api.currentUser()?.planId === 'premium' ? 4 : 6)) }}%
+                          </strong>
+                        </div>
+
+                        <!-- Reduction Volume -->
+                        <div class="flex items-center justify-between text-xs py-1 border-b border-indigo-100/50">
+                          <span class="flex items-center gap-1 text-emerald-700 font-medium">
+                            <mat-icon class="text-xs">trending_down</mat-icon>
+                            Rabais de Volume ({{ simulatedOrdersVolumeCount() }} commandes)
+                          </span>
+                          <strong class="text-emerald-600">
+                            -{{ (simulatedOrdersVolumeCount() >= 200 ? 3 : (simulatedOrdersVolumeCount() >= 100 ? 2 : (simulatedOrdersVolumeCount() >= 50 ? 1 : 0))) }}%
+                          </strong>
+                        </div>
+
+                        <!-- Penalty cancel rate -->
+                        <div class="flex items-center justify-between text-xs py-1 border-b border-indigo-100/50">
+                          <span class="flex items-center gap-1 font-medium" [class]="simulatedCancellationRate() > 10 ? 'text-rose-700' : 'text-slate-400'">
+                            <mat-icon class="text-xs">warning_amber</mat-icon>
+                            Pénalité annulation (> 10%)
+                          </span>
+                          <strong [class]="simulatedCancellationRate() > 10 ? 'text-rose-600 font-extrabold' : 'text-slate-400'">
+                            +{{ (simulatedCancellationRate() > 10 ? 2 : 0) }}%
+                          </strong>
+                        </div>
+
+                        <!-- Final Commission -->
+                        <div class="flex items-center justify-between text-sm py-2 text-slate-900 font-black">
+                          <span class="text-indigo-800">Taux Commission Effectif :</span>
+                          <span class="text-lg bg-indigo-600 text-white rounded px-2 py-0.5">
+                            {{ 
+                              (api.currentUser()?.planId === 'starter' ? 8 : (api.currentUser()?.planId === 'premium' ? 4 : 6))
+                              - (simulatedOrdersVolumeCount() >= 200 ? 3 : (simulatedOrdersVolumeCount() >= 100 ? 2 : (simulatedOrdersVolumeCount() >= 50 ? 1 : 0)))
+                              + (simulatedCancellationRate() > 10 ? 2 : 0)
+                            }}%
+                          </span>
+                        </div>
+
+                        <!-- Tunisian Simulation Cash representation -->
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-100 text-[10px] text-slate-500 mt-2">
+                          Pour un panier d'affaires de <strong>5 000 TND</strong> de produits livrés, commission de 
+                          <strong class="text-slate-800">
+                            {{ 
+                              (5000 * (
+                                (api.currentUser()?.planId === 'starter' ? 8 : (api.currentUser()?.planId === 'premium' ? 4 : 6))
+                                - (simulatedOrdersVolumeCount() >= 200 ? 3 : (simulatedOrdersVolumeCount() >= 100 ? 2 : (simulatedOrdersVolumeCount() >= 50 ? 1 : 0)))
+                                + (simulatedCancellationRate() > 10 ? 2 : 0)
+                              ) / 100).toFixed(1)
+                            }} TND
+                          </strong>. Votre gain direct versé est de 
+                          <strong class="text-indigo-600">
+                            {{
+                              (5000 * (1 - (
+                                (api.currentUser()?.planId === 'starter' ? 8 : (api.currentUser()?.planId === 'premium' ? 4 : 6))
+                                - (simulatedOrdersVolumeCount() >= 200 ? 3 : (simulatedOrdersVolumeCount() >= 100 ? 2 : (simulatedOrdersVolumeCount() >= 50 ? 1 : 0)))
+                                + (simulatedCancellationRate() > 10 ? 2 : 0)
+                              ) / 100)).toFixed(1)
+                            }} TND
+                          </strong> HT.
+                        </div>
+                      </div>
+
+                      <!-- Col B: Triggered Bonuses Status checklist -->
+                      <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50/50">
+                        <span class="text-[9px] font-extrabold uppercase text-slate-500 block mb-2 tracking-wider">Avantages & Récompenses Déclenchés</span>
+                        
+                        <div class="space-y-2 text-xs">
+                          
+                          <!-- Bonus 1 -->
+                          <div class="flex items-center gap-2.5 p-1.5 rounded-lg border bg-white"
+                            [class]="simulatedOrdersVolumeCount() >= 50 ? 'border-emerald-200 bg-emerald-50/5' : 'border-slate-100 text-slate-400'">
+                            <mat-icon class="text-sm" [class]="simulatedOrdersVolumeCount() >= 50 ? 'text-emerald-600' : 'text-slate-300'">
+                              {{ simulatedOrdersVolumeCount() >= 50 ? 'lock_open' : 'lock' }}
+                            </mat-icon>
+                            <div>
+                              <p class="font-bold flex items-center gap-1.5" [class]="simulatedOrdersVolumeCount() >= 50 ? 'text-slate-800' : 'text-slate-400'">
+                                Bonus Produits : +5 Réf
+                              </p>
+                              <p class="text-[9px] text-slate-400">Débloqué à partir de 50 commandes/mois</p>
+                            </div>
+                          </div>
+
+                          <!-- Bonus 2 -->
+                          <div class="flex items-center gap-2.5 p-1.5 rounded-lg border bg-white"
+                            [class]="simulatedOrdersVolumeCount() >= 100 ? 'border-emerald-200 bg-emerald-50/5' : 'border-slate-100 text-slate-400'">
+                            <mat-icon class="text-sm" [class]="simulatedOrdersVolumeCount() >= 100 ? 'text-emerald-600' : 'text-slate-300'">
+                              {{ simulatedOrdersVolumeCount() >= 100 ? 'lock_open' : 'lock' }}
+                            </mat-icon>
+                            <div>
+                              <p class="font-bold flex items-center gap-1.5" [class]="simulatedOrdersVolumeCount() >= 100 ? 'text-slate-800' : 'text-slate-400'">
+                                Option -50% Prochain Mois
+                              </p>
+                              <p class="text-[9px] text-slate-400">Débloqué à partir de 100 commandes/mois</p>
+                            </div>
+                          </div>
+
+                          <!-- Bonus 3 -->
+                          <div class="flex items-center gap-2.5 p-1.5 rounded-lg border bg-white"
+                            [class]="api.currentUser()?.consecutiveMonthsCount && api.currentUser()!.consecutiveMonthsCount! >= 3 ? 'border-indigo-200 bg-indigo-50/5' : 'border-slate-100 text-slate-400'">
+                            <mat-icon class="text-sm" [class]="api.currentUser()?.consecutiveMonthsCount && api.currentUser()!.consecutiveMonthsCount! >= 3 ? 'text-indigo-600' : 'text-slate-300'">
+                              {{ api.currentUser()?.consecutiveMonthsCount && api.currentUser()!.consecutiveMonthsCount! >= 3 ? 'lock_open' : 'lock' }}
+                            </mat-icon>
+                            <div>
+                              <p class="font-bold flex items-center gap-1.5" [class]="api.currentUser()?.consecutiveMonthsCount && api.currentUser()!.consecutiveMonthsCount! >= 3 ? 'text-slate-800' : 'text-slate-400'">
+                                Upgrade de Plan Gratuit
+                              </p>
+                              <p class="text-[9px] text-slate-400">
+                                Tenir >= 50 comm. pendant 3 mois. Actuel : {{ api.currentUser()?.consecutiveMonthsCount ?? 0 }}/3 mois.
+                              </p>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Right Sidebar Health, Penalties & Sponsorship: Col 3 -->
+                <div class="space-y-6 text-left">
+                  
+                  <!-- Account Contractual Health Check (Sante & Alertes) -->
+                  <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                    <h4 class="text-sm font-extrabold text-slate-900 uppercase tracking-tight mb-3 flex items-center gap-2">
+                      <mat-icon class="text-rose-500">health_and_safety</mat-icon>
+                      Santé Contractuelle & Alertes
+                    </h4>
+                    
+                    <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+                      L'administrateur supervise les exigences de confiance. Un manquement déclenche une restriction de catalogue ou une hausse de frais de service.
+                    </p>
+
+                    <div class="space-y-3">
+                      
+                      <!-- Rule A: Cancellation rate -->
+                      <div class="p-3 rounded-xl border flex items-center justify-between text-xs"
+                        [class]="(api.currentUser()?.cancellationRate ?? 0) > 10 ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-slate-100 bg-slate-50 text-slate-700'">
+                        <div class="space-y-0.5">
+                          <strong class="font-bold block text-[11px]">Taux d'annulation</strong>
+                          <span class="text-[10px] text-slate-500">Maximum autorisé : 10%</span>
+                        </div>
+                        <div class="text-right">
+                          <span class="font-black font-mono block text-sm">{{ api.currentUser()?.cancellationRate ?? 0 }}%</span>
+                          @if ((api.currentUser()?.cancellationRate ?? 0) > 10) {
+                            <span class="bg-rose-100 text-rose-700 font-bold text-[8px] px-1 py-0.2 rounded uppercase">Pénalité active</span>
+                          } @else {
+                            <span class="text-emerald-700 font-bold text-[9px]">Conforme</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Rule B: Notes Client -->
+                      <div class="p-3 rounded-xl border flex items-center justify-between text-xs"
+                        [class]="(api.currentUser()?.averageRating ?? 5) < 3.0 ? 'border-rose-200 bg-rose-50 text-rose-900 animate-pulse' : 'border-slate-100 bg-slate-50 text-slate-700'">
+                        <div class="space-y-0.5">
+                          <strong class="font-bold block text-[11px]">Avis clients moyen</strong>
+                          <span class="text-[10px] text-slate-500">Limite contractuelle : 3/5</span>
+                        </div>
+                        <div class="text-right">
+                          <span class="font-black block text-sm">★ {{ api.currentUser()?.averageRating ?? 5 }} / 5</span>
+                          @if ((api.currentUser()?.averageRating ?? 5) < 3.0) {
+                            <span class="bg-rose-100 text-rose-700 font-bold text-[7px] px-1 py-0.2 rounded uppercase block">Audit obligatoire</span>
+                          } @else {
+                            <span class="text-emerald-700 font-bold text-[9px]">Excellente</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Rule C: Inactivity and Delays -->
+                      <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 text-slate-700 text-xs text-left space-y-2">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block tracking-wide">Autres seuils critiques :</span>
+                        
+                        <div class="flex justify-between items-center text-[10.5px]">
+                          <span class="text-slate-600 block">Jours d'inactivité :</span>
+                          <strong [class]="(api.currentUser()?.inactivityDays ?? 0) > 30 ? 'text-rose-600' : 'text-slate-800'">
+                            {{ api.currentUser()?.inactivityDays ?? 2 }} jours / 30j max
+                          </strong>
+                        </div>
+
+                        <div class="flex justify-between items-center text-[10.5px]">
+                          <span class="text-slate-600 block">Warnings produits non-conforme :</span>
+                          <strong [class]="(api.currentUser()?.nonConformingWarningsCount ?? 0) > 0 ? 'text-amber-600' : 'text-slate-800'">
+                            {{ api.currentUser()?.nonConformingWarningsCount ?? 0 }} avertissement(s)
+                          </strong>
+                        </div>
+
+                        <div class="flex justify-between items-center text-[10.5px]">
+                          <span class="text-slate-600 block">En-retard de paiement facture :</span>
+                          <strong [class]="(api.currentUser()?.paymentDelayDays ?? 0) > 15 ? 'text-rose-600' : 'text-slate-800'">
+                            {{ api.currentUser()?.paymentDelayDays ?? 0 }} jours (restreint > 15j)
+                          </strong>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Referral Code Placement (Parrainage Entreprise) -->
+                  <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+                    <div class="flex items-center gap-2 mb-2">
+                      <mat-icon class="text-emerald-600 text-sm">handshake</mat-icon>
+                      <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">Parrainage Entreprise Tunisienne</h4>
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-normal mb-4">
+                      Encouragez l'entraide : recommandez une boutique partenaire et gagnez un <strong>mois d'abonnement offert</strong> pour vous deux dès sa validation !
+                    </p>
+
+                    <!-- User's own recruitment card code -->
+                    <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 flex items-center justify-between mb-4">
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-indigo-400 block mb-0.5">Mon code affilié :</span>
+                        <code class="font-mono text-xs font-black text-indigo-900 uppercase">
+                          {{ api.currentUser()?.referralCode || 'ECOSH120' }}
+                        </code>
+                      </div>
+                      <span class="text-[9px] bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full uppercase">1 Mois Offert</span>
+                    </div>
+
+                    <!-- Input parrain -->
+                    <div class="flex flex-col gap-1.5">
+                      <span class="text-[10px] font-bold text-slate-600 block">Code de mon parrain</span>
+                      <div class="flex gap-1.5">
+                        <input 
+                          [value]="simulatedReferralInput()"
+                          (input)="simulatedReferralInput.set($any($event.target).value)"
+                          placeholder="Ex: ANTAN30" 
+                          class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs flex-1 uppercase" />
+                        <button 
+                          (click)="submitSponsorship()"
+                          class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">
+                          Appliquer
+                        </button>
                       </div>
                     </div>
                   </div>
-                }
+
+                </div>
+
+              </div>
+              
+              <!-- Simulated Module Addon Box -->
+              <div class="bg-slate-900 rounded-3xl p-6 text-slate-100 text-left">
+                <span class="text-[8px] tracking-wider uppercase font-extrabold bg-indigo-600 text-white px-2.5 py-0.5 rounded-full mb-3 inline-block">
+                  Modules additionnels à la carte (Add-ons optionnels)
+                </span>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                  <div class="border border-white/10 p-3.5 rounded-2xl bg-white/5 space-y-1">
+                    <strong class="text-xs font-bold text-indigo-300 block">🚀 Boost visibilité</strong>
+                    <p class="text-[10px] text-slate-300">Produits mis en avant en page d'accueil exclusive.</p>
+                    <strong class="text-white text-xs block pt-1">69 TND / semaine</strong>
+                  </div>
+                  <div class="border border-white/10 p-3.5 rounded-2xl bg-white/5 space-y-1">
+                    <strong class="text-xs font-bold text-indigo-300 block">📊 Analytics avancé</strong>
+                    <p class="text-[10px] text-slate-300">Export csv, rapports et modélisations personnalisées.</p>
+                    <strong class="text-white text-xs block pt-1">49 TND / mois</strong>
+                  </div>
+                  <div class="border border-white/10 p-3.5 rounded-2xl bg-white/5 space-y-1">
+                    <strong class="text-xs font-bold text-indigo-300 block">⏱️ Validations Express</strong>
+                    <p class="text-[10px] text-slate-300">Validation prioritaire de vos requêtes sous 24 heures.</p>
+                    <strong class="text-white text-xs block pt-1">35 TND / mois</strong>
+                  </div>
+                  <div class="border border-white/10 p-3.5 rounded-2xl bg-white/5 space-y-1">
+                    <strong class="text-xs font-bold text-indigo-300 block">🎨 Style Exclusif</strong>
+                    <p class="text-[10px] text-slate-300">Couleur exclusive réservée et badge de catalogue animé.</p>
+                    <strong class="text-white text-xs block pt-1">99 TND (unique)</strong>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          <!-- TAILWIN TUNISIAN CHECKOUT DIALOG / MODAL (Simulated Gateways) -->
+          @if (showCheckoutModal()) {
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 text-left">
+              <div class="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+                <button 
+                  (click)="showCheckoutModal.set(false)" 
+                  class="absolute right-4 top-4 hover:bg-slate-100 p-1.5 rounded-full transition text-slate-400">
+                  <mat-icon class="text-sm">close</mat-icon>
+                </button>
+
+                <div class="flex items-center gap-3.5 mb-2">
+                  <div class="p-2.5 bg-emerald-50 rounded-2xl text-emerald-700">
+                    <mat-icon>payment</mat-icon>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-extrabold text-slate-900 leading-none">Passerelle de Paiement Tunisienne</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Simulateur d'accréditation bancaire sécurisé.</p>
+                  </div>
+                </div>
+
+                <div class="border-t border-slate-100 py-3 mt-3">
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-600 font-bold">Produit commandé :</span>
+                    <span class="text-xs font-black text-indigo-700">Abonnement {{ selectedSimulatorPlan()?.toUpperCase() }}</span>
+                  </div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-600 block">Cycle de facturation :</span>
+                    <span class="text-xs font-bold capitalize text-slate-800">{{ selectedSimulatorCycle() === 'monthly' ? 'Mensuel' : 'Annuel' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-400 block">Prix H.T. :</span>
+                    <span class="text-xs font-semibold text-slate-600">
+                      {{ selectedSimulatorPlan() === 'premium' ? 790 : (selectedSimulatorPlan() === 'starter' ? 149 : 349) }} TND
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400 block">TVA Applicable (19%) :</span>
+                    <span class="text-xs font-semibold text-slate-600">
+                      {{ ((selectedSimulatorPlan() === 'premium' ? 790 : (selectedSimulatorPlan() === 'starter' ? 149 : 349)) * 0.19).toFixed(1) }} TND
+                    </span>
+                  </div>
+
+                  <div class="bg-indigo-50/50 p-2.5 rounded-xl flex items-center justify-between border border-indigo-100 mt-2">
+                    <span class="text-xs font-bold text-indigo-900">Montant Total à payer (TND TTC) :</span>
+                    <strong class="text-indigo-700 text-base font-black">
+                      {{ ((selectedSimulatorPlan() === 'premium' ? 790 : (selectedSimulatorPlan() === 'starter' ? 149 : 349)) * 1.19).toFixed(1) }} TND
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Select gateway developer options -->
+                <div class="space-y-2 mb-5">
+                  <span class="text-[10px] uppercase font-black text-slate-400 tracking-wide block">Choisir un moyen de paiement Tunisien :</span>
+                  
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    
+                    <!-- Gateway 1: Konnect -->
+                    <label class="border p-2.5 rounded-xl cursor-pointer flex flex-col justify-between"
+                      [class]="simulatedPaidMethod() === 'konnect' ? 'border-emerald-500 bg-emerald-50/10 ring-1 ring-emerald-500' : 'border-slate-200 bg-white hover:border-slate-300'">
+                      <input 
+                        type="radio" 
+                        name="payGateway" 
+                        value="konnect" 
+                        [checked]="simulatedPaidMethod() === 'konnect'"
+                        (change)="simulatedPaidMethod.set('konnect')" 
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800">💳 Konnect</strong>
+                        @if (simulatedPaidMethod() === 'konnect') {
+                          <mat-icon class="text-sm text-emerald-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block">Solution Directe Carte Bancaire / e-Dinar</span>
+                    </label>
+
+                    <!-- Gateway 2: Paymee -->
+                    <label class="border p-2.5 rounded-xl cursor-pointer flex flex-col justify-between"
+                      [class]="simulatedPaidMethod() === 'paymee' ? 'border-emerald-500 bg-emerald-50/10 ring-1 ring-emerald-500' : 'border-slate-200 bg-white hover:border-slate-300'">
+                      <input 
+                        type="radio" 
+                        name="payGateway" 
+                        value="paymee" 
+                        [checked]="simulatedPaidMethod() === 'paymee'"
+                        (change)="simulatedPaidMethod.set('paymee')"
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800">💳 Paymee</strong>
+                        @if (simulatedPaidMethod() === 'paymee') {
+                          <mat-icon class="text-sm text-emerald-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block">Toutes cartes nationales tunisiennes</span>
+                    </label>
+
+                    <!-- Option 3: Check -->
+                    <label class="border p-2.5 rounded-xl cursor-pointer flex flex-col justify-between"
+                      [class]="simulatedPaidMethod() === 'cheque' ? 'border-emerald-500 bg-emerald-50/10 ring-1 ring-emerald-500' : 'border-slate-200 bg-white hover:border-slate-300'">
+                      <input 
+                        type="radio" 
+                        name="payGateway" 
+                        value="cheque" 
+                        [checked]="simulatedPaidMethod() === 'cheque'"
+                        (change)="simulatedPaidMethod.set('cheque')"
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800">📝 Chèque Bancaire</strong>
+                        @if (simulatedPaidMethod() === 'cheque') {
+                          <mat-icon class="text-sm text-emerald-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block">Billet physique d'entreprise</span>
+                    </label>
+
+                    <!-- Option 4: Bank Transfer -->
+                    <label class="border p-2.5 rounded-xl cursor-pointer flex flex-col justify-between"
+                      [class]="simulatedPaidMethod() === 'virement' ? 'border-emerald-500 bg-emerald-50/10 ring-1 ring-emerald-500' : 'border-slate-200 bg-white hover:border-slate-300'">
+                      <input 
+                        type="radio" 
+                        name="payGateway" 
+                        value="virement" 
+                        [checked]="simulatedPaidMethod() === 'virement'"
+                        (change)="simulatedPaidMethod.set('virement')"
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800">🏦 Virement</strong>
+                        @if (simulatedPaidMethod() === 'virement') {
+                          <mat-icon class="text-sm text-emerald-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block">Virement bancaire professionnel</span>
+                    </label>
+
+                  </div>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                  <button 
+                    (click)="showCheckoutModal.set(false)"
+                    class="bg-slate-100 hover:bg-slate-200 px-4 py-2 text-slate-650 text-xs font-bold rounded-lg leading-none">
+                    Annuler
+                  </button>
+                  <button 
+                    (click)="confirmPlanSubscription()"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-bold rounded-lg shadow-sm leading-none">
+                    Confirmer & Régler l'abonnement
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          }
+
+          <!-- TAILWIN TUNISIAN DRIVER CHECKOUT DIALOG / MODAL -->
+          @if (showDriverCheckoutModal()) {
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 text-left">
+              <div class="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+                <button 
+                  (click)="showDriverCheckoutModal.set(false)" 
+                  class="absolute right-4 top-4 hover:bg-slate-100 p-1.5 rounded-full transition text-slate-400">
+                  <mat-icon class="text-sm">close</mat-icon>
+                </button>
+
+                <div class="flex items-center gap-3.5 mb-2">
+                  <div class="p-2.5 bg-violet-50 rounded-2xl text-violet-700">
+                    <mat-icon>payment</mat-icon>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-extrabold text-slate-900 leading-none">Passerelle Tunisienne (Livreurs)</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Vérification de versement de caution / forfait sécurisé.</p>
+                  </div>
+                </div>
+
+                <div class="border-t border-slate-100 py-3 mt-3">
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-600 font-bold">Plan Sélectionné :</span>
+                    <span class="text-xs font-black text-violet-700 uppercase">{{ selectedDriverPlan() }}</span>
+                  </div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-600 font-bold">Cycle de facturation :</span>
+                    <span class="text-xs font-bold text-slate-600 font-mono">{{ selectedDriverCycle() === 'monthly' ? 'Mensuel' : 'Annuel' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-2">
+                    <span class="text-xs font-bold text-slate-800">Montant à régler :</span>
+                    <strong class="text-sm font-black text-emerald-600 font-mono">
+                      {{ selectedDriverPlan() === 'pro' ? '119 TND' : selectedDriverPlan() === 'partenaire' ? '49 TND' : '0 TND' }}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Gateways selection -->
+                <div class="my-4">
+                  <span class="text-[10px] text-slate-400 font-black uppercase tracking-wider block mb-2">Choisir une passerelle de paiement</span>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    
+                    <!-- Konnect Gateway -->
+                    <label 
+                      [class]="simulatedDriverPaidMethod() === 'konnect' ? 'bg-violet-50 border-violet-500 ring-1 ring-violet-500' : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'"
+                      class="border p-3.5 rounded-2xl flex flex-col cursor-pointer transition">
+                      <input 
+                        type="radio" 
+                        name="payGatewayDrv" 
+                        value="konnect" 
+                        [checked]="simulatedDriverPaidMethod() === 'konnect'"
+                        (change)="simulatedDriverPaidMethod.set('konnect')"
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800 text-xs">💳 Konnect</strong>
+                        @if (simulatedDriverPaidMethod() === 'konnect') {
+                          <mat-icon class="text-sm text-violet-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block leading-tight">CB, e-Dinar, Sobflous, Flouci</span>
+                    </label>
+
+                    <!-- Virement Gateway -->
+                    <label 
+                      [class]="simulatedDriverPaidMethod() === 'virement' ? 'bg-violet-50 border-violet-500 ring-1 ring-violet-500' : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'"
+                      class="border p-3.5 rounded-2xl flex flex-col cursor-pointer transition">
+                      <input 
+                        type="radio" 
+                        name="payGatewayDrv" 
+                        value="virement" 
+                        [checked]="simulatedDriverPaidMethod() === 'virement'"
+                        (change)="simulatedDriverPaidMethod.set('virement')"
+                        class="hidden" />
+                      <div class="flex justify-between items-center">
+                        <strong class="font-extrabold text-slate-800 text-xs">🏦 Virement</strong>
+                        @if (simulatedDriverPaidMethod() === 'virement') {
+                          <mat-icon class="text-sm text-violet-600">check_circle</mat-icon>
+                        }
+                      </div>
+                      <span class="text-[8px] text-slate-400 mt-1 block leading-tight">Virement bancaire ou postal (Tunisie)</span>
+                    </label>
+
+                  </div>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                  <button 
+                    (click)="showDriverCheckoutModal.set(false)"
+                    class="bg-slate-100 hover:bg-slate-200 px-4 py-2 text-slate-650 text-xs font-bold rounded-lg leading-none">
+                    Annuler
+                  </button>
+                  <button 
+                    (click)="confirmDriverPlanSubscription()"
+                    class="bg-violet-600 hover:bg-violet-750 text-white px-5 py-2 text-xs font-bold rounded-lg shadow-sm leading-none">
+                    Confirmer &amp; Activer le Forfait
+                  </button>
+                </div>
+
               </div>
             </div>
           }
@@ -1743,12 +2770,18 @@
       <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left flex flex-col gap-6 animate-in fade-in duration-200">
         
         <!-- Tab Navigation Livreur -->
-        <div class="flex items-center gap-1.5 border-b border-slate-100 pb-3">
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3">
           <button 
             (click)="driverCurrentTab.set('dashboard')"
             [class]="driverCurrentTab() === 'dashboard' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
             id="tab-drv-dashboard">
             <mat-icon class="text-sm">dashboard</mat-icon> Courses & Activité
+          </button>
+          <button 
+            (click)="driverCurrentTab.set('subscription')"
+            [class]="driverCurrentTab() === 'subscription' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-subscription">
+            <mat-icon class="text-sm">workspace_premium</mat-icon> Mon Forfait Livreurs & Simulateur
           </button>
           <button 
             (click)="driverCurrentTab.set('profile')"
@@ -1797,7 +2830,7 @@
           <div class="md:col-span-1 flex flex-col gap-4">
             <div class="bg-violet-50/50 p-4 border border-violet-100 rounded-2xl">
               <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Mes revenus cumulés</span>
-              <p class="text-3xl font-extrabold text-violet-700 mt-1 mb-2">{{ globalStats()?.metrics?.earningsTotal?.toFixed(2) }}€</p>
+              <p class="text-3xl font-extrabold text-violet-700 mt-1 mb-2">{{ globalStats()?.metrics?.earningsTotal?.toFixed(2) }} DTN</p>
               <div class="flex justify-between items-center text-xs text-slate-500 border-t border-violet-100/50 pt-2 leading-tight">
                 <span>Courses livrées :</span>
                 <strong class="font-extrabold text-slate-800">{{ globalStats()?.metrics?.deliveredCount }}</strong>
@@ -1845,7 +2878,7 @@
                         <p class="text-[11px] text-slate-500">Reçue à {{ o.createdAt | date:'shortTime' }}</p>
                       </div>
                       <div class="text-right">
-                        <span class="text-violet-700 font-extrabold text-base block leading-none">+{{ o.driverFee?.toFixed(2) }}€</span>
+                        <span class="text-violet-700 font-extrabold text-base block leading-none">+{{ o.driverFee?.toFixed(2) }} DTN</span>
                         <span class="text-[10px] text-slate-400 block font-medium">Revenu course</span>
                       </div>
                     </div>
@@ -1922,13 +2955,13 @@
                       <div class="text-xs">
                         <strong class="text-sm block text-slate-800">COMMANDE {{ o.id }}</strong>
                         <p class="text-slate-500 text-xs mt-0.5 font-medium">Destination : {{ o.deliveryAddress }}</p>
-                        <p class="text-[10px] text-slate-400 font-mono">Montant marchandises: {{ o.total?.toFixed(2) }}€ • Client: {{ o.clientName }}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">Montant marchandises: {{ o.total?.toFixed(2) }} DTN • Client: {{ o.clientName }}</p>
                       </div>
 
                       <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 pt-2.5 md:pt-0 md:border-t-0">
                         <div>
                           <span class="text-slate-400 text-[10px] uppercase font-bold block text-left">Frais course</span>
-                          <strong class="text-indigo-600 font-extrabold text-sm">{{ o.driverFee?.toFixed(2) }}€</strong>
+                          <strong class="text-indigo-600 font-extrabold text-sm">{{ o.driverFee?.toFixed(2) }} DTN</strong>
                         </div>
                         
                         @if (selectedDriver()?.status === 'available') {
@@ -1956,6 +2989,624 @@
 
         </div>
         } <!-- End of driverCurrentTab() === 'dashboard' -->
+
+        @if (driverCurrentTab() === 'subscription') {
+          <!-- LIVREUR TUNISIA SUBSCRIPTION & GAINS SIMULATOR -->
+          <div class="space-y-6 animate-in fade-in duration-200">
+            
+            <!-- Welcome Info Alert Card -->
+            <div class="bg-gradient-to-r from-violet-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md text-left flex items-start gap-4">
+              <div class="p-2.5 bg-white/10 rounded-xl">
+                <mat-icon class="text-white">motorcycle</mat-icon>
+              </div>
+              <div class="space-y-1">
+                <h4 class="text-sm font-extrabold tracking-wide uppercase">Système de Rémunération des Livreurs (Tunisie)</h4>
+                <p class="text-xs text-violet-100 leading-relaxed font-medium">
+                  Tarifs réglementés en <strong>Dinars Tunisiens (TND)</strong>. Vous encaissez un tarif fixe avantageux par course, complété par des paliers de bonus de volume et récompenses de qualité selon vos performances mensuelles. L'inscription de base est gratuite et sans engagement.
+                </p>
+              </div>
+            </div>
+
+            <!-- SECTION 1: FRAIS DE LIVRAISON DE BASE -->
+            <div>
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">Grille des frais de livraison de base (versé au livreur)</span>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-slate-900 text-white p-4.5 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">7 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison locale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Même ville)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4.5 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">11 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison régionale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Même gouvernorat)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4.5 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">16 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison nationale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Autre gouvernorat)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4.5 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-amber-400">+3 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Supplément express</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Livraison en &lt; 2h)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: PLANS D'ENGAGEMENT DES LIVREURS -->
+            <div>
+              <div class="flex items-center justify-between mb-3 text-left">
+                <span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Plans d'engagement mensuel / annuel</span>
+                <span class="text-xs text-slate-500 font-bold">Votre plan actif : 
+                  <span class="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase bg-violet-100 text-violet-800 border border-violet-200">
+                    {{ api.currentUser()?.driverPlanId || 'freelance' }}
+                  </span>
+                </span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- FREELANCE CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all"
+                  [class]="(api.currentUser()?.driverPlanId || 'freelance') === 'freelance' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2">
+                      <span class="bg-neutral-100 text-neutral-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">Flexible</span>
+                      @if ((api.currentUser()?.driverPlanId || 'freelance') === 'freelance') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900">Freelance</h3>
+                    
+                    <!-- Pricing and specs -->
+                    <div class="my-3">
+                      <div class="text-2xl font-black text-slate-900">0 <span class="text-xs font-medium text-slate-500">TND/mois</span></div>
+                      <p class="text-[10px] text-slate-500 leading-tight mt-1 font-bold">Sans engagement — commission plateforme 15% sur chaque course</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium">
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Livraisons à la demande
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Accepter / refuser librement
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Paiement hebdomadaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-rose-600">close</mat-icon> Pas de bonus de volume
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-rose-600">close</mat-icon> Pas de missions prioritaires
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-rose-600">close</mat-icon> Pas d'assurance accident
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if ((api.currentUser()?.driverPlanId || 'freelance') === 'freelance') {
+                      <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="openDriverSubscriptionCheckout('freelance', 'monthly')"
+                        class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs py-2 rounded-xl transition-all">
+                        Rétrograder en Freelance (Gratuit)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- PARTENAIRE CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all"
+                  [class]="api.currentUser()?.driverPlanId === 'partenaire' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2">
+                      <span class="bg-blue-100 text-blue-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">⭐️ Populaire</span>
+                      @if (api.currentUser()?.driverPlanId === 'partenaire') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1">
+                      Partenaire
+                    </h3>
+
+                    <!-- Pricing and specs -->
+                    <div class="my-3">
+                      <div class="text-2xl font-black text-slate-900">49 <span class="text-xs font-medium text-slate-500">TND/mois</span></div>
+                      <p class="text-[10px] text-blue-700 leading-tight mt-1 font-bold">Ou 490 TND/an (2 mois offerts) — commission plateforme 10%</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium">
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600 font-bold">verified</mat-icon> Badge "Livreur vérifié"
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Missions prioritaires attribuées
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Paiement bi-hebdomadaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Accès aux bonus de volume
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Support prioritaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 opacity-80">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-rose-600">close</mat-icon> Pas d'assurance accident
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if (api.currentUser()?.driverPlanId === 'partenaire') {
+                      <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="openDriverSubscriptionCheckout('partenaire', 'monthly')"
+                        class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm">
+                        Sélectionner ce plan (49 TND)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- PRO CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all"
+                  [class]="api.currentUser()?.driverPlanId === 'pro' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2">
+                      <span class="bg-violet-100 text-violet-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded">👑 Elite &amp; Assuré</span>
+                      @if (api.currentUser()?.driverPlanId === 'pro') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900">Pro</h3>
+
+                    <!-- Pricing and specs -->
+                    <div class="my-3">
+                      <div class="text-2xl font-black text-slate-900">119 <span class="text-xs font-medium text-slate-500">TND/mois</span></div>
+                      <p class="text-[10px] text-violet-700 leading-tight mt-1 font-bold">Ou 1 190 TND/an (2 mois offerts) — commission réduite à 6%</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium">
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">workspace_premium</mat-icon> Badge "Livreur Elite"
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">health_and_safety</mat-icon> Assurance Accident Incluse
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Missions prioritaires garanties
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Paiement quotidien disponible
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Bonus de volume maximisés
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px] leading-none h-3.5 w-3.5 text-emerald-600">done</mat-icon> Zone de livraison élargie
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if (api.currentUser()?.driverPlanId === 'pro') {
+                      <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="openDriverSubscriptionCheckout('pro', 'monthly')"
+                        class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm">
+                        Sélectionner ce plan (119 TND)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SECTION 3: PALIERS DE PERFORMANCE MENSUELLE -->
+            <div>
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">Paliers de Performance Mensuelle &amp; SLA de Qualité</span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- VOLUME BONUS CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left">
+                  <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                    <mat-icon class="text-violet-600 font-bold">trending_up</mat-icon> Bonus sur volume
+                  </h4>
+                  <div class="space-y-3.5 text-xs text-slate-600 font-semibold">
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs">
+                      <span>0 – 29 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-500 uppercase">Taux normal</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 30 && (api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) <= 59">
+                      <span>30 – 59 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700">+1 TND / liv</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 60 && (api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) <= 99">
+                      <span>60 – 99 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700">+2 TND / liv</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 100">
+                      <div>
+                        <span>100+ livraisons</span>
+                        <div class="text-[9px] text-violet-600 font-medium">Prime Fixe : 50 TND</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-700 font-mono">+3 TND / liv</span>
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-slate-400 italic mt-3 text-center">Volume calculé et versé en fin de mois.</p>
+                </div>
+
+                <!-- SPECIAL REWARDS CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left">
+                  <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                    <mat-icon class="text-emerald-600 font-bold">emoji_events</mat-icon> Récompenses Spéciales
+                  </h4>
+                  <div class="space-y-3 text-xs text-slate-600 font-medium">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">Note &ge; 4.8 / 5</div>
+                        <div class="text-[9px] text-slate-400">Bonus Qualité (Ce mois)</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+30 TND</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">0 Annulation</div>
+                        <div class="text-[9px] text-slate-400">Bonus Fiabilité (Ce mois)</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+20 TND</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">3 mois consécutifs &ge; 60</div>
+                        <div class="text-[9px] text-slate-400">Gratuit : Plan Supérieur</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-50 text-indigo-700 uppercase uppercase text-[9px]">Upgrade</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">Top Livreur du Mois</div>
+                        <div class="text-[9px] text-slate-400">Mise en avant sur la zone</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+75 TND</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SURVEILLANCE & PENALTIES CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left">
+                  <h4 class="text-xs font-black text-rose-850 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                    <mat-icon class="text-rose-600 font-bold">gavel</mat-icon> Conditions &amp; Pénalités
+                  </h4>
+                  <div class="space-y-3 text-xs text-slate-600 font-medium">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-rose-800">Note &lt; 3 / 5</div>
+                        <div class="text-[9px] text-slate-400">SLA de Service Inférieur</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-50 text-rose-700">Avertissement</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-rose-800">Annulations &gt; 15%</div>
+                        <div class="text-[9px] text-slate-400">Hors standard contractuel</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-50 text-rose-700 font-mono">-10% sur base</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-rose-800">Inactivité &gt; 15 jours</div>
+                        <div class="text-[9px] text-slate-400">Prévu pour statut de veille</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600">Désactivation t.</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-rose-800">Réclamation grave</div>
+                        <div class="text-[9px] text-slate-400">Enquête du support</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-100 text-rose-700">Suspension direct</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SECTION 4: INTERACTIVE PAYOUT SIMULATOR -->
+            <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
+              <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 mb-5 gap-3">
+                <div>
+                  <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <mat-icon class="text-violet-600">calculate</mat-icon>
+                    Simulateur de Gains Interactif du Livreur (Tunisie)
+                  </h3>
+                  <p class="text-xs text-slate-500">Ajustez les curseurs pour simuler votre activité mensuelle et voir l'impact en Direct sur vos commissions et primes de volume !</p>
+                </div>
+                
+                <!-- Reset simulated plan toggle -->
+                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
+                  <button 
+                    (click)="selectedDriverPlan.set('freelance')"
+                    [class]="selectedDriverPlan() === 'freelance' ? 'bg-slate-100 text-slate-800 font-bold px-2 px-3 py-1 rounded-lg text-[10px]' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold'">
+                    Freelance
+                  </button>
+                  <button 
+                    (click)="selectedDriverPlan.set('partenaire')"
+                    [class]="selectedDriverPlan() === 'partenaire' ? 'bg-violet-600 text-white font-bold px-3 py-1 rounded-lg text-[10px]' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold'">
+                    Partenaire
+                  </button>
+                  <button 
+                    (click)="selectedDriverPlan.set('pro')"
+                    [class]="selectedDriverPlan() === 'pro' ? 'bg-violet-600 text-white font-bold px-3 py-1 rounded-lg text-[10px]' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold'">
+                    Pro
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sliders panel (7 columns) -->
+                <div class="lg:col-span-7 space-y-4.5">
+                  
+                  <!-- Deliveries Count Slider -->
+                  <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="font-bold text-slate-700">Volume de Livraisons Réalisées (mensuel)</span>
+                      <strong class="text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg font-mono text-xs">{{ simulatedDriverMonthlyDeliveries() }} livs / mois</strong>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="150" 
+                      [value]="simulatedDriverMonthlyDeliveries()"
+                      (input)="simulatedDriverMonthlyDeliveries.set($any($event.target).valueAsNumber)"
+                      class="w-full accent-violet-600 cursor-pointer" />
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold">
+                      <span>0 coursé</span>
+                      <span>30 (Étape +1)</span>
+                      <span>60 (Étape +2)</span>
+                      <span>100 (Étape +3 &amp; Prime)</span>
+                      <span>150 max</span>
+                    </div>
+                  </div>
+
+                  <!-- Destinations Distribution percent row -->
+                  <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-150">
+                    <span class="text-xs font-bold text-slate-700 block">Répartition estimée des livraisons :</span>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                      <div class="space-y-1">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block">Local (7 TND) : {{ simulatedDriverLocalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="simulatedDriverLocalPercent()"
+                          (input)="simulatedDriverLocalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1" />
+                      </div>
+                      <div class="space-y-1">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block">Régional (11 TND) : {{ simulatedDriverRegionalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="simulatedDriverRegionalPercent()"
+                          (input)="simulatedDriverRegionalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1" />
+                      </div>
+                      <div class="space-y-1">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block">National (16 TND) : {{ simulatedDriverNationalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="simulatedDriverNationalPercent()"
+                          (input)="simulatedDriverNationalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1" />
+                      </div>
+                      <div class="space-y-1">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block">Express (+3 TND) : {{ simulatedDriverExpressPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="simulatedDriverExpressPercent()"
+                          (input)="simulatedDriverExpressPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-amber-500 h-1" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Rating Slider -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Note moyenne des clients</span>
+                        <strong class="text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-lg text-xs font-mono">{{ simulatedDriverRating() }} ★</strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="5" 
+                        step="0.1"
+                        [value]="simulatedDriverRating()"
+                        (input)="simulatedDriverRating.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-amber-500 cursor-pointer" />
+                      <div class="flex justify-between text-[9px] text-slate-400 font-medium">
+                        <span>1.0 Poubelle</span>
+                        <span>3.0 (Alerte)</span>
+                        <span>4.8 (Bonus Qualité!)</span>
+                        <span>5.0 Parfait</span>
+                      </div>
+                    </div>
+
+                    <!-- Cancellation rate Slider -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Taux d'annulation coursier</span>
+                        <strong class="px-2.5 py-0.5 rounded-lg text-xs font-mono"
+                          [class]="simulatedDriverCancellationRate() > 15 ? 'text-rose-700 bg-rose-50':'text-emerald-700 bg-emerald-50'">
+                          {{ simulatedDriverCancellationRate() }} %
+                        </strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="20" 
+                        step="0.5"
+                        [value]="simulatedDriverCancellationRate()"
+                        (input)="simulatedDriverCancellationRate.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-violet-600 cursor-pointer" />
+                      <div class="flex justify-between text-[9px] text-slate-400 font-medium">
+                        <span>0% (Bonus de 20 TND)</span>
+                        <span>15% (Seuil Pénalité -10%)</span>
+                        <span>20% max</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Referral Input / count -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Parrainages effectués (Livreurs)</span>
+                        <strong class="text-slate-700 text-xs font-mono">{{ simulatedDriverReferralsCount() }} parrainés</strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="10" 
+                        [value]="simulatedDriverReferralsCount()"
+                        (input)="simulatedDriverReferralsCount.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-violet-600 cursor-pointer" />
+                      <p class="text-[9px] text-slate-400 font-bold">Un bonus fixe de +20 TND par parrainage actif validé !</p>
+                    </div>
+
+                    <!-- Optional top driver box -->
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-150 flex items-center justify-between gap-3">
+                      <div>
+                        <span class="text-xs font-bold text-slate-700 block">Top Livreur du Mois (+75 TND)</span>
+                        <p class="text-[9px] text-slate-400 leading-tight">Cocher si vous êtes élu par la communauté pour ce mois.</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        [checked]="simulatedDriverTopDriver()" 
+                        (change)="simulatedDriverTopDriver.set($any($event.target).checked)"
+                        class="w-5 h-5 accent-violet-600 cursor-pointer" />
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Simulation Output Panel (5 columns) -->
+                <div class="lg:col-span-5 space-y-4">
+                  <div class="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-md flex flex-col justify-between h-full relative overflow-hidden">
+                    
+                    <div>
+                      <div class="text-[10px] uppercase font-mono tracking-widest text-indigo-400 font-bold mb-3">Relevé Financier Estimé (Tunisie)</div>
+                      
+                      <div class="space-y-2 text-xs font-medium border-b border-white/10 pb-4">
+                        <!-- Gross deliveries -->
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Gains courses bruts :</span>
+                          <span class="font-mono">{{ calculateDriverRealTimePayout(null).gross.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Platform commission -->
+                        <div class="flex justify-between text-yellow-100 italic">
+                          <span class="text-slate-400">Commission plateforme ({{ selectedDriverPlan() === 'pro' ? '6%' : selectedDriverPlan() === 'partenaire' ? '10%' : '15%' }}) :</span>
+                          <span class="font-mono">- {{ calculateDriverRealTimePayout(null).commission.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Volume bonus -->
+                        <div class="flex justify-between text-emerald-400 font-bold">
+                          <span class="text-slate-400">Primes de volume :</span>
+                          <span class="font-mono">+ {{ calculateDriverRealTimePayout(null).volumeBonus.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Special rewards -->
+                        <div class="flex justify-between text-emerald-400">
+                          <span class="text-slate-400">Bonus Qualité &amp; Parrains :</span>
+                          <span class="font-mono">+ {{ (calculateDriverRealTimePayout(null).qualityBonus + calculateDriverRealTimePayout(null).reliabilityBonus).toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Penalties -->
+                        @if (calculateDriverRealTimePayout(null).penalty > 0) {
+                          <div class="flex justify-between text-rose-400 font-bold uppercase transition-all animate-bounce">
+                            <span>Pénalité annulations &gt; 15%</span>
+                            <span>- {{ calculateDriverRealTimePayout(null).penalty.toFixed(1) }} TND</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Subscriptions comparison check of potential monthly and annual costs -->
+                      <div class="pt-4 pb-2 text-[10px] text-slate-400 border-b border-white/10">
+                        <div class="flex justify-between">
+                          <span>Abonnement de Forfait :</span>
+                          <strong class="text-slate-200">
+                            {{ selectedDriverPlan() === 'pro' ? '119 TND / mois' : selectedDriverPlan() === 'partenaire' ? '49 TND / mois' : 'Gratuit' }}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-6">
+                      <!-- Total Net payment -->
+                      <div class="bg-black/40 p-4.5 rounded-xl border border-white/5 text-center">
+                        <span class="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold block mb-1">Gains Net Recréés (Versés en liquide ou virement)</span>
+                        <div class="text-3xl font-black font-mono text-emerald-400 leading-none">
+                          {{ calculateDriverRealTimePayout(null).net.toFixed(1) }} TND
+                        </div>
+                        <p class="text-[9px] text-slate-500 mt-1.5 font-bold">Estimations calculées en Tunisie. Résiliable à tout moment avec préavis de 15 jours.</p>
+                      </div>
+
+                      <!-- SLA surclassement badge -->
+                      @if (calculateDriverRealTimePayout(null).upgradeEligible) {
+                        <div class="mt-3 bg-indigo-900/60 text-indigo-300 rounded-xl p-2.5 text-center text-[10px] border border-indigo-700/50 flex items-center justify-center gap-1.5 font-bold">
+                          <mat-icon class="text-xs">rocket_launch</mat-icon> Surclassement gratuit débloqué (&ge; 60 livs pour 3 mois) !
+                        </div>
+                      }
+
+                      <!-- Submit simulation indicators to company backend -->
+                      <button 
+                        (click)="syncDriverSimulationMetrics()"
+                        class="w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow p-2.5 text-center flex items-center justify-center gap-2">
+                        <mat-icon class="text-sm">sync_alt</mat-icon> Mettre à jour mon profil réel
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[10px] text-slate-400 italic text-left bg-slate-50 p-3 rounded-xl border border-slate-200">
+              * Estimations basées sur livraisons locales à 7 TND. Paiement via <strong>Konnect ou virement bancaire</strong>. L'abonnement mensuel de votre forfait est prélevé automatiquement sur vos encaissements ou facturé à terme. Résiliable avec un préavis de 15 jours.
+            </div>
+
+          </div>
+        }
 
         @if (driverCurrentTab() === 'profile') {
           <!-- Driver Profile View -->
@@ -2017,7 +3668,7 @@
               </div>
 
               <div class="flex flex-col gap-1.5 text-xs text-left">
-                <span class="font-bold text-slate-500">Frais Fixe de Base (€)</span>
+                <span class="font-bold text-slate-500">Frais Fixe de Base (DTN)</span>
                 <input 
                   type="number" step="0.1"
                   [value]="profileBaseFee()" 
@@ -2028,7 +3679,7 @@
               </div>
 
               <div class="flex flex-col gap-1.5 text-xs text-left">
-                <span class="font-bold text-slate-500">Frais par Kilomètre (€ / km)</span>
+                <span class="font-bold text-slate-500">Frais par Kilomètre (DTN / km)</span>
                 <input 
                   type="number" step="0.1"
                   [value]="profilePerKmFee()" 
@@ -2057,7 +3708,7 @@
                 <div class="text-xs">
                   <strong class="text-sm font-bold text-slate-900 block">{{ profileName() || 'Coursier Anonyme' }}</strong>
                   <span class="text-slate-500 block">📍 Secteur : {{ profileZone() || 'Non spécifié' }}</span>
-                  <span class="text-slate-400 block">📞 {{ profilePhone() || 'Aucun numéro' }} • Grille tarifaire : <strong>{{ profileBaseFee() }}€</strong> base + <strong>{{ profilePerKmFee() }}€/km</strong></span>
+                  <span class="text-slate-400 block">📞 {{ profilePhone() || 'Aucun numéro' }} • Grille tarifaire : <strong>{{ profileBaseFee() }} DTN</strong> base + <strong>{{ profilePerKmFee() }} DTN/km</strong></span>
                 </div>
               </div>
             </div>
@@ -2200,7 +3851,7 @@
                   <div class="flex items-center justify-between gap-1 text-xs">
                     <div class="flex-1">
                       <strong class="text-slate-800 line-clamp-1 font-bold">{{ item.product.name }}</strong>
-                      <span class="text-slate-400 text-[10px] block leading-none">{{ item.product.price?.toFixed(2) }}€ l'unité</span>
+                      <span class="text-slate-400 text-[10px] block leading-none">{{ item.product.price?.toFixed(2) }} DTN l'unité</span>
                     </div>
 
                     <!-- incrementors -->
@@ -2223,7 +3874,7 @@
               <div class="space-y-3">
                 <div class="flex justify-between items-center text-xs">
                   <span class="text-slate-500">Sous-total marchandises:</span>
-                  <strong class="text-slate-800 text-sm font-extrabold">{{ getCartTotal() }} €</strong>
+                  <strong class="text-slate-800 text-sm font-extrabold">{{ getCartTotal() }} DTN</strong>
                 </div>
 
                 <!-- Geolocation shipping address simulator -->
@@ -2261,7 +3912,7 @@
                 <button 
                   (click)="triggerCheckout()"
                   class="bg-rose-500 hover:bg-rose-600 text-white font-bold w-full py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2">
-                  <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer la Commande ({{ getCartTotal().toFixed(2) }}€)
+                  <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer la Commande ({{ getCartTotal().toFixed(2) }} DTN)
                 </button>
               </div>
             } @else {
@@ -2281,7 +3932,7 @@
                   <div class="border border-slate-100 p-3.5 rounded-xl space-y-2 text-xs">
                     <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border">
                       <strong class="font-mono text-xs">{{ ord.id }}</strong>
-                      <span class="font-extrabold text-indigo-700">{{ (ord.total + ord.driverFee)?.toFixed(2) }}€</span>
+                      <span class="font-extrabold text-indigo-700">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</span>
                     </div>
 
                     <!-- Steps display -->
@@ -2406,7 +4057,7 @@
                   <div class="flex items-center justify-between border-t border-slate-100 pt-3">
                     <div>
                       <strong class="text-slate-400 text-[9px] uppercase font-bold block leading-none">Prix</strong>
-                      <strong class="text-slate-900 font-extrabold text-base">{{ p.price?.toFixed(2) }} €</strong>
+                      <strong class="text-slate-900 font-extrabold text-base">{{ p.price?.toFixed(2) }} DTN</strong>
                     </div>
 
                     <div class="text-right">
@@ -2506,7 +4157,7 @@
                   </div>
                   <div>
                     <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none text-left md:text-right font-sans">Montant Total Payé</span>
-                    <strong class="text-indigo-700 text-lg font-black font-sans">{{ (ord.total + ord.driverFee)?.toFixed(2) }}€</strong>
+                    <strong class="text-indigo-700 text-lg font-black font-sans">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</strong>
                   </div>
                 </div>
 
@@ -2919,7 +4570,7 @@
               <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
                   <span class="text-[9px] font-bold text-slate-400 uppercase block">Tarif</span>
-                  <strong class="text-slate-900 font-extrabold text-lg">{{ p.price?.toFixed(2) }} €</strong>
+                  <strong class="text-slate-900 font-extrabold text-lg">{{ p.price?.toFixed(2) }} DTN</strong>
                 </div>
                 <div class="text-right">
                   <span class="text-[9px] font-bold text-slate-400 uppercase block">Disponibilité</span>
@@ -2958,7 +4609,7 @@
                     <div>
                       <h5 class="text-[10px] font-bold text-slate-800 line-clamp-1 leading-tight mb-1">{{ other.name }}</h5>
                       <div class="flex items-center justify-between">
-                        <strong class="text-[10px] text-slate-900 font-extrabold">{{ other.price?.toFixed(2) }} €</strong>
+                        <strong class="text-[10px] text-slate-900 font-extrabold">{{ other.price?.toFixed(2) }} DTN</strong>
                         <span class="text-[8px] font-bold text-emerald-600 bg-emerald-50/50 px-1 py-0.2 rounded">{{ other.stock }} dispo</span>
                       </div>
                     </div>
@@ -2984,7 +4635,7 @@
             (click)="addToCart(p); selectedProduct.set(null)"
             [disabled]="p.stock <= 0"
             class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow shadow-slate-950/20 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 leading-none flex items-center gap-1.5">
-            <mat-icon class="text-sm">add_shopping_cart</mat-icon> Ajouter au panier - {{ p.price?.toFixed(2) }} €
+            <mat-icon class="text-sm">add_shopping_cart</mat-icon> Ajouter au panier - {{ p.price?.toFixed(2) }} DTN
           </button>
         </div>
 

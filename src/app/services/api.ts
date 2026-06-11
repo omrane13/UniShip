@@ -30,6 +30,21 @@ export interface User {
   suspended?: boolean;
   paymentMethod?: 'konnect' | 'paymee' | 'virement' | 'cheque';
   entryFeePaid?: boolean;
+  monthlyOrdersCount?: number;
+  inactivityDays?: number;
+  paymentDelayDays?: number;
+  nonConformingWarningsCount?: number;
+  // Livreur (Driver) Subscriptions & Tunisia specific fields
+  driverPlanId?: 'freelance' | 'partenaire' | 'pro';
+  driverBillingCycle?: 'monthly' | 'yearly';
+  driverConsecutiveMonthsCount?: number;
+  driverCancellationRate?: number;
+  driverAverageRating?: number;
+  driverInactivityDays?: number;
+  driverNonConformingWarningsCount?: number;
+  driverMonthlyDeliveriesCount?: number;
+  driverPaymentMethod?: 'konnect' | 'virement';
+  driverEntryFeePaid?: boolean;
 }
 
 export interface SubAccount {

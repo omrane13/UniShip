@@ -15,6 +15,34 @@ export interface User {
   driverStatus?: string;
   photo?: string;
   rating?: number;
+  
+  // Subscriptions & Tunisia specific fields
+  planId?: 'starter' | 'pro' | 'premium';
+  billingCycle?: 'monthly' | 'yearly';
+  consecutiveMonthsCount?: number;
+  referralCode?: string;
+  referredByCode?: string;
+  isVerifiedPartner?: boolean;
+  cancellationRate?: number;
+  averageRating?: number;
+  suspended?: boolean;
+  paymentMethod?: 'konnect' | 'paymee' | 'virement' | 'cheque';
+  entryFeePaid?: boolean;
+  inactivityDays?: number;
+  paymentDelayDays?: number;
+  nonConformingWarningsCount?: number;
+  monthlyOrdersCount?: number;
+  // Livreur (Driver) Subscriptions & Tunisia specific fields
+  driverPlanId?: 'freelance' | 'partenaire' | 'pro';
+  driverBillingCycle?: 'monthly' | 'yearly';
+  driverConsecutiveMonthsCount?: number;
+  driverCancellationRate?: number;
+  driverAverageRating?: number;
+  driverInactivityDays?: number;
+  driverNonConformingWarningsCount?: number;
+  driverMonthlyDeliveriesCount?: number;
+  driverPaymentMethod?: 'konnect' | 'virement';
+  driverEntryFeePaid?: boolean;
 }
 
 export interface SubAccount {
@@ -161,8 +189,23 @@ class InMemoryStore {
       status: 'active',
       color: '#10b981', // Emerald
       logo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop',
-      phone: '+33 6 98 76 54 32',
-      address: '12 Rue des Alouettes, 75020 Paris',
+      phone: '+216 71 888 999',
+      address: 'Route de la Marsa, Tunis',
+      // Subscriptions fields
+      planId: 'pro',
+      billingCycle: 'monthly',
+      consecutiveMonthsCount: 3,
+      referralCode: 'ECO100',
+      isVerifiedPartner: true,
+      cancellationRate: 4.5,
+      averageRating: 4.6,
+      suspended: false,
+      paymentMethod: 'konnect',
+      entryFeePaid: true,
+      inactivityDays: 2,
+      paymentDelayDays: 0,
+      nonConformingWarningsCount: 0,
+      monthlyOrdersCount: 65,
     },
     {
       id: 'usr_company2',
@@ -172,8 +215,23 @@ class InMemoryStore {
       status: 'active',
       color: '#f59e0b', // Amber
       logo: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=80&h=80&fit=crop',
-      phone: '+33 6 88 55 22 11',
-      address: '45 Avenue de la République, 69002 Lyon',
+      phone: '+216 73 555 111',
+      address: 'Avenue Habib Bourguiba, Sousse',
+      // Subscriptions fields
+      planId: 'starter',
+      billingCycle: 'monthly',
+      consecutiveMonthsCount: 1,
+      referralCode: 'ANTAN30',
+      isVerifiedPartner: false,
+      cancellationRate: 12.5, // above 10% penalty!
+      averageRating: 3.8,
+      suspended: false,
+      paymentMethod: 'paymee',
+      entryFeePaid: true,
+      inactivityDays: 14,
+      paymentDelayDays: 2,
+      nonConformingWarningsCount: 1,
+      monthlyOrdersCount: 22,
     },
     {
       id: 'usr_company3',
@@ -183,8 +241,23 @@ class InMemoryStore {
       status: 'pending', // Requires admin activation
       color: '#3b82f6', // Blue
       logo: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=80&h=80&fit=crop',
-      phone: '+33 7 44 99 22 33',
-      address: '8 Boulevard de la Nature, 33000 Bordeaux',
+      phone: '+216 74 222 333',
+      address: 'Zone Industrielle Poudrière, Sfax',
+      // Subscriptions fields
+      planId: 'premium',
+      billingCycle: 'yearly',
+      consecutiveMonthsCount: 5,
+      referralCode: 'BIOALL9',
+      isVerifiedPartner: true,
+      cancellationRate: 1.0,
+      averageRating: 4.9,
+      suspended: false,
+      paymentMethod: 'virement',
+      entryFeePaid: true,
+      inactivityDays: 1,
+      paymentDelayDays: 0,
+      nonConformingWarningsCount: 0,
+      monthlyOrdersCount: 210, // above 200 orders!
     },
     {
       id: 'usr_client1',
@@ -201,7 +274,18 @@ class InMemoryStore {
       email: 'lucas@delivery.com',
       role: 'driver',
       status: 'active',
-      phone: '+33 6 33 44 55 66',
+      phone: '+216 22 333 444',
+      // Delivery plan
+      driverPlanId: 'partenaire',
+      driverBillingCycle: 'monthly',
+      driverConsecutiveMonthsCount: 2,
+      driverCancellationRate: 2.0,
+      driverAverageRating: 4.85,
+      driverInactivityDays: 1,
+      driverNonConformingWarningsCount: 0,
+      driverMonthlyDeliveriesCount: 45,
+      driverPaymentMethod: 'konnect',
+      driverEntryFeePaid: true
     },
     {
       id: 'usr_driver2',
@@ -209,7 +293,18 @@ class InMemoryStore {
       email: 'emma@delivery.com',
       role: 'driver',
       status: 'active',
-      phone: '+33 6 77 88 99 00',
+      phone: '+216 55 666 777',
+      // Delivery plan
+      driverPlanId: 'freelance',
+      driverBillingCycle: 'monthly',
+      driverConsecutiveMonthsCount: 0,
+      driverCancellationRate: 6.5,
+      driverAverageRating: 4.2,
+      driverInactivityDays: 8,
+      driverNonConformingWarningsCount: 0,
+      driverMonthlyDeliveriesCount: 18,
+      driverPaymentMethod: 'virement',
+      driverEntryFeePaid: false
     },
   ];
 
