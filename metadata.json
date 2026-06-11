@@ -1,5 +1,5 @@
 {
-  "name": "Plateforme E-Commerce Multi-Rôles",
+  "name": "UniShip",
   "description": "Plateforme e-commerce moderne à architecture multi-rôles : Administrateur, Entreprise, Client et Livreur, avec intégration des catalogues, commandes, choix de livreur et suivi des livraisons en temps réel.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

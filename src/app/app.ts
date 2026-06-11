@@ -1032,6 +1032,85 @@ export class App implements OnInit {
   simulatedPaymentDelayDays = signal<number>(0);
   simulatedWarningsCount = signal<number>(0);
 
+
+  // 📸 QR CODE SCANNER SIMULATOR FOR DRIVERS
+  scanningOrderId = signal<string | null>(null);
+  isAnalyzingQR = signal<boolean>(false);
+  qrScanStep = signal<'idle' | 'scanning' | 'success'>('idle');
+
+  playBeep() {
+    try {
+      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 1000; // 1000Hz frequency
+      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+        audioCtx.close();
+      }, 150);
+    } catch (e) {
+      console.warn("Audio Context error:", e);
+    }
+  }
+
+  startQRScanner(orderId: string) {
+    this.clearMessages();
+    this.scanningOrderId.set(orderId);
+    this.qrScanStep.set('scanning');
+    this.isAnalyzingQR.set(true);
+
+    // After 1.8s, simulate scan, beep and validation
+    setTimeout(() => {
+      // Check if we are still scanning that same order
+      if (this.scanningOrderId() === orderId && this.qrScanStep() === 'scanning') {
+        this.confirmQRScanSuccess();
+      }
+    }, 1800);
+  }
+
+  cancelQRScanner() {
+    this.scanningOrderId.set(null);
+    this.qrScanStep.set('idle');
+    this.isAnalyzingQR.set(false);
+  }
+
+  async confirmQRScanSuccess() {
+    const orderId = this.scanningOrderId();
+    if (!orderId) return;
+
+    this.qrScanStep.set('success');
+    this.isAnalyzingQR.set(false);
+    this.playBeep();
+
+    try {
+      await this.api.updateOrderStatus(orderId, 'delivered');
+      this.successMessage.set(`Commande ${orderId} scannée et livrée avec succès ! 🏁`);
+      
+      const userObj = this.api.currentUser();
+      if (userObj?.role === 'driver') await this.loadDriverData();
+      else if (userObj?.role === 'company') await this.loadCompanyData();
+      else if (userObj?.role === 'client') await this.loadClientData();
+      else await this.loadAdminData();
+
+      setTimeout(() => {
+        if (this.scanningOrderId() === orderId) {
+          this.cancelQRScanner();
+        }
+      }, 1500);
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur de simulation de scan.');
+      this.cancelQRScanner();
+    }
+  }
+
   // 🚴 DELIVERER (LIVREUR) SUBSCRIPTIONS & EARNINGS MODEL
   selectedDriverPlan = signal<'freelance' | 'partenaire' | 'pro' | null>(null);
   selectedDriverCycle = signal<'monthly' | 'yearly'>('monthly');

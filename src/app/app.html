@@ -60,8 +60,8 @@
           <mat-icon class="text-white">hub</mat-icon>
         </div>
         <div>
-          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">E-COMMERCE MULTI-RÔLES</h1>
-          <p class="text-xs text-slate-500">Architecture Logique Intégrée & Suivi Livraison</p>
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">UNISHIP</h1>
+          <p class="text-xs text-slate-500">Plateforme Logistique Intégrée &amp; E-Commerce</p>
         </div>
       </div>
 
@@ -2494,6 +2494,92 @@
             </div>
           }
 
+          <!-- 📸 SIMULATED QR CODE SCANNER OVERLAY MODAL -->
+          @if (scanningOrderId()) {
+            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[110] p-4 text-left">
+              <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative text-white animate-in zoom-in-95 duration-200">
+                
+                <!-- Close Button -->
+                <button 
+                  (click)="cancelQRScanner()" 
+                  class="absolute right-4 top-4 bg-slate-800/80 hover:bg-slate-700 p-1.5 rounded-full transition text-slate-400 hover:text-white leading-none">
+                  <mat-icon class="text-sm">close</mat-icon>
+                </button>
+
+                <!-- Header -->
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="p-2.5 bg-violet-950/60 rounded-2xl text-violet-400 border border-violet-800/40">
+                    <mat-icon>qr_code_scanner</mat-icon>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-extrabold text-white leading-none">Validation par Scanner QR Code</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Vérification de livraison instantanée (Tunisie)</p>
+                  </div>
+                </div>
+
+                <!-- Video viewport Simulator -->
+                <div class="relative bg-slate-950 rounded-2xl aspect-square border border-slate-800 flex flex-col items-center justify-center overflow-hidden mb-5">
+                  
+                  <!-- Pulsing Green Scanner target reticle corners -->
+                  <div class="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-emerald-500 rounded-tl-md"></div>
+                  <div class="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-emerald-500 rounded-tr-md"></div>
+                  <div class="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-emerald-500 rounded-bl-md"></div>
+                  <div class="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-emerald-500 rounded-br-md"></div>
+
+                  <!-- QR Code mockup -->
+                  <div class="z-10 bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-xs flex flex-col items-center justify-center gap-3 select-none">
+                    <mat-icon class="text-6xl text-slate-300 transform scale-125">qr_code_2</mat-icon>
+                    <span class="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">CMD_{{ scanningOrderId() }}</span>
+                  </div>
+
+                  <!-- Scanner horizontal red/green laser animated line -->
+                  @if (qrScanStep() === 'scanning') {
+                    <div class="absolute left-6 right-6 h-0.5 bg-emerald-500/80 shadow-[0_0_8px_#10b981] animate-bounce"></div>
+                  } @else if (qrScanStep() === 'success') {
+                    <div class="absolute inset-0 bg-emerald-500/20 backdrop-blur-xs flex flex-col items-center justify-center gap-2 animate-pulse z-20">
+                      <div class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg transform scale-110 duration-300">
+                        <mat-icon class="text-3xl font-bold">done</mat-icon>
+                      </div>
+                      <span class="text-xs font-black text-emerald-400 uppercase tracking-widest mt-1">Code Détecté !</span>
+                    </div>
+                  }
+
+                  <!-- Overlay hints -->
+                  <div class="absolute bottom-3 text-[10px] text-slate-400 font-bold bg-slate-950/80 px-2.5 py-1 rounded-full border border-slate-800">
+                    @if (qrScanStep() === 'scanning') {
+                      <span>Placer le QR code devant la caméra...</span>
+                    } @else {
+                      <span class="text-emerald-400">Livraison Validée !</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Footer buttons / status display -->
+                <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850/60 flex items-center justify-between font-sans">
+                  <div class="flex flex-col">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 leading-none">Réf. Commande</span>
+                    <strong class="text-xs text-white font-mono mt-1">{{ scanningOrderId() }}</strong>
+                  </div>
+                  <div class="flex gap-2">
+                    <button 
+                      (click)="cancelQRScanner()"
+                      class="bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-1.5 text-xs font-bold rounded-lg transition leading-none">
+                      Annuler
+                    </button>
+                    @if (qrScanStep() === 'scanning') {
+                      <button 
+                        (click)="confirmQRScanSuccess()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-black rounded-lg shadow-md leading-none flex items-center gap-1">
+                        <mat-icon class="text-xs">flash_on</mat-icon> Déclencher Scan
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          }
+
           <!-- TAB CONTENT 4: Sous-comptes -->
           @if (companyCurrentTab() === 'team') {
             <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6">
@@ -2926,12 +3012,21 @@
                             Prendre en charge (En transit)
                           </button>
                         } @else if (o.status === 'transit') {
-                          <button 
-                            (click)="updateOrderProgress(o.id, 'delivered')"
-                            class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-700 leading-none"
-                            id="btn-progress-delivery">
-                            Confirmer livraison effectuée (Livrée)
-                          </button>
+                          <div class="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                            <button 
+                              (click)="updateOrderProgress(o.id, 'delivered')"
+                              class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-700 leading-none"
+                              id="btn-progress-delivery">
+                              Confirmer livraison manuelle
+                            </button>
+                            <button 
+                              (click)="startQRScanner(o.id)"
+                              class="bg-violet-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-violet-750 leading-none flex items-center justify-center gap-1.5 shadow-sm"
+                              id="btn-progress-qr-scan">
+                              <mat-icon class="text-xs">qr_code_scanner</mat-icon>
+                              Scanner QR Code Client
+                            </button>
+                          </div>
                         }
                       </div>
                     </div>
@@ -4646,7 +4741,7 @@
   <!-- Footer Info -->
   <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
     <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-      <p>© 2026 Plateforme Multi-Rôles E-Commerce. Conçu et déployé de manière découplée, solide et sécurisée.</p>
+      <p>© 2026 UniShip - Gestion Logistique &amp; E-Commerce. Conçu et déployé de manière moderne, fluide et sécurisée.</p>
       <div class="flex gap-4">
         <span class="hover:underline">Conditions Générales</span>
         <span>•</span>
