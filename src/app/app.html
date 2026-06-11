@@ -1,0 +1,3007 @@
+<!-- Top Live Role Playground Switcher Banner -->
+<div class="bg-slate-900 text-slate-100 py-3 px-4 shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+    <div class="flex items-center gap-2">
+      <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-medium tracking-wide">
+        <strong>Mode Bac à Sable (Playground) :</strong> Basculez instantanément de rôle pour tester le flux complet
+      </span>
+    </div>
+    
+    <div class="flex flex-wrap gap-1.5">
+      <button 
+        (click)="selectPlaygroundUser('visitor')"
+        [class]="!api.currentUser() ? 'bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+        id="btn-role-visitor">
+        🛒 Mode Visiteur
+      </button>
+
+      <button 
+        (click)="selectPlaygroundUser('client')"
+        [class]="api.currentUser()?.role === 'client' ? 'bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+        id="btn-role-client">
+        🛒 Client (Alice)
+      </button>
+
+      <button 
+        (click)="selectPlaygroundUser('company')"
+        [class]="api.currentUser()?.role === 'company' ? 'bg-blue-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+        id="btn-role-company">
+        🏢 Partenaire (EcoShop)
+      </button>
+
+      <button 
+        (click)="selectPlaygroundUser('driver')"
+        [class]="api.currentUser()?.role === 'driver' ? 'bg-violet-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+        id="btn-role-driver">
+        🚚 Livreur (Lucas)
+      </button>
+
+      <button 
+        (click)="selectPlaygroundUser('admin')"
+        [class]="api.currentUser()?.role === 'admin' ? 'bg-red-500 text-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs'"
+        id="btn-role-admin">
+        👑 Administrateur
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App Hub Shell -->
+<div class="min-h-screen bg-slate-50 flex flex-col antialiased">
+  
+  <!-- Main Header with Brand and Active Session Badge -->
+  <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-950 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center">
+          <mat-icon class="text-white">hub</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">E-COMMERCE MULTI-RÔLES</h1>
+          <p class="text-xs text-slate-500">Architecture Logique Intégrée & Suivi Livraison</p>
+        </div>
+      </div>
+
+      <!-- User Information Banner / Login Dialog Switcher -->
+      <div class="flex items-center gap-3">
+        @if (api.currentUser(); as user) {
+          <!-- Logged-in metadata card -->
+          <div class="flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-xl py-2 px-4 shadow-sm">
+            <span class="flex h-2.5 w-2.5 rounded-full" [style.backgroundColor]="user.color || '#64748b'"></span>
+            <div class="text-left">
+              <div class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                {{ user.name }}
+                @if (user.role === 'admin') {
+                  <span class="bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">ADMIN</span>
+                } @else if (user.role === 'company') {
+                  <span class="bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">ENTREPRISE</span>
+                } @else if (user.role === 'driver') {
+                  <span class="bg-violet-100 text-violet-700 border border-violet-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">LIVREUR</span>
+                } @else if (user.role === 'client') {
+                  <span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">CLIENT</span>
+                }
+              </div>
+              <p class="text-[11px] text-slate-500 leading-tight">{{ user.email }}</p>
+            </div>
+            
+            <button 
+              (click)="triggerLogout()" 
+              class="ml-2 hover:bg-red-50 text-red-500 p-1.5 rounded-lg transition-colors border border-transparent hover:border-red-100"
+              title="Déconnexion"
+              id="btn-logout">
+              <mat-icon class="text-sm">power_settings_new</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <!-- Simple login prompt badge -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Non authentifié</span>
+            <button 
+              (click)="activeAuthMode.set('login')" 
+              class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2"
+              id="btn-open-login">
+              <mat-icon class="text-xs">login</mat-icon> S'authentifier
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Operation Messages -->
+  <div class="max-w-7xl w-full mx-auto px-6 mt-4">
+    @if (errorMessage()) {
+      <div class="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2.5">
+          <mat-icon class="text-rose-600">error_outline</mat-icon>
+          <span class="text-sm font-medium">{{ errorMessage() }}</span>
+        </div>
+        <button (click)="errorMessage.set('')" class="text-rose-400 hover:text-rose-600">
+          <mat-icon class="text-xs">close</mat-icon>
+        </button>
+      </div>
+    }
+    @if (successMessage()) {
+      <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2.5">
+          <mat-icon class="text-emerald-600">check_circle_outline</mat-icon>
+          <span class="text-sm font-medium">{{ successMessage() }}</span>
+        </div>
+        <button (click)="successMessage.set('')" class="text-emerald-400 hover:text-emerald-600">
+          <mat-icon class="text-xs">close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Loading Overlay indicator -->
+  @if (loading()) {
+    <div class="fixed inset-0 bg-slate-100/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+      <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-sm font-bold text-slate-700">Traitement en cours...</span>
+      </div>
+    </div>
+  }
+
+  <!-- APP CONTENT MIDDLEWARE ROUTING -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-4">
+
+    <!-- Case A: ADMIN INTERFACE -->
+    @if (api.currentUser()?.role === 'admin') {
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left Side Tab Navigation -->
+        <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-1.5">
+          <p class="text-xs font-bold text-slate-400 px-3 uppercase tracking-wider mb-2">Interface Admin</p>
+          
+          <button 
+            (click)="adminCurrentTab.set('users')"
+            [class]="adminCurrentTab() === 'users' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-users">
+            <mat-icon class="text-md">people</mat-icon> Utilisateurs & Contrats
+          </button>
+
+          <button 
+            (click)="adminCurrentTab.set('offers')"
+            [class]="adminCurrentTab() === 'offers' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-offers">
+            <mat-icon class="text-md">branding_watermark</mat-icon> Offres Tarifaires
+          </button>
+
+          <button 
+            (click)="adminCurrentTab.set('stocks')"
+            [class]="adminCurrentTab() === 'stocks' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm flex items-center justify-between' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm flex items-center justify-between'"
+            id="tab-admin-stocks">
+            <span class="flex items-center gap-3">
+              <mat-icon class="text-md">inventory_2</mat-icon> Stocks & Produits
+            </span>
+            @if ((globalStats()?.metrics?.lowStocksCount ?? 0) > 0) {
+              <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                {{ globalStats()?.metrics?.lowStocksCount }}
+              </span>
+            }
+          </button>
+
+          <button 
+            (click)="adminCurrentTab.set('logs')"
+            [class]="adminCurrentTab() === 'logs' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-logs">
+            <mat-icon class="text-md">list_alt</mat-icon> Journal d’Audit
+          </button>
+
+          <button 
+            (click)="adminCurrentTab.set('support')"
+            [class]="adminCurrentTab() === 'support' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-tickets">
+            <mat-icon class="text-md">support_agent</mat-icon> Support & Tickets
+          </button>
+
+          <button 
+            (click)="adminCurrentTab.set('profile')"
+            [class]="adminCurrentTab() === 'profile' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-profile">
+            <mat-icon class="text-md">account_circle</mat-icon> Mon Compte Profil
+          </button>
+        </div>
+
+        <!-- Right Side Dashboard Body -->
+        <div class="lg:col-span-3 flex flex-col gap-6">
+          
+          <!-- Metriques Card Layout -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">CA Total</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.totalEarnings?.toFixed(2) }}€</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Partenaires actifs</span>
+              <p class="text-2xl font-extrabold text-emerald-600 mt-1">{{ globalStats()?.metrics?.activeContracts }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Alertes Stock</span>
+              <p class="text-2xl font-extrabold text-rose-600 mt-1">{{ globalStats()?.metrics?.lowStocksCount }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Commandes</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.ordersCount }}</p>
+            </div>
+          </div>
+
+          <!-- Répartition Statistique des Partenaires (Bar Charts) -->
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="p-2 bg-indigo-50 text-indigo-700 rounded-xl">
+                <mat-icon>bar_chart</mat-icon>
+              </span>
+              <div>
+                <h4 class="text-sm font-extrabold text-slate-900">Répartition de l’Activité des Partenaires</h4>
+                <p class="text-xs text-slate-500">Visualisation par couleur d'entreprise (Nombre de produits & Volume de ventes cumulé).</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Col A: Nombre de Produits Actifs -->
+              <div class="border border-slate-100 p-4 rounded-xl flex flex-col gap-3.5 bg-slate-50/30">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>Nombre de références actives</span>
+                  <span class="text-[10px] text-slate-400 normal-case font-medium">Par partenaire</span>
+                </h5>
+                <div class="flex flex-col gap-3">
+                  @for (u of users(); track u.id) {
+                    @if (u.role === 'company' && u.status === 'active') {
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs font-semibold">
+                          <span class="text-slate-800">{{ u.name }}</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ getCompanyProductCount(u.id) }} produits</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
+                          <div class="h-full rounded-full transition-all duration-500" 
+                               [style.backgroundColor]="u.color || '#10b981'"
+                               [style.width.%]="(getCompanyProductCount(u.id) / getCompanyMaxProductCount()) * 100">
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+
+              <!-- Col B: Volume d'Affaires Cumulé (Euros) -->
+              <div class="border border-slate-100 p-4 rounded-xl flex flex-col gap-3.5 bg-slate-50/30">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>Volume de ventes réalisé</span>
+                  <span class="text-[10px] text-slate-400 normal-case font-medium">Par partenaire (Livré)</span>
+                </h5>
+                <div class="flex flex-col gap-3">
+                  @for (u of users(); track u.id) {
+                    @if (u.role === 'company' && u.status === 'active') {
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs font-semibold">
+                          <span class="text-slate-800">{{ u.name }}</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ getCompanyRevenue(u.id)?.toFixed(2) }} €</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
+                          <div class="h-full rounded-full transition-all duration-500" 
+                               [style.backgroundColor]="u.color || '#10b981'"
+                               [style.width.%]="(getCompanyRevenue(u.id) / getCompanyMaxRevenue()) * 100">
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 1: Users & Contrats -->
+          @if (adminCurrentTab() === 'users') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Gestion des Utilisateurs & Activation de Contrats</h3>
+                  <p class="text-xs text-slate-500">Supervisez l'affiliation des entreprises et leur couleur d'affichage.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- User creation form -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                  <h4 class="text-sm font-bold text-slate-800 mb-3">Ajouter un Utilisateur</h4>
+                  <div class="flex flex-col gap-3">
+                    <input 
+                      [value]="regName()" 
+                      (input)="regName.set($any($event.target).value)"
+                      placeholder="Nom complet / Boutique" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    <input 
+                      [value]="regEmail()" 
+                      (input)="regEmail.set($any($event.target).value)" 
+                      placeholder="E-mail" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    
+                    <div class="flex gap-2">
+                      <select 
+                        [value]="regRole()" 
+                        (change)="setRegRole($any($event.target).value)"
+                        class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs flex-1">
+                        <option value="client">Rôle : Client</option>
+                        <option value="company">Rôle : Entreprise</option>
+                        <option value="driver">Rôle : Livreur</option>
+                        <option value="admin">Rôle : Admin</option>
+                      </select>
+
+                      @if (regRole() === 'company') {
+                        <div class="flex gap-1 items-center">
+                          <input 
+                            type="color" 
+                            [value]="regColor()" 
+                            (input)="regColor.set($any($event.target).value)" 
+                            class="h-8 w-12 border rounded cursor-pointer" 
+                            title="Couleur de l'entreprise" />
+                          <button 
+                            type="button"
+                            (click)="regColor.set(generateRandomColor())"
+                            class="bg-slate-100 hover:bg-slate-200 p-1.5 rounded flex items-center justify-center"
+                            title="Générer une couleur aléatoire">
+                            <mat-icon class="text-xs">cached</mat-icon>
+                          </button>
+                        </div>
+                      }
+                    </div>
+
+                    <button 
+                      (click)="handleRegistration()"
+                      class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg">
+                      Créer le Compte
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Color chart legend -->
+                <div class="border border-slate-150 p-5 rounded-2xl text-left flex flex-col gap-4 bg-slate-50/20">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                       <span class="p-1.5 bg-orange-50 text-orange-600 rounded-lg text-xs flex items-center justify-center">
+                         <mat-icon class="text-xs">palette</mat-icon>
+                       </span>
+                       Identification Visuelle des Partenaires
+                    </h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Chaque entreprise possède une couleur exclusive (Niveau 2) pour identifier immédiatement ses produits dans le catalogue. Le rôle est identifié en orange standard #E8710A (Niveau 1).
+                  </p>
+                  
+                  <div class="flex flex-col gap-3">
+                    @for (u of users(); track u.id) {
+                      @if (u.role === 'company') {
+                        <div class="p-3.5 border border-slate-150 rounded-xl bg-white flex flex-col gap-3 shadow-sm">
+                          <!-- Row layout -->
+                          <div class="flex items-center justify-between gap-1">
+                            <!-- Clickable block + Mono hex label -->
+                            <div class="flex items-center gap-1.5 relative">
+                              <span 
+                                class="h-6 w-6 rounded border border-black/10 cursor-pointer shadow-inner block relative overflow-hidden" 
+                                [style.backgroundColor]="u.color || '#64748b'"
+                                title="Cliquer pour modifier la couleur">
+                                <input 
+                                  type="color" 
+                                  [value]="u.color || '#10b981'" 
+                                  (change)="assignCompanyColor(u.id, $any($event.target).value)" 
+                                  class="absolute inset-0 opacity-0 cursor-pointer w-6 h-6" />
+                              </span>
+                              <code class="font-mono font-bold text-[10px] text-slate-700 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                                {{ u.color || '#64748b' }}
+                              </code>
+                            </div>
+
+                            <!-- Rendered short brand badge -->
+                            <div class="text-[10px]">
+                              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold shadow-sm" [style.backgroundColor]="u.color" [style.color]="getTextColor(u.color ?? '')">
+                                🏬 {{ u.name.slice(0, 10) }}
+                              </span>
+                            </div>
+
+                            <!-- "Modifier la couleur" button -->
+                            <div class="relative">
+                              <button class="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-150 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 leading-none transition-colors">
+                                <mat-icon class="text-xs">colorize</mat-icon> Modifier
+                              </button>
+                              <input 
+                                type="color" 
+                                [value]="u.color || '#10b981'" 
+                                (change)="assignCompanyColor(u.id, $any($event.target).value)" 
+                                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                            </div>
+                          </div>
+
+                          <!-- Real-time demo card preview -->
+                          <div class="border-t border-slate-100 pt-2 flex items-center justify-between gap-2">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Rendu Catalogue :</span>
+                            <div class="w-32 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col text-left">
+                              <div class="h-1 w-full" [style.backgroundColor]="u.color || '#10b981'"></div>
+                              <div class="px-2 py-1 flex items-center justify-between text-[8px]">
+                                <span class="font-bold text-slate-800 truncate max-w-[50px]">Produit Démo</span>
+                                <span class="px-1 py-0.2 rounded text-[7px] font-extrabold scale-90" [style.backgroundColor]="u.color || '#10b981'" [style.color]="getTextColor(u.color ?? '')">
+                                  {{ u.name.split(' ')[0] }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Users list -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-400 font-bold uppercase tracking-wider">
+                      <th class="py-3 px-4">Utilisateur</th>
+                      <th class="py-3 px-4">Type / Affiliation</th>
+                      <th class="py-3 px-4">E-mail / Contact</th>
+                      <th class="py-3 px-4">Contrat Statut</th>
+                      <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (u of users(); track u.id) {
+                      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td class="py-3 px-4 font-bold text-slate-800">
+                          <div class="flex items-center gap-2">
+                            @if (u.role === 'company') {
+                              <span class="h-3 w-3 rounded bg-indigo-50 border border-slate-200" [style.backgroundColor]="u.color"></span>
+                            }
+                            {{ u.name }}
+                          </div>
+                        </td>
+                        <td class="py-3 px-4 text-left">
+                          @if (u.role === 'collaborator') {
+                            <div class="flex flex-col">
+                              <span class="px-2 py-0.5 rounded font-extrabold text-[10px] bg-indigo-50 text-indigo-700 uppercase self-start w-fit">
+                                Collaborateur
+                              </span>
+                              <span class="text-[10px] text-slate-500 font-bold mt-1 leading-none">
+                                {{ u.phone }}
+                              </span>
+                            </div>
+                          } @else {
+                            <span class="px-2 py-0.5 rounded font-bold text-[10px] uppercase"
+                              [class]="u.role === 'admin' ? 'bg-purple-100 text-purple-700' : u.role === 'company' ? 'bg-blue-100 text-blue-700' : u.role === 'driver' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+                              {{ u.role }}
+                            </span>
+                          }
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">{{ u.email }}</td>
+                        <td class="py-3 px-4">
+                          <span class="flex items-center gap-1.5">
+                            <span class="h-2 w-2 rounded-full" [class]="u.status === 'active' ? 'bg-emerald-500' : u.status === 'pending' ? 'bg-amber-500' : 'bg-rose-500'"></span>
+                            <span class="font-bold uppercase text-[10px]" [class]="u.status === 'active' ? 'text-emerald-700' : u.status === 'pending' ? 'text-amber-700' : 'text-rose-700'">
+                              {{ u.status === 'active' ? 'ACTIF / SIGNÉ' : u.status === 'pending' ? 'EN ATTENTE' : 'DÉSACTIVÉ' }}
+                            </span>
+                          </span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                          <div class="flex justify-end gap-1">
+                            <button 
+                              (click)="toggleUserActivation(u)"
+                              class="px-2.5 py-1 text-slate-700 bg-white border border-slate-300 rounded-lg font-bold hover:bg-slate-50 leading-none">
+                              {{ u.status === 'active' ? 'Désactiver' : 'Activer / Valider' }}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- SUB-TAB 2: Offres Tarifaires -->
+          @if (adminCurrentTab() === 'offers') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Éditeur d’Offres de la Plateforme</h3>
+                  <p class="text-xs text-slate-500">Formulez des contrats commissionnés sur mesure pour les entreprises partenaires.</p>
+                </div>
+              </div>
+
+              <!-- Offer Creation Panel -->
+              <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-left mb-6">
+                <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wide mb-3">Nouvelle Grille Tarifaire</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="flex flex-col gap-1 md:col-span-2">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Titre de l'Offre</span>
+                    <input 
+                      [value]="newOfferTitle()" 
+                      (input)="newOfferTitle.set($any($event.target).value)"
+                      placeholder="Ex: Formule Privilège Commande Locale" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Commission %</span>
+                    <input 
+                      type="number" 
+                      [value]="newOfferCommission()" 
+                      (input)="newOfferCommission.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Frais d'Entrée (€)</span>
+                    <input 
+                      type="number" 
+                      [value]="newOfferFee()" 
+                      (input)="newOfferFee.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-1 mb-4">
+                  <span class="text-[10px] uppercase font-bold text-slate-500">Description des Conditions</span>
+                  <input 
+                    [value]="newOfferDesc()" 
+                    (input)="newOfferDesc.set($any($event.target).value)" 
+                    placeholder="Avantages uniques de cette formule de commission" 
+                    class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                </div>
+
+                <button 
+                  (click)="submitNewOffer()"
+                  class="bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors">
+                  Publier l'Offre
+                </button>
+              </div>
+
+              <!-- Display list -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (of of offers(); track of.id) {
+                  <div class="border border-slate-200 p-4 rounded-xl text-left flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center justify-between mb-2">
+                        <strong class="text-sm font-bold text-slate-800">{{ of.title }}</strong>
+                        <button 
+                          (click)="deleteOffer(of.id)"
+                          class="hover:text-rose-600 p-1 text-slate-400">
+                          <mat-icon class="text-xs">delete</mat-icon>
+                        </button>
+                      </div>
+                      <p class="text-xs text-slate-500 mb-4">{{ of.description || 'Aucune description disponible.' }}</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-2.5 rounded-lg flex items-center justify-around text-center text-xs border border-slate-100">
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Commission</span>
+                        <strong class="text-indigo-600 font-extrabold text-sm">{{ of.commissionRate }}%</strong>
+                      </div>
+                      <div class="w-px h-6 bg-slate-200"></div>
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Frais Fixes</span>
+                        <strong class="text-slate-700 font-extrabold text-sm">{{ of.entryFee }}€</strong>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- SUB-TAB 3: Stocks & Validation de nouveaux produits et Demandes Stock -->
+          @if (adminCurrentTab() === 'stocks') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col gap-6">
+              
+              <!-- Segment A: Proposions de nouveaux produits par partenaires -->
+              <div class="text-left">
+                <h3 class="text-base font-extrabold text-slate-900 mb-2">Validation de Nouveaux Produits</h3>
+                <p class="text-xs text-slate-500 mb-4">Ces produits ont été proposés par des entreprises et nécessitent votre accord avant l’affichage public.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  @for (prod of products(); track prod.id) {
+                    @if (prod.status === 'pending') {
+                      <div class="border border-slate-200 bg-amber-50/20 p-4 rounded-xl flex gap-3">
+                        <img [src]="prod.image" alt="Visuel du produit proposé" class="w-20 h-20 rounded-lg object-cover bg-slate-100" referrerpolicy="no-referrer" />
+                        <div class="flex-1 flex flex-col justify-between text-left">
+                          <div>
+                            <div class="flex items-center justify-between gap-1">
+                              <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded text-white" [style.backgroundColor]="prod.companyColor">
+                                {{ prod.companyName }}
+                              </span>
+                              <span class="text-xs font-bold">{{ prod.price?.toFixed(2) }}€</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800">{{ prod.name }}</h4>
+                            <p class="text-[11px] text-slate-500 line-clamp-2 leading-tight">{{ prod.description }}</p>
+                          </div>
+
+                          <div class="flex justify-end gap-1.5 mt-2">
+                            <button 
+                              (click)="decideOnProductApproval(prod, 'rejected', 'Refusé temporairement par Admin')"
+                              class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 leading-none">
+                              Refuser
+                            </button>
+                            <button 
+                              (click)="decideOnProductApproval(prod, 'active')"
+                              class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-800 leading-none">
+                              Approuver
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  } @empty {
+                    <div class="md:col-span-2 border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400">
+                      Aucune demande d'ajout de produit en attente.
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <!-- Segment B: Demandes d'augmentation de stock -->
+              <div class="text-left">
+                <h3 class="text-base font-extrabold text-slate-900 mb-2">Demandes de Ravitaillement / Augmentations de Stock</h3>
+                <p class="text-xs text-slate-500 mb-4">Approuvez les allocations de stock d'entrepôt requises par vos partenaires.</p>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200">
+                        <th class="py-2.5 px-4">Partenaire</th>
+                        <th class="py-2.5 px-4">Produit</th>
+                        <th class="py-2.5 px-4">Quantité demandée</th>
+                        <th class="py-2.5 px-4">Justification</th>
+                        <th class="py-2.5 px-4">État de la Demande</th>
+                        <th class="py-2.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (sr of stockRequests(); track sr.id) {
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                          <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 rounded text-[10px] font-extrabold shadow-sm inline-flex items-center gap-1 leading-none" 
+                              [style.backgroundColor]="getCompanyColor(sr.companyId)" 
+                              [style.color]="getTextColor(getCompanyColor(sr.companyId))">
+                              🏬 {{ sr.companyName }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-4 font-bold">{{ sr.productName }}</td>
+                          <td class="py-3 px-4 text-indigo-600 font-extrabold">+{{ sr.quantity }}</td>
+                          <td class="py-3 px-4 text-slate-500 italic">"{{ sr.justification }}"</td>
+                          <td class="py-3 px-4 uppercase text-[10px] font-bold">
+                            <span [class]="sr.status === 'pending' ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded' : sr.status === 'approved' ? 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded' : 'text-rose-700 bg-rose-50 px-2 py-0.5 rounded'">
+                              {{ sr.status === 'pending' ? 'EN ATTENTE' : sr.status === 'approved' ? 'ACCEPTÉE' : 'REJETÉE' }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-4 text-right">
+                            @if (sr.status === 'pending') {
+                              <div class="flex justify-end gap-1">
+                                <button 
+                                  (click)="decideOnStockRequest(sr, 'rejected')"
+                                  class="bg-white border border-slate-300 text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-50">
+                                  Refuser
+                                </button>
+                                <button 
+                                  (click)="decideOnStockRequest(sr, 'approved')"
+                                  class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-800">
+                                  Approuver
+                                </button>
+                              </div>
+                            } @else {
+                              <span class="text-slate-400 text-[10px] italic">Traité</span>
+                            }
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="6" class="py-6 text-center text-slate-400">Aucune demande de stock disponible.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <!-- Segment C: Stock global de tous les produits (avec adjusteurs) -->
+              <div class="text-left">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Inventaire Complet & Ajustement Manuel</h3>
+                <div class="overflow-x-auto text-xs">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Partenaire</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Produit</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Stock Phsyique</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Statut d'Alerte</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase text-right">Ajuster de force</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (p of products(); track p.id) {
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                          <td class="py-2.5 px-4 whitespace-nowrap font-extrabold text-[10px] border-l-4 transition-all" 
+                              [style.borderLeftColor]="p.companyColor" 
+                              [style.backgroundColor]="p.companyColor + '10'" 
+                              [style.color]="p.companyColor">
+                            🏬 {{ p.companyName }}
+                          </td>
+                          <td class="py-2.5 px-4 font-bold text-slate-800">{{ p.name }}</td>
+                          <td class="py-2.5 px-4 font-mono font-bold">{{ p.stock }} unités</td>
+                          <td class="py-2.5 px-4 uppercase text-[10px] font-bold">
+                            @if (p.stock <= p.threshold) {
+                              <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold">🚨 ALERTE SEUIL</span>
+                            } @else {
+                              <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">🟢 OK</span>
+                            }
+                          </td>
+                          <td class="py-2.5 px-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                              <button 
+                                (click)="manualAdjustProductStock(p, p.stock - 5)"
+                                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-1.5 py-1 rounded text-[10px] font-extrabold leading-none">
+                                -5
+                              </button>
+                              <button 
+                                (click)="manualAdjustProductStock(p, p.stock + 10)"
+                                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-1.5 py-1 rounded text-[10px] font-extrabold leading-none">
+                                +10
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          <!-- SUB-TAB 4: Journal d’Audit -->
+          @if (adminCurrentTab() === 'logs') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-left">
+                  <h3 class="text-lg font-extrabold text-slate-900">Journal d'Audit Système</h3>
+                  <p class="text-xs text-slate-500">Historisation complète des évènements critiques et actions administratives.</p>
+                </div>
+              </div>
+
+              <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-200 overflow-y-auto max-h-96 border border-slate-800 text-left">
+                @for (log of auditLogs(); track log.id) {
+                  <div class="py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded flex flex-wrap items-center gap-1.5">
+                    <span class="text-purple-400 font-bold">[{{ log.createdAt | date: 'mediumTime' }}]</span>
+                    <span class="text-emerald-400 font-bold"> {{ log.action }}</span>
+                    @if (isCompanyUser(log.userId)) {
+                      <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold shadow-sm flex items-center gap-1" [style.backgroundColor]="getCompanyColor(log.userId)" [style.color]="getTextColor(getCompanyColor(log.userId))">
+                        🏬 {{ log.userName }}
+                      </span>
+                    } @else {
+                      <span class="text-slate-300"> par {{ log.userName }} ({{ log.userId }}) :</span>
+                    }
+                    <span class="text-slate-400 italic"> {{ log.details }}</span>
+                  </div>
+                } @empty {
+                  <div class="text-slate-500 text-center py-4">Aucun log disponible.</div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- SUB-TAB 5: Tickets Support -->
+          @if (adminCurrentTab() === 'support') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+              <h3 class="text-lg font-extrabold text-slate-900 mb-2">Centre de Support Clientèle & Partenaire</h3>
+              <p class="text-xs text-slate-500 mb-6">Répondez aux réclamations ou questions des utilisateurs et entreprises.</p>
+
+              <!-- Ticket Box component -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 border-r border-slate-100 pr-4 flex flex-col gap-2">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Boîte d'attente</p>
+                  @for (t of tickets(); track t.id) {
+                    <button 
+                      (click)="selectedTicket.set(t)"
+                      [class]="selectedTicket()?.id === t.id ? 'p-3 bg-indigo-50 border border-indigo-200 text-slate-800 rounded-xl text-left block w-full shadow-sm' : 'p-3 hover:bg-slate-50 border border-transparent rounded-xl text-left text-slate-600 block w-full'"
+                      id="btn-tkt-{{ t.id }}">
+                      <div class="flex items-center justify-between mb-1">
+                        <strong class="text-sm font-bold">{{ t.subject }}</strong>
+                        <span [class]="t.status === 'open' ? 'h-2 w-2 rounded-full bg-amber-500' : 'h-2 w-2 rounded-full bg-slate-400'"></span>
+                      </div>
+                      <div class="flex justify-between items-center text-[10px] text-slate-400 font-medium font-mono uppercase">
+                        <span>{{ t.userName }}</span>
+                        <span>{{ t.createdAt | date:'shortTime' }}</span>
+                      </div>
+                    </button>
+                  } @empty {
+                    <p class="text-xs text-slate-400 italic text-center py-4">Sain et sauf. Aucun ticket.</p>
+                  }
+                </div>
+
+                <div class="md:col-span-2">
+                  @if (selectedTicket(); as tkt) {
+                    <div class="border border-slate-200 p-4 rounded-xl flex flex-col gap-4">
+                      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                          <h4 class="text-sm font-bold text-slate-950">{{ tkt.subject }}</h4>
+                          <span class="text-xs text-slate-400">Émis par {{ tkt.userName }} ({{ tkt.userRole }})</span>
+                        </div>
+                        <span [class]="tkt.status === 'open' ? 'bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded font-bold' : 'bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded font-bold'">
+                          {{ tkt.status === 'open' ? 'OUVERT' : 'RÉSOLU' }}
+                        </span>
+                      </div>
+
+                      <div class="bg-indigo-50/40 p-3 rounded-lg border border-indigo-100 text-slate-700 text-xs">
+                        <strong class="block text-slate-900 text-xs mb-1">Message initial:</strong>
+                        {{ tkt.message }}
+                      </div>
+
+                      <!-- Comments loop -->
+                      <div class="flex flex-col gap-2 mx-2">
+                        @for (rep of tkt.replies; track rep.createdAt) {
+                          <div class="p-2 w-3/4 rounded-xl border border-slate-100" [class]="rep.senderRole === 'admin' ? 'self-end bg-slate-900 border-slate-800 text-slate-100 ml-4' : 'self-start bg-slate-50 pl-4 border-slate-200'">
+                            <span class="text-[9px] uppercase font-bold tracking-wider leading-none" [class]="rep.senderRole === 'admin' ? 'text-indigo-400':'text-indigo-600'">
+                              {{ rep.senderName }} ({{ rep.senderRole }})
+                            </span>
+                            <p class="text-xs font-medium mt-0.5 leading-tight">{{ rep.message }}</p>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Reply block -->
+                      @if (tkt.status === 'open') {
+                        <div class="flex flex-col gap-2 border-t border-slate-100 pt-3">
+                          <input 
+                            [value]="ticketReplyText()" 
+                            (input)="ticketReplyText.set($any($event.target).value)"
+                            placeholder="Écrire votre réponse..." 
+                            class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs" />
+                          
+                          <div class="flex gap-2 justify-end">
+                            <button 
+                              (click)="postTicketReply(tkt, true)"
+                              class="bg-white border border-slate-300 text-slate-700 font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-slate-50">
+                              Marquer Résolu
+                            </button>
+                            <button 
+                              (click)="postTicketReply(tkt)"
+                              class="bg-slate-900 text-white font-bold text-xs px-4 py-1.5 rounded-lg hover:bg-slate-800">
+                              Répondre
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="flex items-center justify-center p-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                      <p class="text-xs text-slate-400 italic">Sélectionnez un ticket pour entamer la discussion ou répondre.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Admin Profile View -->
+          @if (adminCurrentTab() === 'profile') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left space-y-6">
+              <div>
+                <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Administrateur</h3>
+                <p class="text-xs text-slate-500">Consultez et modifiez les informations de votre profil administrateur.</p>
+              </div>
+
+              <!-- General Rules Card -->
+              <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
+                <mat-icon class="text-purple-700">lock_outline</mat-icon>
+                <div class="text-xs text-purple-900 space-y-1 font-sans">
+                  <p class="font-bold">🔑 Qui peut consulter et modifier ce compte ?</p>
+                  <p>• <strong>Consultation :</strong> Uniquement vous (en tant que super utilisateur).</p>
+                  <p>• <strong>Modification :</strong> Strictement réservé aux privilèges administrateur.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Nom Complet</span>
+                  <input 
+                    [value]="profileName()" 
+                    (input)="profileName.set($any($event.target).value)"
+                    placeholder="Nom" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-name" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Adresse E-mail</span>
+                  <input 
+                    [value]="profileEmail()" 
+                    (input)="profileEmail.set($any($event.target).value)"
+                    placeholder="Email" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-email" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                  <span class="font-bold text-slate-500">Téléphone</span>
+                  <input 
+                    [value]="profilePhone()" 
+                    (input)="profilePhone.set($any($event.target).value)"
+                    placeholder="Téléphone" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-phone" />
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-4 border-t">
+                <button 
+                  (click)="updateUserProfile()"
+                  class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                  <mat-icon class="text-xs">save</mat-icon> Enregistrer les modifications
+                </button>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+    }
+
+    <!-- Case B: COMPANY DASHBOARD -->
+    @if (api.currentUser()?.role === 'company') {
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Navigation tab rail -->
+        <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-1.5">
+          <p class="text-xs font-bold text-slate-400 px-3 uppercase tracking-wider mb-2">Console Partenaire</p>
+          
+          <button 
+            (click)="companyCurrentTab.set('products')"
+            [class]="companyCurrentTab() === 'products' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-products">
+            <mat-icon class="text-md">grid_view</mat-icon> Mon Catalogue
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('orders')"
+            [class]="companyCurrentTab() === 'orders' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-orders">
+            <mat-icon class="text-md">receipt_long</mat-icon> Commandes Reçues
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('requests')"
+            [class]="companyCurrentTab() === 'requests' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-requests">
+            <mat-icon class="text-md">add_shopping_cart</mat-icon> Demandes de Ravitaillement
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('offers')"
+            [class]="companyCurrentTab() === 'offers' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-offers">
+            <mat-icon class="text-md">contact_mail</mat-icon> Offres de la Plateforme
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('team')"
+            [class]="companyCurrentTab() === 'team' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-permissions">
+            <mat-icon class="text-md">badge</mat-icon> Collaborateurs (Sous-comptes)
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('support')"
+            [class]="companyCurrentTab() === 'support' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-tickets">
+            <mat-icon class="text-md">help_outline</mat-icon> Support technique
+          </button>
+
+          <button 
+            (click)="companyCurrentTab.set('profile')"
+            [class]="companyCurrentTab() === 'profile' ? 'flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 font-bold rounded-xl text-left border border-blue-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-co-profile">
+            <mat-icon class="text-md">account_circle</mat-icon> Mon Compte Profil
+          </button>
+        </div>
+
+        <!-- Space body for company -->
+        <div class="lg:col-span-3 flex flex-col gap-6 text-left">
+          
+          <!-- Sales widgets -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Ventes Nettes</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.salesSum?.toFixed(2) }}€</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Produits enregistrés</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.totalProducts }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Commandes Reçus</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ globalStats()?.metrics?.totalOrders }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm" [class]="(globalStats()?.metrics?.lowStocksWarning ?? 0) > 0 ? 'bg-amber-50 border-amber-200':''">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Alerte Ruptures Seuil</span>
+              <p class="text-2xl font-extrabold text-rose-600 mt-1">{{ globalStats()?.metrics?.lowStocksWarning }}</p>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 0: Company Orders Management (Step 5 & 6) -->
+          @if (companyCurrentTab() === 'orders') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6">
+              <div>
+                <h3 class="text-lg font-extrabold text-slate-900">Commandes Clients Reçues</h3>
+                <p class="text-xs text-slate-500">Gérez le flux complet d’expédition, attribuez un livreur (Étapes 05-06) et suivez leur accomplissement.</p>
+              </div>
+
+              <div class="space-y-4">
+                @for (o of orders(); track o.id) {
+                  <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    
+                    <!-- Header -->
+                    <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 font-sans">
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-mono font-extrabold text-[11px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">No {{ o.id }}</span>
+                          <span class="text-xs text-slate-400 font-medium">{{ o.createdAt | date:'shortTime' }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1 font-semibold">Client : {{ o.clientName }} ({{ o.clientEmail }})</p>
+                      </div>
+
+                      <div class="text-right flex flex-col items-end gap-1">
+                        <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} € (+ {{ o.driverFee?.toFixed(2) }}€ de livraison)</span>
+                        
+                        <!-- Status Pills -->
+                        <span class="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded leading-none"
+                          [class]="o.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                   o.status === 'accepted' ? 'bg-indigo-100 text-indigo-800' :
+                                   o.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                                   o.status === 'transit' ? 'bg-amber-500/10 text-amber-700' :
+                                   o.status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'">
+                          {{ o.status === 'pending' ? 'En attente livreur' :
+                             o.status === 'accepted' ? 'Acceptée par livreur' :
+                             o.status === 'preparing' ? 'En préparation' :
+                             o.status === 'transit' ? 'En livraison' :
+                             o.status === 'delivered' ? 'Livrée & Clôturée' : o.status }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Main items and driver control panels -->
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      
+                      <!-- Col 1: Ordered items -->
+                      <div class="space-y-2.5">
+                        <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Articles commandés</span>
+                        <div class="border border-slate-100 rounded-lg divide-y">
+                          @for (item of o.items; track item.productId) {
+                            <div class="p-2.5 text-xs flex justify-between items-center bg-slate-50/50">
+                              <div>
+                                <strong class="text-slate-800 font-bold">{{ item.productName }}</strong>
+                                <span class="text-slate-400 block text-[10px]">{{ item.price?.toFixed(2) }}€ x {{ item.quantity }}</span>
+                              </div>
+                              <span class="font-mono font-bold text-slate-700">{{ (item.price * item.quantity)?.toFixed(2) }}€</span>
+                            </div>
+                          }
+                        </div>
+                        
+                        <div class="text-xs bg-indigo-50/30 p-2.5 rounded-lg border border-indigo-100/50 text-slate-600">
+                          <span class="font-bold block text-[10px] text-indigo-400 uppercase tracking-widest leading-none mb-1">Point de Livraison</span>
+                          <span class="font-medium text-[11px]">{{ o.deliveryAddress }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Col 2: Driver Selection Panel -->
+                      <div class="bg-slate-50/70 p-4 rounded-xl border border-dashed border-slate-200">
+                        @if (o.status === 'pending' && (!o.driverId || o.driverName === 'En attente d\'attribution')) {
+                          <div class="space-y-3">
+                            <div class="flex items-center justify-between border-b pb-2">
+                              <span class="text-[10px] uppercase font-extrabold text-indigo-600 tracking-wider">Étape 05: Livreures Actifs</span>
+                              <span class="bg-emerald-100 text-emerald-800 font-extrabold text-[8px] px-1.5 py-0.5 rounded leading-none">🟢 EN LIGNE</span>
+                            </div>
+
+                            <div class="space-y-2 max-h-48 overflow-y-auto">
+                              @for (drv of drivers(); track drv.id) {
+                                @if (drv.status === 'available') {
+                                  <div class="bg-white border rounded-lg p-2.5 flex items-center justify-between text-xs hover:border-slate-350 transition-all shadow-sm">
+                                    <div>
+                                      <div class="flex items-center gap-1.5">
+                                        <span class="font-semibold text-slate-800">{{ drv.name }}</span>
+                                        <span class="bg-amber-100 text-amber-700 text-[9px] font-extrabold px-1 rounded flex items-center gap-0.5">
+                                          ★ {{ drv.rating }}
+                                        </span>
+                                      </div>
+                                      <p class="text-[10px] text-slate-400">Frais: {{ drv.calculatedFee || drv.baseFee || 4.50 }}€</p>
+                                    </div>
+                                    <button 
+                                      (click)="assignDriverToOrder(o.id, drv)"
+                                      class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[10px] py-1.5 px-3 rounded-lg flex items-center gap-1.5 hover:cursor-pointer transition-all">
+                                      <mat-icon class="text-[11px]">sports_motorsports</mat-icon> Sélectionner (Étape 06)
+                                    </button>
+                                  </div>
+                                }
+                              } @empty {
+                                <p class="text-[10px] text-slate-400 italic text-center py-2">Aucun livreur disponible en ligne pour le moment.</p>
+                              }
+                            </div>
+
+                            <button 
+                              (click)="updateOrderProgress(o.id, 'cancelled')"
+                              class="text-rose-600 hover:text-rose-700 text-[10px] font-extrabold w-full text-center hover:underline pt-1">
+                              Annuler ou décliner la commande
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="space-y-3">
+                            <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">État de l’assignation du livreur</span>
+                            
+                            <div class="bg-white border rounded-xl p-4 space-y-3.5 shadow-sm">
+                              <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                                  <mat-icon>delivery_dining</mat-icon>
+                                </div>
+                                <div class="text-xs">
+                                  <p class="font-bold text-slate-800">{{ o.driverName }}</p>
+                                  <p class="text-[10px] text-slate-400">Course payée : +{{ o.driverFee?.toFixed(2) }}€</p>
+                                </div>
+                              </div>
+
+                              <!-- Current Step Description message -->
+                              <div class="text-[11px] leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                                @if (o.status === 'pending') {
+                                  <p class="text-amber-800 font-semibold flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span> 
+                                    Étape 07/08 : Le livreur a été notifié de la mission et consulte la demande d'acceptation.
+                                  </p>
+                                } @else if (o.status === 'accepted') {
+                                  <div class="space-y-2">
+                                    <p class="text-indigo-800 font-bold flex items-center gap-1">
+                                      <mat-icon class="text-xs text-indigo-600">check_circle</mat-icon>
+                                      Étape 09-10 : Le livreur a accepté la commande ! Capturation du paiement effectuée.
+                                    </p>
+                                    <button 
+                                      (click)="updateOrderProgress(o.id, 'preparing')"
+                                      class="w-full bg-slate-900 text-white font-extrabold text-[10px] py-1.5 px-3 rounded-lg hover:bg-slate-800 leading-none">
+                                      Commencer la préparation en boutique (Étape 11)
+                                    </button>
+                                  </div>
+                                } @else if (o.status === 'preparing') {
+                                  <p class="text-blue-800 font-semibold flex items-center gap-1 flex-wrap">
+                                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> 
+                                    Étape 11 : En cours de préparation. Le livreur se rend à votre boutique pour récupérer l'expédition.
+                                  </p>
+                                } @else if (o.status === 'transit') {
+                                  <p class="text-amber-700 font-bold flex items-center gap-1">
+                                    🚴 Étape 12-13 : Commande en cours de transit ! Le livreur est en route à l'adresse client.
+                                  </p>
+                                } @else if (o.status === 'delivered') {
+                                  <p class="text-emerald-800 font-bold flex items-center gap-1">
+                                    ✓ Étape 14-15 : Livraison confirmée et commande clôturée. Merci !
+                                  </p>
+                                } @else if (o.status === 'cancelled') {
+                                  <p class="text-rose-800 font-bold">
+                                    Commande annulée ou déclinée.
+                                  </p>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+
+                    </div>
+
+                  </div>
+                } @empty {
+                  <div class="border-2 border-dashed border-slate-100 py-16 rounded-2xl text-center">
+                    <p class="text-slate-400 text-xs italic">Aucune commande reçue dans l'historique.</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- TAB CONTENT 1: Products Catalogue -->
+          @if (companyCurrentTab() === 'products') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Mon Catalogue de Produits</h3>
+                  <p class="text-xs text-slate-500">Ajoutez, modifiez ou supprimez vos références de produits lister.</p>
+                </div>
+              </div>
+
+              <!-- Product Creation Form -->
+              <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 mb-6 flex flex-col gap-4">
+                <span class="text-xs font-bold uppercase text-slate-400">Soumettre l'ajout d'un produit (Nouveau produit)</span>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="flex flex-col gap-1 md:col-span-2">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Nom du Produit</span>
+                    <input 
+                      [value]="newProdName()" 
+                      (input)="newProdName.set($any($event.target).value)"
+                      placeholder="Ex: Fraises de Bois Bio" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Prix unitaire (€)</span>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      [value]="newProdPrice()" 
+                      (input)="newProdPrice.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Catégorie</span>
+                    <select 
+                      [value]="newProdCategory()" 
+                      (change)="newProdCategory.set($any($event.target).value)"
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs">
+                      <option value="Fruits & Légumes">Fruits & Légumes</option>
+                      <option value="Boulangerie & Pâtisserie">Boulangerie & Pâtisserie</option>
+                      <option value="Boissons & Jus">Boissons & Jus</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="flex flex-col gap-2 md:col-span-2">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Description du produit</span>
+                    <input 
+                      [value]="newProdDesc()" 
+                      (input)="newProdDesc.set($any($event.target).value)"
+                      placeholder="Origine, bienfaits ou composition nutritive..." 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Quantité en Stock initial</span>
+                    <input 
+                      type="number" 
+                      [value]="newProdStock()" 
+                      (input)="newProdStock.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-1.5 pt-2">
+                  <button 
+                    (click)="submitNewProduct()"
+                    class="bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-lg hover:bg-slate-800">
+                    Proposer l’Ajout de Produit
+                  </button>
+                </div>
+              </div>
+
+              <!-- My Products list table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                      <th class="py-3 px-4">Produit</th>
+                      <th class="py-3 px-4">Catégorie</th>
+                      <th class="py-3 px-4">Prix</th>
+                      <th class="py-3 px-4">Stock Actuel</th>
+                      <th class="py-3 px-4">État Listing</th>
+                      <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of products(); track p.id) {
+                      <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="py-3 px-4">
+                          <div class="flex items-center gap-3">
+                            <img [src]="p.image" alt="Aperçu miniature du produit" class="w-10 h-10 object-cover bg-slate-100 rounded-lg" referrerpolicy="no-referrer" />
+                            <div>
+                              <strong class="text-slate-800 block text-sm">{{ p.name }}</strong>
+                              <span class="text-[10px] text-slate-400 line-clamp-1 italic max-w-xs">{{ p.description }}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="py-3 px-4 text-slate-500 font-medium">{{ p.category }}</td>
+                        <td class="py-3 px-4 font-bold">{{ p.price?.toFixed(2) }}€</td>
+                        <td class="py-3 px-4">
+                          <div class="flex items-center gap-1.5 font-bold">
+                            <span class="h-1.5 w-1.5 rounded-full" [class]="p.stock <= p.threshold ? 'bg-rose-500 animate-ping':'bg-emerald-500'"></span>
+                            <span>{{ p.stock }} unités</span>
+                          </div>
+                        </td>
+                        <td class="py-3 px-4 uppercase text-[10px] font-bold">
+                          <span [class]="p.status === 'active' ? 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded' : p.status === 'pending' ? 'text-amber-700 bg-amber-50 px-2 py-0.5 rounded' : 'text-rose-700 bg-rose-50 px-2 py-0.5 rounded'">
+                            {{ p.status === 'active' ? 'PUBLIÉ' : p.status === 'pending' ? 'EN ATTENTE ADMIN' : 'REFUSÉ' }}
+                          </span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                          <div class="flex justify-end gap-1.5">
+                            <button 
+                              (click)="selectedProdForStock.set(p)"
+                              class="px-2.5 py-1 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 text-xs font-bold leading-none">
+                              Ravitaillement
+                            </button>
+                            <button 
+                              (click)="triggerDeleteProduct(p.id)"
+                              class="px-2 py-1 text-slate-400 hover:text-rose-600 rounded-lg border border-transparent hover:border-slate-100 leading-none">
+                              <mat-icon class="text-xs">delete</mat-icon>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- TAB CONTENT 2: Demandes de Stock Dialog / History -->
+          @if (companyCurrentTab() === 'requests') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6">
+              
+              <!-- Direct Stock Increase Form -->
+              @if (selectedProdForStock(); as product) {
+                <div class="bg-slate-50 border border-indigo-200/80 p-5 rounded-xl">
+                  <h4 class="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    <mat-icon class="text-indigo-600 text-xs">hourglass_full</mat-icon> Demande de Ravitaillement pour : {{ product.name }}
+                  </h4>
+                  <p class="text-xs text-slate-500 mb-4">Votre stock actuel est de {{ product.stock }} unités. Quel quantité désirez-vous ajouter ?</p>
+
+                  <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <div class="flex flex-col gap-1 w-full md:w-1/4 text-xs font-bold text-slate-500">
+                      <span>Quantité Additionnelle</span>
+                      <input 
+                        type="number" 
+                        [value]="stockReqQty()" 
+                        (input)="stockReqQty.set($any($event.target).value)" 
+                        class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    </div>
+                    <div class="flex flex-col gap-1 flex-1 text-xs font-bold text-slate-500">
+                      <span>Justification et Motif (requis pour validation)</span>
+                      <input 
+                        [value]="stockReqJustif()" 
+                        (input)="stockReqJustif.set($any($event.target).value)" 
+                        placeholder="Ex: Pic de ventes période estivale / réassortiment d'entrepôt" 
+                        class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end gap-2">
+                    <button 
+                      (click)="selectedProdForStock.set(null)"
+                      class="bg-white border border-slate-300 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-50">
+                      Annuler
+                    </button>
+                    <button 
+                      (click)="raiseStockIncreaseRequest()"
+                      class="bg-slate-900 text-white text-xs font-bold px-5 py-2 rounded-lg hover:bg-slate-800">
+                      Envoyer la Demande de Stock
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Stock requests tracker -->
+              <div>
+                <h3 class="text-sm font-bold uppercase text-slate-400 mb-3">Mes Demandes en Cours</h3>
+                <div class="overflow-x-auto text-xs">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-white/10 text-slate-500">
+                        <th class="py-2 px-3">Produit</th>
+                        <th class="py-2 px-3">Date de demande</th>
+                        <th class="py-2 px-3">Quantité Demandée</th>
+                        <th class="py-2 px-3">Justification</th>
+                        <th class="py-2 px-3 text-right">Statut Accordé</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (s of stockRequests(); track s.id) {
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                          <td class="py-2.5 px-3 font-bold text-slate-850">{{ s.productName }}</td>
+                          <td class="py-2.5 px-3 text-slate-450">{{ s.createdAt | date: 'short' }}</td>
+                          <td class="py-2.5 px-3 text-indigo-600 font-extrabold">+{{ s.quantity }}</td>
+                          <td class="py-2.5 px-3 italic text-slate-500">"{{ s.justification }}"</td>
+                          <td class="py-2.5 px-3 text-right uppercase text-[10px] font-bold">
+                            <span [class]="s.status === 'pending' ? 'text-amber-700 bg-amber-50 px-2.5 py-1 rounded':'text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded'">
+                              {{ s.status === 'pending' ? 'EN ATTENTE ADMIN' : s.status === 'approved' ? 'REÇUE / APPROUVÉE' : 'REFUSÉE' }}
+                            </span>
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="5" class="py-6 text-center text-slate-400">Aucune demande d'augmentation de stock de votre part.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          <!-- TAB CONTENT 3: Offres de la plateformes -->
+          @if (companyCurrentTab() === 'offers') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <h3 class="text-base font-extrabold text-slate-900 mb-1">Nos Conditions Commerciales & Abonnements Activés</h3>
+              <p class="text-xs text-slate-500 mb-6 font-medium">L'administrateur définit des offres de partenariats personnalisés. Consultez vos frais d'accès et taux de commission.</p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @for (of of offers(); track of.id) {
+                  <div class="border border-slate-200 p-5 rounded-2xl flex flex-col justify-between"
+                    [class]="of.targetCompanyId === api.currentUser()?.id ? 'border-amber-400 bg-amber-50/10 shadow-md': 'border-slate-100 bg-slate-50/50'">
+                    
+                    <div>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <strong class="text-sm font-bold text-slate-900">{{ of.title }}</strong>
+                        @if (of.targetCompanyId === api.currentUser()?.id) {
+                          <span class="bg-amber-100 text-amber-700 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wide">VOTRE CONTRAT SIGNÉ</span>
+                        }
+                      </div>
+                      <p class="text-xs text-slate-500 mb-4">{{ of.description || 'Frais de gestion et d’accès standards appliqués.' }}</p>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-slate-100/80 flex items-center justify-around text-center text-xs">
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Taux Commission</span>
+                        <strong class="text-emerald-600 font-extrabold text-base">{{ of.commissionRate }}%</strong>
+                      </div>
+                      <div class="w-px h-6 bg-slate-200"></div>
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Frais d'Adhésion</span>
+                        <strong class="text-slate-700 font-extrabold text-base">{{ of.entryFee }}€</strong>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- TAB CONTENT 4: Sous-comptes -->
+          @if (companyCurrentTab() === 'team') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Gestion des Collaborateurs & Permissions ({{ subAccounts().length }} / 5)</h3>
+                  <p class="text-xs text-slate-500">Créez des accès sous-comptes pour vos vendeurs ou préparateurs de commande. Limite stricte de 5 collaborations par entreprise.</p>
+                </div>
+                <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-700">
+                  {{ 5 - subAccounts().length }} places restantes
+                </span>
+              </div>
+
+              <!-- Creation form -->
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="text-xs font-bold uppercase text-slate-400 block mb-3">Enregistrer un Collaborateur</span>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="flex flex-col gap-1 text-xs">
+                    <span class="font-bold text-slate-500">Nom du Collaborateur</span>
+                    <input 
+                      [value]="newSubName()" 
+                      (input)="newSubName.set($any($event.target).value)"
+                      placeholder="Ex: Jean Préparateur" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" 
+                      [disabled]="subAccounts().length >= 5" />
+                  </div>
+                  <div class="flex flex-col gap-1 text-xs">
+                    <span class="font-bold text-slate-500">Email de Connexion</span>
+                    <input 
+                      [value]="newSubEmail()" 
+                      (input)="newSubEmail.set($any($event.target).value)"
+                      placeholder="Ex: jean&#64;ecoshop.com" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs"
+                      [disabled]="subAccounts().length >= 5" />
+                  </div>
+                  <div class="flex flex-col gap-1 text-xs">
+                    <span class="font-bold text-slate-500">Poste / Rôle</span>
+                    <input 
+                      [value]="newSubRole()" 
+                      (input)="newSubRole.set($any($event.target).value)"
+                      placeholder="Ex: Responsable Boutique" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs"
+                      [disabled]="subAccounts().length >= 5" />
+                  </div>
+                  <div class="flex flex-col gap-1 text-xs">
+                    <span class="font-bold text-slate-500">Permissions</span>
+                    <select 
+                      [value]="newSubPerm()" 
+                      (change)="newSubPerm.set($any($event.target).value)"
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs"
+                      [disabled]="subAccounts().length >= 5">
+                      <option value="read">Lecture seule</option>
+                      <option value="write">Gestion Catalogue & Commandes</option>
+                      <option value="admin">Administrateur Partenaire</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                  @if (subAccounts().length >= 5) {
+                    <div class="text-xs text-rose-700 font-bold bg-rose-50 px-4 py-2 rounded-lg border border-rose-150 inline-flex items-center gap-1.5 animate-in fade-in">
+                      <mat-icon class="text-sm">gpp_bad</mat-icon> La limite absolue de 5 collaborateurs par entreprise est atteinte.
+                    </div>
+                  } @else {
+                    <button 
+                      (click)="submitSubAccount()"
+                      class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-lg transition-all leading-none">
+                      Créer le sous-compte
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Employees grid list -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @for (sub of subAccounts(); track sub.id) {
+                  <div class="border border-slate-200 p-4 rounded-xl flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center justify-between mb-2">
+                        <strong class="text-sm font-bold text-slate-800">{{ sub.name }}</strong>
+                        <span class="text-xs uppercase px-2 py-0.5 bg-slate-100 text-slate-600 font-bold rounded-full">
+                          {{ sub.permissions }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-slate-500 font-mono">{{ sub.email }}</p>
+                      <p class="text-[11px] font-bold text-indigo-600 mt-2">Poste: {{ sub.role }}</p>
+                    </div>
+
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                      <span class="text-[10px] uppercase font-extrabold text-slate-400">Statut Contrat :</span>
+                      <span class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold"
+                        [class]="sub.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                        <span class="h-1.5 w-1.5 rounded-full" [class]="sub.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"></span>
+                        {{ sub.status === 'active' ? 'ACTIF/SIGNÉ' : 'EN ATTENTE ADMIN' }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+            </div>
+          }
+
+          <!-- TAB CONTENT 5: Supports -->
+          @if (companyCurrentTab() === 'support') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+              <h3 class="text-lg font-extrabold text-slate-900 mb-1">Assistance Technique Partenaire</h3>
+              <p class="text-xs text-slate-500 mb-6">Soumettez vos bugs ou réclamations directement à l'administrateur en temps réel.</p>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Post ticket form -->
+                <div class="md:col-span-1 flex flex-col gap-3">
+                  <strong class="text-xs font-bold uppercase text-slate-400 mb-1">Ouvrir un ticket d'aide</strong>
+                  
+                  <input 
+                    [value]="ticketSubject()" 
+                    (input)="ticketSubject.set($any($event.target).value)"
+                    placeholder="Sujet / Motif de l'appel" 
+                    class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs" />
+                  
+                  <textarea 
+                    [value]="ticketMessage()" 
+                    (input)="ticketMessage.set($any($event.target).value)"
+                    placeholder="Détaillez votre problème..." 
+                    rows="4"
+                    class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs"></textarea>
+                  
+                  <button 
+                    (click)="createSupportTicket()"
+                    class="bg-slate-900 text-white font-bold text-xs py-2 rounded-lg hover:bg-slate-800">
+                    Envoyer au Support
+                  </button>
+                </div>
+
+                <!-- Active tickets stream for company -->
+                <div class="md:col-span-2 border-l border-slate-100 pl-4 space-y-4">
+                  <strong class="text-xs font-bold uppercase text-slate-400 block mb-2">Vos Tickets Précédents</strong>
+                  
+                  @for (t of tickets(); track t.id) {
+                    <div class="border border-slate-200 p-4 rounded-xl hover:bg-slate-50/50">
+                      <div class="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 class="text-sm font-bold text-slate-800">{{ t.subject }}</h4>
+                          <span class="text-xs text-slate-500">Créé le {{ t.createdAt | date: 'short' }}</span>
+                        </div>
+                        <span [class]="t.status === 'open' ? 'text-amber-700 bg-amber-50 px-2.5 py-1 text-xs font-bold rounded' : 'text-slate-600 bg-slate-100 px-2.5 py-1 text-xs font-bold rounded'">
+                          {{ t.status === 'open' ? 'OUVERT':'RÉSOLU' }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-slate-600 italic bg-white p-2.5 rounded border border-slate-100 mb-3 font-medium">"{{ t.message }}"</p>
+                      
+                      <!-- Replies list -->
+                      @if (t.replies.length) {
+                        <div class="pl-4 border-l-2 border-slate-200 flex flex-col gap-1">
+                          <span class="text-[10px] uppercase font-bold text-slate-400">Réponses administration:</span>
+                          @for (r of t.replies; track r.createdAt) {
+                            <div class="text-[11px] text-slate-700">
+                              <span class="font-bold text-slate-900">{{ r.senderName }} :</span> {{ r.message }}
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  } @empty {
+                    <div class="border border-dashed py-8 border-slate-200 text-center text-xs text-slate-400 italic">
+                      Aucun ticket émis pour le moment.
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Company Profile View -->
+          @if (companyCurrentTab() === 'profile') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left space-y-6">
+              <div>
+                <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Partenaire (Boutique)</h3>
+                <p class="text-xs text-slate-500">Mettez à jour les données publiques de votre boutique locale.</p>
+              </div>
+
+              <!-- General Rules Card -->
+              <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
+                <mat-icon class="text-blue-700 font-bold">lock_outline</mat-icon>
+                <div class="text-xs text-blue-950 space-y-1">
+                  <p class="font-bold">🏬 Qui peut consulter et modifier ce compte ?</p>
+                  <p>• <strong>Consultation :</strong> Publiquement visible par vos clients (nom, adresse, logo) et par l'Administrateur.</p>
+                  <p>• <strong>Modification :</strong> Réservé exclusivement à vous. L'administrateur s'occupe de vos contrats et de votre couleur partenaire.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Nom de la Boutique</span>
+                  <input 
+                    [value]="profileName()" 
+                    (input)="profileName.set($any($event.target).value)"
+                    placeholder="Nom de la boutique" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-company-name" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Adresse E-mail</span>
+                  <input 
+                    [value]="profileEmail()" 
+                    (input)="profileEmail.set($any($event.target).value)"
+                    placeholder="E-mail" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-company-email" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                  <span class="font-bold text-slate-500">Adresse de la Boutique / Localisation</span>
+                  <input 
+                    [value]="profileAddress()" 
+                    (input)="profileAddress.set($any($event.target).value)"
+                    placeholder="Adresse physique" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-company-address" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                  <span class="font-bold text-slate-500">Téléphone de Contact</span>
+                  <input 
+                    [value]="profilePhone()" 
+                    (input)="profilePhone.set($any($event.target).value)"
+                    placeholder="Numéro de téléphone" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-company-phone" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+                  <span class="font-bold text-slate-500">URL du Logo de la Boutique</span>
+                  <input 
+                    [value]="profileLogo()" 
+                    (input)="profileLogo.set($any($event.target).value)"
+                    placeholder="https://images.unsplash.com/..." 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-company-logo" />
+                </div>
+              </div>
+
+              <!-- Preview section -->
+              <div class="border-t pt-4 font-sans">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Aperçu Visuel En direct</span>
+                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <img [src]="profileLogo() || 'https://picsum.photos/seed/shop/120'" alt="Logo boutique" class="w-14 h-14 object-cover rounded-xl border bg-white" referrerpolicy="no-referrer" />
+                  <div class="text-xs">
+                    <strong class="text-sm font-bold text-slate-900 block">{{ profileName() || 'Ma Super Boutique' }}</strong>
+                    <span class="text-slate-500 block">🏬 {{ profileAddress() || 'Non localisée' }}</span>
+                    <span class="text-slate-400 block">{{ profilePhone() || 'Aucun numéro' }} • {{ profileEmail() }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-4 border-t">
+                <button 
+                  (click)="updateUserProfile()"
+                  class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                  <mat-icon class="text-xs">save</mat-icon> Mettre à jour la Boutique
+                </button>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+    }
+
+    <!-- Case C: LIVREUR CONSOLE -->
+    @if (api.currentUser()?.role === 'driver') {
+      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left flex flex-col gap-6 animate-in fade-in duration-200">
+        
+        <!-- Tab Navigation Livreur -->
+        <div class="flex items-center gap-1.5 border-b border-slate-100 pb-3">
+          <button 
+            (click)="driverCurrentTab.set('dashboard')"
+            [class]="driverCurrentTab() === 'dashboard' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-dashboard">
+            <mat-icon class="text-sm">dashboard</mat-icon> Courses & Activité
+          </button>
+          <button 
+            (click)="driverCurrentTab.set('profile')"
+            [class]="driverCurrentTab() === 'profile' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-profile">
+            <mat-icon class="text-sm">account_circle</mat-icon> Mon Compte Coursier
+          </button>
+        </div>
+
+        @if (driverCurrentTab() === 'dashboard') {
+          <!-- Header Livreur shift controls -->
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <mat-icon class="text-violet-600 animate-pulse">sports_motorsports</mat-icon> Espace Coursier Livreur
+              </h3>
+              <p class="text-xs text-slate-500">Activez votre disponibilité pour voir apparaître des colis de livraison dans votre zone.</p>
+            </div>
+
+          <!-- Availability controls -->
+          <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <button 
+              (click)="toggleDriverShift('available')"
+              [class]="selectedDriver()?.status === 'available' ? 'bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs'"
+              id="btn-drv-status-available">
+              🟢 En ligne
+            </button>
+            <button 
+              (click)="toggleDriverShift('busy')"
+              [class]="selectedDriver()?.status === 'busy' ? 'bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs'"
+              id="btn-drv-status-busy">
+              🟡 Occupé
+            </button>
+            <button 
+              (click)="toggleDriverShift('offline')"
+              [class]="selectedDriver()?.status === 'offline' ? 'bg-slate-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs'"
+              id="btn-drv-status-offline">
+              🔴 Hors ligne
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Column 1: Stats summary -->
+          <div class="md:col-span-1 flex flex-col gap-4">
+            <div class="bg-violet-50/50 p-4 border border-violet-100 rounded-2xl">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Mes revenus cumulés</span>
+              <p class="text-3xl font-extrabold text-violet-700 mt-1 mb-2">{{ globalStats()?.metrics?.earningsTotal?.toFixed(2) }}€</p>
+              <div class="flex justify-between items-center text-xs text-slate-500 border-t border-violet-100/50 pt-2 leading-tight">
+                <span>Courses livrées :</span>
+                <strong class="font-extrabold text-slate-800">{{ globalStats()?.metrics?.deliveredCount }}</strong>
+              </div>
+            </div>
+
+            <!-- Dummy visual map simulator of driver position -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-inner p-4 flex flex-col gap-3">
+              <span class="text-xs font-bold text-slate-400 uppercase">Radar Local de Commande</span>
+              <div class="h-44 bg-slate-100 rounded-xl relative flex items-center justify-center border border-slate-300">
+                
+                <!-- dynamic mock canvas elements -->
+                <div class="absolute inset-0 bg-cover opacity-15" style="background-image: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=300&h=200&fit=crop');"></div>
+                
+                <!-- Target radar circles -->
+                <div class="w-24 h-24 rounded-full border border-violet-400/35 animate-ping absolute"></div>
+                
+                <div class="absolute flex flex-col items-center gap-1 z-10">
+                  <span class="bg-violet-600 text-white text-[9px] font-bold py-0.5 px-2 rounded-full flex items-center gap-1 shadow">
+                    🚴 VOUS ({{ selectedDriver()?.zone || 'Paris' }})
+                  </span>
+                  @if (selectedDriver()?.status === 'available') {
+                    <span class="text-[10px] text-emerald-600 font-bold bg-white/90 shadow-sm px-1.5 py-0.5 rounded border border-emerald-100 animate-bounce">
+                      Recherche de courses...
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2 & 3: Order listings available/assigned -->
+          <div class="md:col-span-2 flex flex-col gap-6">
+            
+            <!-- Assigned Order section -->
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Ma Course Active en cours</h3>
+              
+              @for (o of orders(); track o.id) {
+                @if (o.driverId === selectedDriver()?.id && o.status !== 'delivered' && o.status !== 'cancelled') {
+                  <div class="border-2 border-violet-500/80 bg-violet-50/10 p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex justify-between items-start border-b border-dashed border-slate-200 pb-3">
+                      <div>
+                        <strong class="text-sm font-extrabold text-slate-900 leading-none">COMMANDE {{ o.id }}</strong>
+                        <p class="text-[11px] text-slate-500">Reçue à {{ o.createdAt | date:'shortTime' }}</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-violet-700 font-extrabold text-base block leading-none">+{{ o.driverFee?.toFixed(2) }}€</span>
+                        <span class="text-[10px] text-slate-400 block font-medium">Revenu course</span>
+                      </div>
+                    </div>
+
+                    <div class="text-xs flex flex-col gap-2">
+                      <div class="flex items-start gap-2">
+                        <mat-icon class="text-slate-400 text-sm">storefront</mat-icon>
+                        <div>
+                          <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Point de retrait :</span>
+                          <span class="text-slate-700 block font-medium">Boutique partenaire affiliée</span>
+                        </div>
+                      </div>
+                      <div class="flex items-start gap-2">
+                        <mat-icon class="text-slate-400 text-sm">location_on</mat-icon>
+                        <div>
+                          <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Adresse de livraison :</span>
+                          <span class="text-slate-800 font-bold block">{{ o.deliveryAddress }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-start gap-2">
+                        <mat-icon class="text-slate-400 text-sm">person_outline</mat-icon>
+                        <div>
+                          <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Destinataire :</span>
+                          <span class="text-slate-700 block leading-none font-bold">{{ o.clientName }} ({{ o.clientEmail }})</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Step Tracker Control Buttons -->
+                    <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/60 text-center">
+                      <p class="text-[11px] font-bold text-indigo-700 uppercase tracking-wide mb-2.5">Mettre à Jour le Statut de Livraison</p>
+                      <div class="flex flex-wrap gap-2 justify-center">
+                        @if (o.status === 'accepted') {
+                          <button 
+                            (click)="updateOrderProgress(o.id, 'preparing')"
+                            class="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-indigo-700 leading-none"
+                            id="btn-progress-preparing">
+                            Préparation en boutique
+                          </button>
+                        } @else if (o.status === 'preparing') {
+                          <button 
+                            (click)="updateOrderProgress(o.id, 'transit')"
+                            class="bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg hover:bg-amber-600 leading-none"
+                            id="btn-progress-transit">
+                            Prendre en charge (En transit)
+                          </button>
+                        } @else if (o.status === 'transit') {
+                          <button 
+                            (click)="updateOrderProgress(o.id, 'delivered')"
+                            class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-700 leading-none"
+                            id="btn-progress-delivery">
+                            Confirmer livraison effectuée (Livrée)
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              } @empty {
+                <div class="border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400 italic rounded-xl">
+                  Aucune course active affectée.
+                </div>
+              }
+            </div>
+
+            <!-- Available Orders radar list -->
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Commandes Disponibles dans la Zone</h3>
+              
+              <div class="space-y-3">
+                @for (o of orders(); track o.id) {
+                  @if (o.status === 'pending') {
+                    <div class="border border-slate-200 p-4 rounded-xl hover:bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div class="text-xs">
+                        <strong class="text-sm block text-slate-800">COMMANDE {{ o.id }}</strong>
+                        <p class="text-slate-500 text-xs mt-0.5 font-medium">Destination : {{ o.deliveryAddress }}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">Montant marchandises: {{ o.total?.toFixed(2) }}€ • Client: {{ o.clientName }}</p>
+                      </div>
+
+                      <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 pt-2.5 md:pt-0 md:border-t-0">
+                        <div>
+                          <span class="text-slate-400 text-[10px] uppercase font-bold block text-left">Frais course</span>
+                          <strong class="text-indigo-600 font-extrabold text-sm">{{ o.driverFee?.toFixed(2) }}€</strong>
+                        </div>
+                        
+                        @if (selectedDriver()?.status === 'available') {
+                          <button 
+                            (click)="updateOrderProgress(o.id, 'accepted')"
+                            class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-slate-850 transition-colors leading-none"
+                            id="btn-accept-order-{{ o.id }}">
+                            Accepter la course
+                          </button>
+                        } @else {
+                          <span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-1 rounded">Mettez-vous ÉN LIGNE</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @empty {
+                  <div class="border border-dashed border-slate-200 py-8 text-center text-xs text-slate-400 italic rounded-xl">
+                    Aucune nouvelle commande en attente dans la zone de livraison.
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        } <!-- End of driverCurrentTab() === 'dashboard' -->
+
+        @if (driverCurrentTab() === 'profile') {
+          <!-- Driver Profile View -->
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Coursier / Livreur</h3>
+              <p class="text-xs text-slate-500">Gérez vos tarifs de livraison, votre zone d'activité, votre statut et vos informations personnelles.</p>
+            </div>
+
+            <!-- General Rules Card -->
+            <div class="bg-violet-50/50 p-4 rounded-xl border border-violet-100 flex items-start gap-3">
+              <mat-icon class="text-violet-700 font-bold">lock_outline</mat-icon>
+              <div class="text-xs text-violet-955 space-y-1">
+                <p class="font-bold">🚴 Qui peut consulter et modifier ce compte ?</p>
+                <p>• <strong>Consultation :</strong> Consultable par les entreprises partenaires (pour vous assigner à la livraison) et par l'Administrateur de la plateforme.</p>
+                <p>• <strong>Modification :</strong> Réservé exclusivement à vous. Vos tarifs sont répercutés instantanément sur le calcul des frais de livraison dynamique.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Nom Complet</span>
+                <input 
+                  [value]="profileName()" 
+                  (input)="profileName.set($any($event.target).value)"
+                  placeholder="Nom" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-name" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Adresse E-mail</span>
+                <input 
+                  [value]="profileEmail()" 
+                  (input)="profileEmail.set($any($event.target).value)"
+                  placeholder="Email" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-email" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Téléphone Mobile</span>
+                <input 
+                  [value]="profilePhone()" 
+                  (input)="profilePhone.set($any($event.target).value)"
+                  placeholder="Téléphone" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-phone" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Zone d'Activité / Ville</span>
+                <input 
+                  [value]="profileZone()" 
+                  (input)="profileZone.set($any($event.target).value)"
+                  placeholder="Ex: Paris, Lyon, Bordeaux..." 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-zone" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Frais Fixe de Base (€)</span>
+                <input 
+                  type="number" step="0.1"
+                  [value]="profileBaseFee()" 
+                  (input)="profileBaseFee.set($any($event.target).value)"
+                  placeholder="3.00" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-mono font-bold" 
+                  id="profile-driver-basefee" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500">Frais par Kilomètre (€ / km)</span>
+                <input 
+                  type="number" step="0.1"
+                  [value]="profilePerKmFee()" 
+                  (input)="profilePerKmFee.set($any($event.target).value)"
+                  placeholder="0.80" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-mono font-bold" 
+                  id="profile-driver-kmfee" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                <span class="font-bold text-slate-500">URL Photo du Chauffeur</span>
+                <input 
+                  [value]="profilePhoto()" 
+                  (input)="profilePhoto.set($any($event.target).value)"
+                  placeholder="https://images.unsplash.com/..." 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-photo" />
+              </div>
+            </div>
+
+            <!-- Preview section -->
+            <div class="border-t pt-4">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Aperçu de Votre Profil Chauffeur</span>
+              <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <img [src]="profilePhoto() || 'https://picsum.photos/seed/driver/120'" alt="Photo chauffeur" class="w-14 h-14 object-cover rounded-full border-2 border-violet-500 bg-white" referrerpolicy="no-referrer" />
+                <div class="text-xs">
+                  <strong class="text-sm font-bold text-slate-900 block">{{ profileName() || 'Coursier Anonyme' }}</strong>
+                  <span class="text-slate-500 block">📍 Secteur : {{ profileZone() || 'Non spécifié' }}</span>
+                  <span class="text-slate-400 block">📞 {{ profilePhone() || 'Aucun numéro' }} • Grille tarifaire : <strong>{{ profileBaseFee() }}€</strong> base + <strong>{{ profilePerKmFee() }}€/km</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t">
+              <button 
+                (click)="updateUserProfile()"
+                class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                <mat-icon class="text-xs">save</mat-icon> Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Case D: CLIENT HUB & BROWSING CATALOGUE AND BACKOFFICE COEXISTENCE -->
+    @if (!api.currentUser() || api.currentUser()?.role === 'client') {
+      
+      @if (api.currentUser()) {
+        <!-- Tab selector for logged-in clients -->
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-3 mb-6 bg-white p-3 rounded-2xl shadow-sm text-left animate-in fade-in duration-200">
+          <button 
+            (click)="clientCurrentTab.set('browse')"
+            [class]="clientCurrentTab() === 'browse' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-client-browse">
+            <mat-icon class="text-sm">storefront</mat-icon> Catalogue Produits
+          </button>
+          
+          <button 
+            (click)="clientCurrentTab.set('orders')"
+            [class]="clientCurrentTab() === 'orders' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-client-orders">
+            <span class="flex items-center gap-2">
+              <mat-icon class="text-xs">receipt_long</mat-icon> Suivi Commandes & Factures
+            </span>
+            @if (orders().length > 0) {
+              <span class="bg-indigo-50 text-indigo-700 text-[10px] px-1.5 rounded-full font-bold ml-1">
+                {{ orders().length }}
+              </span>
+            }
+          </button>
+
+          <button 
+            (click)="clientCurrentTab.set('support')"
+            [class]="clientCurrentTab() === 'support' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-client-support">
+            <mat-icon class="text-sm">contact_support</mat-icon> Réclamations & Service Client
+          </button>
+
+          <button 
+            (click)="clientCurrentTab.set('profile')"
+            [class]="clientCurrentTab() === 'profile' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-client-profile">
+            <mat-icon class="text-sm">account_circle</mat-icon> Mon Compte Client
+          </button>
+        </div>
+      }
+
+      @if (!api.currentUser() || clientCurrentTab() === 'browse') {
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-200">
+        
+        <!-- Left filter segments -->
+        <div class="lg:col-span-1 flex flex-col gap-6 text-left">
+          
+          <!-- Category list filters -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Catégories de Produits</h3>
+            <div class="flex flex-col gap-1.5">
+              <button 
+                (click)="categoryFilter.set('all')"
+                [class]="categoryFilter() === 'all' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl'"
+                id="btn-cat-all">
+                🌿 Tout Afficher
+              </button>
+              <button 
+                (click)="categoryFilter.set('Fruits & Légumes')"
+                [class]="categoryFilter() === 'Fruits & Légumes' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl'"
+                id="btn-cat-prov">
+                🍎 Fruits & Légumes
+              </button>
+              <button 
+                (click)="categoryFilter.set('Boulangerie & Pâtisserie')"
+                [class]="categoryFilter() === 'Boulangerie & Pâtisserie' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl'"
+                id="btn-cat-boul">
+                🥖 Boulangerie & Pâtisserie
+              </button>
+              <button 
+                (click)="categoryFilter.set('Boissons & Jus')"
+                [class]="categoryFilter() === 'Boissons & Jus' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl'"
+                id="btn-cat-boiss">
+                🍹 Boissons & Jus
+              </button>
+            </div>
+          </div>
+
+          <!-- Enterprise list filters -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Filtrer par Partenaire</h3>
+            <div class="flex flex-col gap-1.5">
+              <button 
+                (click)="companyFilter.set('all')"
+                [class]="companyFilter() === 'all' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl'"
+                id="btn-partner-all">
+                🏬 Tous les partenaires
+              </button>
+              
+              @for (u of users(); track u.id) {
+                @if (u.role === 'company' && u.status === 'active') {
+                  <button 
+                    (click)="companyFilter.set(u.id)"
+                    [style.backgroundColor]="companyFilter() === u.id ? u.color : ''"
+                    [style.color]="companyFilter() === u.id ? getTextColor(u.color ?? '') : ''"
+                    [class]="companyFilter() === u.id ? 'px-3 py-2 font-bold text-xs rounded-xl text-left border border-black/5 shadow-xs transition-all' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl transition-all flex items-center gap-2'"
+                    [id]="'btn-partner-' + u.id">
+                    @if (companyFilter() !== u.id) {
+                      <span class="h-2 w-2 rounded-full inline-block" [style.backgroundColor]="u.color || '#10b981'"></span>
+                    }
+                    {{ u.name }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Checkout / Basket Cart overlay panel -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span>Mon Panier d'Achat</span>
+              <span class="bg-indigo-50 text-indigo-700 font-extrabold text-[11px] px-2 py-0.5 rounded-full">
+                {{ api.cart().length }} références
+              </span>
+            </h3>
+
+            @if (api.cart().length > 0) {
+              <!-- items loop -->
+              <div class="flex flex-col gap-3 max-h-56 overflow-y-auto mb-4 border-b border-slate-100 pb-3">
+                @for (item of api.cart(); track item.product.id) {
+                  <div class="flex items-center justify-between gap-1 text-xs">
+                    <div class="flex-1">
+                      <strong class="text-slate-800 line-clamp-1 font-bold">{{ item.product.name }}</strong>
+                      <span class="text-slate-400 text-[10px] block leading-none">{{ item.product.price?.toFixed(2) }}€ l'unité</span>
+                    </div>
+
+                    <!-- incrementors -->
+                    <div class="flex items-center gap-1.5 bg-slate-50 p-1 border rounded-lg">
+                      <button (click)="decrementCartItem(item.product.id)" class="px-1 text-slate-500 font-bold hover:bg-slate-200 rounded leading-none text-xs">-</button>
+                      <span class="font-mono font-bold leading-none">{{ item.quantity }}</span>
+                      <button (click)="incrementCartItem(item.product.id, item.product.stock)" class="px-1 text-slate-500 font-bold hover:bg-slate-200 rounded leading-none text-xs">+</button>
+                    </div>
+
+                    <button 
+                      (click)="removeFromCart(item.product.id)"
+                      class="text-slate-400 hover:text-rose-600 pl-1">
+                      <mat-icon class="text-[14px]">delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- totals and checkout controls -->
+              <div class="space-y-3">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-slate-500">Sous-total marchandises:</span>
+                  <strong class="text-slate-800 text-sm font-extrabold">{{ getCartTotal() }} €</strong>
+                </div>
+
+                <!-- Geolocation shipping address simulator -->
+                <div class="flex flex-col gap-1 text-xs text-slate-500">
+                  <span class="font-bold text-slate-400 uppercase text-[9px]">Adresse de Livraison</span>
+                  <input 
+                    [value]="deliveryAddress()" 
+                    (input)="deliveryAddress.set($any($event.target).value)"
+                    placeholder="Saisissez votre rue, ville..." 
+                    class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs" />
+                </div>
+
+                <!-- Payment methods -->
+                <div class="flex flex-col gap-1 text-xs text-slate-400">
+                  <span class="font-bold text-slate-400 uppercase text-[9px]">Mode de Paiement</span>
+                  <div class="grid grid-cols-3 gap-1 grid-flow-col">
+                    <button 
+                      (click)="paymentMethod.set('stripe')"
+                      [class]="paymentMethod() === 'stripe' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px]' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600'">
+                      Stripe (CB)
+                    </button>
+                    <button 
+                      (click)="paymentMethod.set('paypal')"
+                      [class]="paymentMethod() === 'paypal' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px]' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600'">
+                      Paypal
+                    </button>
+                    <button 
+                      (click)="paymentMethod.set('cash')"
+                      [class]="paymentMethod() === 'cash' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px]' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600'">
+                      Cash (Liv.)
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  (click)="triggerCheckout()"
+                  class="bg-rose-500 hover:bg-rose-600 text-white font-bold w-full py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                  <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer la Commande ({{ getCartTotal().toFixed(2) }}€)
+                </button>
+              </div>
+            } @else {
+              <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-xl mt-2">
+                <p class="text-[11px] text-slate-400 italic">Votre panier est vide. Parcourez nos produits et ajoutez-les pour commander !</p>
+              </div>
+            }
+          </div>
+
+          <!-- Active Order steps tracker for clients -->
+          @if (api.currentUser()?.role === 'client') {
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left space-y-4">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suivi Commandes en Direct</h3>
+              
+              <div class="space-y-3 max-h-80 overflow-y-auto">
+                @for (ord of orders(); track ord.id) {
+                  <div class="border border-slate-100 p-3.5 rounded-xl space-y-2 text-xs">
+                    <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border">
+                      <strong class="font-mono text-xs">{{ ord.id }}</strong>
+                      <span class="font-extrabold text-indigo-700">{{ (ord.total + ord.driverFee)?.toFixed(2) }}€</span>
+                    </div>
+
+                    <!-- Steps display -->
+                    <div class="flex items-center justify-between text-[10px] font-bold py-1">
+                      <span [class]="ord.status === 'pending' ? 'text-amber-500 font-extrabold': 'text-slate-300'">1. En attente</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'preparing' ? 'text-blue-500 font-extrabold': 'text-slate-300'">2. Préparation</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'transit' ? 'text-indigo-500 font-extrabold': 'text-slate-300'">3. En Route</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'delivered' ? 'text-emerald-600 font-extrabold': 'text-slate-300'">4. Livré</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                      <span>Livreur: <strong>{{ ord.driverName }}</strong></span>
+                      <span class="uppercase font-bold tracking-wide" [class]="ord.status === 'cancelled'?'text-rose-700 bg-rose-50':'text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded'">
+                        {{ ord.status }}
+                      </span>
+                    </div>
+
+                    <div class="flex gap-1">
+                      <a 
+                        [href]="ord.invoiceUrl" 
+                        target="_blank" 
+                        class="bg-white border border-slate-300 hover:bg-slate-50 text-[10px] font-bold py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 w-full justify-center">
+                        <mat-icon class="text-[12px]">download</mat-icon> Télécharger Facture PDF
+                      </a>
+                      
+                      @if (ord.status === 'pending') {
+                        <button 
+                          (click)="cancelOrder(ord.id)"
+                          class="hover:bg-rose-50 border border-slate-100 text-rose-600 text-[10px] font-bold px-2 py-1 rounded-lg leading-none whitespace-nowrap">
+                          Annuler
+                        </button>
+                      }
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="text-[11px] text-slate-400 italic">Aucune commande historique.</p>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <!-- Right Side: Catalogue Items Display Grid -->
+        <div class="lg:col-span-3 flex flex-col gap-6 text-left">
+          
+          <!-- Banner carousel promo and search query filter -->
+          <div class="bg-indigo-950 text-white rounded-3xl p-6 relative overflow-hidden shadow-lg flex flex-col justify-between h-48">
+            <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&fit=crop');"></div>
+            
+            <div class="z-10 max-w-lg">
+              <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/35 font-extrabold text-[10px] tracking-widest uppercase py-1 px-3 rounded-full">
+                PANIER LOCAL DE PROXIMITÉ
+              </span>
+              <h2 class="text-xl md:text-2xl font-black tracking-tight mt-2 text-white">Consommez Local, Livré Instantanément !</h2>
+              <p class="text-xs text-indigo-200 mt-1">Choisissez les meilleurs produits frais lister directement auprès de nos entreprises partenaires.</p>
+            </div>
+
+            <!-- Auto-search autocomplete search box -->
+            <div class="z-10 flex bg-white rounded-2xl p-1 shadow-md max-w-md w-full border border-indigo-800">
+              <span class="flex items-center pl-3 text-slate-400">
+                <mat-icon class="text-sm">search</mat-icon>
+              </span>
+              <input 
+                [value]="searchQuery()" 
+                (input)="searchQuery.set($any($event.target).value)" 
+                placeholder="Rechercher une pomme Gala, baguette, jus..." 
+                class="w-full bg-transparent px-2.5 text-slate-900 border-0 outline-0 focus:ring-0 focus:outline-none py-2 text-xs" />
+              <button class="bg-slate-950 text-white font-bold text-xs px-4 py-1.5 rounded-xl hover:bg-slate-800 leading-none"> Rechercher</button>
+            </div>
+          </div>
+
+          <!-- Active grid list -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @for (p of getFilteredProducts(); track p.id) {
+              <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative cursor-pointer group" 
+                   role="button" 
+                   tabindex="0"
+                   (click)="selectedProduct.set(p)"
+                   (keydown.enter)="selectedProduct.set(p)"
+                   (keydown.space)="selectedProduct.set(p)">
+                
+                <!-- Bandeau supérieur coloré de 6px -->
+                <div class="h-[6px] w-full transition-all duration-300" [style.backgroundColor]="p.companyColor"></div>
+
+                <div class="relative">
+                  <img [src]="p.image" alt="Image du catalogue produit" class="w-full h-40 object-cover bg-slate-100 group-hover:scale-[1.02] transition-transform duration-300" referrerpolicy="no-referrer" />
+                  
+                  <!-- Tag representing producing enterprise along with unique brand color -->
+                  <span class="absolute top-3 left-3 px-2.5 py-1 text-[9px] font-extrabold shadow-sm rounded-lg" [style.backgroundColor]="p.companyColor" [style.color]="getTextColor(p.companyColor)">
+                    🏬 {{ p.companyName }}
+                  </span>
+
+                  @if (p.stock <= 0) {
+                    <span class="absolute top-3 right-3 bg-rose-600 text-white text-[9px] font-semibold py-1 px-2.5 rounded shadow">
+                      RUPTURE
+                    </span>
+                  }
+                </div>
+
+                <div class="p-4 text-left flex-1 flex flex-col justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-950 line-clamp-1 mb-0.5">{{ p.name }}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2 leading-tight mb-2 font-medium">{{ p.description }}</p>
+                    
+                    <!-- Bottom enterprise badge with contrast text -->
+                    <div class="mt-2.5 flex items-center justify-between gap-1">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-extrabold shadow-sm inline-flex items-center gap-1 leading-none" 
+                        [style.backgroundColor]="p.companyColor" 
+                        [style.color]="getTextColor(p.companyColor)">
+                        🏬 {{ p.companyName }}
+                      </span>
+                      <span class="text-[9px] text-indigo-600 font-bold bg-indigo-50 group-hover:bg-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-0.5 leading-none transition-colors">
+                        Détails <mat-icon class="text-[9px] h-2.5 w-2.5">arrow_forward</mat-icon>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <div>
+                      <strong class="text-slate-400 text-[9px] uppercase font-bold block leading-none">Prix</strong>
+                      <strong class="text-slate-900 font-extrabold text-base">{{ p.price?.toFixed(2) }} €</strong>
+                    </div>
+
+                    <div class="text-right">
+                      <span class="text-[9px] text-slate-400 block uppercase font-bold leading-none">Stock</span>
+                      <span class="text-xs font-bold" [class]="p.stock <= p.threshold ? 'text-amber-600':'text-emerald-600'">
+                        {{ p.stock }} restants
+                      </span>
+                    </div>
+
+                    <button 
+                      (click)="addToCart(p)"
+                      [disabled]="p.stock <= 0"
+                      class="bg-slate-900 hover:bg-slate-800 text-white p-2.5 rounded-xl transition-transform active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 shadow-sm leading-none"
+                      title="Ajouter au Panier"
+                      id="btn-add-cart-{{ p.id }}">
+                      <mat-icon class="text-xs">add_shopping_cart</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            } @empty {
+              <div class="md:col-span-3 border border-dashed border-slate-200 py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2 rounded-2xl">
+                <mat-icon class="text-3xl text-slate-350">search_off</mat-icon>
+                <p class="text-xs italic">Aucun produit ne correspond à vos filtres ou à votre recherche.</p>
+              </div>
+            }
+          </div>
+
+          <!-- Support Tickets form dialog for Client -->
+          @if (api.currentUser(); as user) {
+            <hr class="border-slate-100" />
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 text-left">
+              <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-1">Passer une réclamation / Contacter l’aide</h3>
+                <p class="text-xs text-slate-500 font-medium">Parlez directement aux administrateurs si vous repérez des anomalies ou désirez un remboursement.</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-2.5">
+                  <input 
+                    [value]="ticketSubject()" 
+                    (input)="ticketSubject.set($any($event.target).value)" 
+                    placeholder="Sujet de votre message" 
+                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  <textarea 
+                    [value]="ticketMessage()" 
+                    (input)="ticketMessage.set($any($event.target).value)" 
+                    placeholder="Saisissez votre réclamation..." 
+                    rows="3"
+                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs"></textarea>
+                  <button 
+                    (click)="createSupportTicket()"
+                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg">
+                    Envoyer le Ticket
+                  </button>
+                </div>
+
+                <div class="space-y-2.5 max-h-56 overflow-y-auto">
+                  @for (t of tickets(); track t.id) {
+                    <div class="border border-slate-100 p-2.5 rounded-lg text-xs">
+                      <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded border">
+                        <strong class="font-bold">{{ t.subject }}</strong>
+                        <span class="text-[9px] uppercase font-bold" [class]="t.status === 'open'?'text-amber-700':'text-slate-500'">{{ t.status }}</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 italic mt-1 bg-white p-1 rounded font-medium">"{{ t.message }}"</p>
+                      @if (t.replies.length) {
+                        <div class="pl-2 border-l border-slate-200 text-[10px] text-indigo-700 font-medium mt-1">Admin: {{ t.replies[0].message }}</div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+
+      } <!-- End of clientCurrentTab() === 'browse' -->
+
+      @if (api.currentUser() && clientCurrentTab() === 'orders') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Suivi & Historique de Vos Commandes</h3>
+            <p class="text-xs text-slate-500">Consultez le statut de préparation, de transport et téléchargez vos factures PDF certifiées.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 font-sans">
+            @for (ord of orders(); track ord.id) {
+              <div class="border border-slate-200 p-5 rounded-2xl space-y-4 hover:shadow-sm transition-all text-left">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 font-sans">
+                  <div>
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none">Référence Commande</span>
+                    <strong class="font-mono text-sm text-slate-850">{{ ord.id }}</strong>
+                  </div>
+                  <div>
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none text-left md:text-right font-sans">Montant Total Payé</span>
+                    <strong class="text-indigo-700 text-lg font-black font-sans">{{ (ord.total + ord.driverFee)?.toFixed(2) }}€</strong>
+                  </div>
+                </div>
+
+                <!-- Live Status Flow Indicators -->
+                <div class="grid grid-cols-4 gap-2 text-center pt-2 font-sans">
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'pending' ? 'bg-amber-500 animate-ping':'bg-amber-500'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'pending' ? 'text-amber-600':'text-slate-400'">1. En Attente</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'preparing' ? 'bg-blue-500 animate-ping':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'preparing' ? 'text-blue-500':'text-slate-400'">2. Préparation</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'transit' ? 'bg-indigo-500 animate-ping':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'transit' ? 'text-indigo-500':'text-slate-400'">3. En Route</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'delivered' ? 'bg-emerald-500':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'delivered' ? 'text-emerald-600 font-extrabold':'text-slate-400'">4. Livré</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap md:flex-nowrap items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3 gap-3 font-sans">
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="text-sm text-slate-400">local_shipping</mat-icon>
+                    <span>Livreur Assigné : <strong class="text-slate-800">{{ ord.driverName }}</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="text-sm text-slate-400">place</mat-icon>
+                    <span>Adresse de destination : <strong class="text-slate-800">{{ ord.deliveryAddress }}</strong></span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded text-[11px] font-extrabold uppercase tracking-wider" [class]="ord.status === 'cancelled'?'bg-rose-50 text-rose-700':'bg-indigo-50 text-indigo-700'">
+                    {{ ord.status }}
+                  </span>
+                </div>
+
+                <div class="flex gap-2">
+                  <a 
+                    [href]="ord.invoiceUrl" 
+                    target="_blank" 
+                    class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl inline-flex items-center gap-2 w-full justify-center transition-colors">
+                    <mat-icon class="text-sm">download</mat-icon> Télécharger Facture PDF Officielle
+                  </a>
+                  
+                  @if (ord.status === 'pending') {
+                    <button 
+                      (click)="cancelOrder(ord.id)"
+                      class="hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+                      Annuler la Commande
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="py-16 text-center border-2 border-dashed border-slate-100 rounded-2xl flex flex-col items-center gap-2 font-sans">
+                <mat-icon class="text-3xl text-slate-300">receipt_long</mat-icon>
+                <p class="text-xs text-slate-400 italic">Vous n'avez pas encore passé de commande. Commandez des produits frais dès aujourd'hui !</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (api.currentUser() && clientCurrentTab() === 'support') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200 font-sans">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Centre d'Assistance / Réclamations</h3>
+            <p class="text-xs text-slate-500">Contactez directement les administrateurs de la plateforme pour signaler une commande défectueuse ou demander un remboursement.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
+            <div class="md:col-span-1 flex flex-col gap-3 justify-start font-sans">
+              <strong class="text-xs font-bold uppercase text-slate-400 font-sans">Ouvrir une Nouvelle Réclamation</strong>
+              
+              <input 
+                [value]="ticketSubject()" 
+                (input)="ticketSubject.set($any($event.target).value)" 
+                placeholder="Ex: Facture erronée, Livraison incomplète" 
+                class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs" />
+              
+              <textarea 
+                [value]="ticketMessage()" 
+                (input)="ticketMessage.set($any($event.target).value)" 
+                placeholder="Veuillez détailler le motif précis de votre réclamation..." 
+                rows="4"
+                class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs"></textarea>
+              
+              <button 
+                (click)="createSupportTicket()"
+                class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg leading-none">
+                Envoyer le Ticket
+              </button>
+            </div>
+
+            <div class="md:col-span-2 border-l border-slate-100 pl-4 space-y-4 font-sans">
+              <strong class="text-xs font-bold uppercase text-slate-400 block mb-2 font-sans">Historique de vos requêtes d'aide</strong>
+              
+              @for (t of tickets(); track t.id) {
+                <div class="border border-slate-150 p-4 rounded-xl hover:bg-slate-50/50 text-left font-sans">
+                  <div class="flex justify-between items-start mb-2 font-sans">
+                    <div>
+                      <h4 class="text-sm font-bold text-slate-800 font-sans">{{ t.subject }}</h4>
+                      <span class="text-xs text-slate-500">Créé le {{ t.createdAt | date: 'short' }}</span>
+                    </div>
+                    <span [class]="t.status === 'open' ? 'text-amber-700 bg-amber-50 px-2 py-0.5 text-xs font-bold rounded font-sans' : 'text-slate-600 bg-slate-100 px-2 py-0.5 text-xs font-bold rounded font-sans'">
+                      {{ t.status === 'open' ? 'OUVERT':'RÉSOLU' }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-600 italic bg-white p-2.5 rounded border border-slate-100 mb-3 font-medium font-sans">"{{ t.message }}"</p>
+                  
+                  @if (t.replies.length) {
+                    <div class="pl-3 border-l-2 border-slate-200 mt-1 space-y-1.5 font-sans">
+                      <span class="text-[10px] uppercase font-bold text-slate-400 font-sans">Réponse Support client:</span>
+                      <div class="text-[11px] text-slate-700 font-sans">
+                        <strong class="text-indigo-600 font-bold font-sans">Admin :</strong> {{ t.replies[0].message }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @empty {
+                <div class="border border-dashed py-8 border-slate-200 text-center text-xs text-slate-400 italic">
+                  Aucun ticket ou réclamation en cours.
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (api.currentUser() && clientCurrentTab() === 'profile') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Client Personnel</h3>
+            <p class="text-xs text-slate-500">Gérez vos informations de livraison et vos coordonnées de facturation pour vos paniers.</p>
+          </div>
+
+          <!-- General Rules Card -->
+          <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex items-start gap-3">
+            <mat-icon class="text-emerald-700 font-bold">lock_outline</mat-icon>
+            <div class="text-xs text-emerald-955 space-y-1 font-sans font-sans">
+              <p class="font-bold">🛒 Qui peut consulter et modifier ce compte ?</p>
+              <p>• <strong>Consultation :</strong> Consultable par l'administrateur (pour vous assister) et par vos coursiers lors de la livraison (votre adresse et votre nom de contact).</p>
+              <p>• <strong>Modification :</strong> Strictement réservé à vous en toute autonomie.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
+            <div class="flex flex-col gap-1.5 text-xs text-left">
+              <span class="font-bold text-slate-500">Nom Complet</span>
+              <input 
+                [value]="profileName()" 
+                (input)="profileName.set($any($event.target).value)"
+                placeholder="Nom complet" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-name" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left font-sans">
+              <span class="font-bold text-slate-500">Adresse E-mail</span>
+              <input 
+                [value]="profileEmail()" 
+                (input)="profileEmail.set($any($event.target).value)"
+                placeholder="Email de facturation" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-email" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+              <span class="font-bold text-slate-500">Adresse de Livraison Par Défaut (Utilisé lors du calcul de géolocalisation)</span>
+              <input 
+                [value]="profileAddress()" 
+                (input)="profileAddress.set($any($event.target).value)"
+                placeholder="Saisissez votre rue, numéro, code postal..." 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-address" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans font-sans">
+              <span class="font-bold text-slate-500">Téléphone de Contact Pour le Livreur</span>
+              <input 
+                [value]="profilePhone()" 
+                (input)="profilePhone.set($any($event.target).value)"
+                placeholder="Ex : +33 6 45 32..." 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-phone" />
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4 border-t">
+            <button 
+              (click)="updateUserProfile()"
+              class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+              <mat-icon class="text-xs font-bold">save</mat-icon> Enregistrer et Mettre à jour mon profil
+            </button>
+          </div>
+        </div>
+      }
+
+    }
+
+  </main>
+
+  <!-- Login Forms Box Dialog Modal (if Visitor want to log in explicitly via email) -->
+  @if (!api.currentUser() && activeAuthMode() === 'login') {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="flex justify-between items-start mb-4 border-b pb-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">S'authentifier à la Plateforme</h3>
+            <p class="text-xs text-slate-500 leading-normal">Saisissez l'email d'un compte existant ou utilisez le Bac à sable pour tester instantanément.</p>
+          </div>
+          <button (click)="activeAuthMode.set('login')" class="text-slate-400 hover:text-slate-600">
+            <!-- keep modal visible via selector unless forced -->
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex flex-col gap-1 text-xs">
+            <span class="font-bold text-slate-550">Adresse E-mail</span>
+            <input 
+              [value]="manualEmail()" 
+              (input)="manualEmail.set($any($event.target).value)"
+              placeholder="Ex: contact&#64;ecoshop.com" 
+              class="border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50" />
+          </div>
+
+          <div class="flex flex-col gap-1 text-xs">
+            <span class="font-bold text-slate-550">Mot de Passe</span>
+            <input 
+              type="password" 
+              value="••••••••" 
+              disabled 
+              class="border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-100 text-slate-400" />
+          </div>
+
+          <button 
+            (click)="handleManualLogin()"
+            class="bg-slate-950 text-white font-extrabold text-xs w-full py-2.5 rounded-xl hover:bg-slate-800 transition-all shadow shadow-slate-950/20">
+            Se Connecter Réellement
+          </button>
+
+          <div class="text-center text-xs text-slate-400">
+            <span>Pas de compte ? </span>
+            <button (click)="activeAuthMode.set('register')" class="text-indigo-600 font-bold hover:underline">S'inscrire</button>
+          </div>
+
+          <!-- Quick log hints -->
+          <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100/60 text-xs">
+            <strong class="text-indigo-800 text-xs block mb-1">Mémos de Connexion Rapide</strong>
+            <p>Admin: <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">admin&#64;market.com</span></p>
+            <p class="mt-1">Entreprise: <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">contact&#64;ecoshop.com</span></p>
+            <p class="mt-1">Client: <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">alice&#64;gmail.com</span></p>
+            <p class="mt-1">Livreur: <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">lucas&#64;delivery.com</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Registration modal form -->
+  @if (!api.currentUser() && activeAuthMode() === 'register') {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left">
+        
+        <div class="flex justify-between items-start mb-4 border-b pb-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Formuler une Inscription</h3>
+            <p class="text-xs text-slate-500">Un e-mail de confirmation sera automatiquement simulé.</p>
+          </div>
+        </div>
+
+        @if (regFeedback()) {
+          <p class="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded mb-3">{{ regFeedback() }}</p>
+        }
+
+        <div class="space-y-3.5">
+          <div class="flex flex-col gap-1 text-xs text-slate-500">
+            <span class="font-bold text-slate-400 uppercase text-[9px]">Nom ou Raison Sociale *</span>
+            <input 
+              [value]="regName()" 
+              (input)="regName.set($any($event.target).value)"
+              placeholder="Ex: Alice Dubois / Pâtisserie du Coin" 
+              class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+          </div>
+
+          <div class="flex flex-col gap-1 text-xs text-slate-500">
+            <span class="font-bold text-slate-400 uppercase text-[9px]">Adresse Email de Connexion *</span>
+            <input 
+              [value]="regEmail()" 
+              (input)="regEmail.set($any($event.target).value)" 
+              placeholder="Ex: alice&#64;gmail.com" 
+              class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1 text-xs text-slate-500">
+              <span class="font-bold text-slate-400 uppercase text-[9px]">Type d'Acteur *</span>
+              <select 
+                [value]="regRole()" 
+                (change)="setRegRole($any($event.target).value)"
+                class="border border-slate-200 px-3 py-2 rounded-lg text-xs">
+                <option value="client">🛒 Client</option>
+                <option value="company">🏢 Entreprise Partenaire</option>
+                <option value="driver">🚚 Livreur Indépendant</option>
+              </select>
+            </div>
+
+            <!-- Conditional Color Selection for enterprise during registration -->
+            @if (regRole() === 'company') {
+              <div class="flex flex-col gap-1 text-xs text-slate-500">
+                <span class="font-bold text-slate-400 uppercase text-[9px]">Couleur unique</span>
+                <div class="flex gap-1.5 items-center">
+                  <input 
+                    type="color" 
+                    [value]="regColor()" 
+                    (input)="regColor.set($any($event.target).value)" 
+                    class="h-8 w-12 border rounded cursor-pointer" />
+                  <button 
+                    type="button"
+                    (click)="regColor.set(generateRandomColor())"
+                    class="bg-slate-100 hover:bg-slate-200 p-1.5 rounded flex items-center justify-center h-8 w-8 text-slate-700"
+                    title="Suggérer un autre code couleur unique">
+                    <mat-icon class="text-xs">cached</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1 text-xs text-slate-500">
+              <span class="font-bold text-slate-400 uppercase text-[9px]">Numéro de téléphone</span>
+              <input 
+                [value]="regPhone()" 
+                (input)="regPhone.set($any($event.target).value)"
+                placeholder="+33 6 ..." 
+                class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+            </div>
+            <div class="flex flex-col gap-1 text-xs text-slate-500">
+              <span class="font-bold text-slate-400 uppercase text-[9px]">Adresse / Zone d'exercice</span>
+              <input 
+                [value]="regAddress()" 
+                (input)="regAddress.set($any($event.target).value)"
+                placeholder="Ex: Paris 75xxx" 
+                class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+            </div>
+          </div>
+
+          <button 
+            (click)="handleRegistration()"
+            class="bg-slate-900 text-white font-bold text-xs w-full py-2.5 rounded-lg hover:bg-slate-800 transition-all leading-none mt-2">
+            Créer et soumettre mon Dossier
+          </button>
+
+          <div class="text-center text-xs text-slate-400 pt-1">
+            <span>Déjà enregistré ? </span>
+            <button (click)="activeAuthMode.set('login')" class="text-indigo-600 font-bold hover:underline">Se Connecter</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Detailed Product Card Modal (10.3.2) -->
+  @if (selectedProduct(); as p) {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" 
+         role="button" 
+         tabindex="0"
+         (click)="selectedProduct.set(null)"
+         (keydown.escape)="selectedProduct.set(null)">
+      <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-150 text-left animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]" 
+           role="document"
+           tabindex="0"
+           (click)="$event.stopPropagation()"
+           (keydown)="$event.stopPropagation()">
+        
+        <!-- Top colored stripe -->
+        <div class="h-2 w-full" [style.backgroundColor]="p.companyColor"></div>
+
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-100 flex items-start justify-between gap-4">
+          <div class="text-left">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Fiche Produit Détaillée</span>
+            <h3 class="text-lg font-extrabold text-slate-900 leading-tight">{{ p.name }}</h3>
+          </div>
+          <button (click)="selectedProduct.set(null)" class="text-slate-400 hover:text-slate-655 p-1 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Body Scrollable -->
+        <div class="p-6 overflow-y-auto space-y-6 flex-1">
+          <!-- Image and description row -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="relative rounded-2xl overflow-hidden border border-slate-100">
+              <img [src]="p.image" alt="Image détaillée" class="w-full h-44 object-cover" referrerpolicy="no-referrer" />
+              <span class="absolute bottom-3 left-3 px-2 py-0.5 rounded text-[10px] font-extrabold shadow-sm" [style.backgroundColor]="p.companyColor" [style.color]="getTextColor(p.companyColor)">
+                🏬 {{ p.companyName }}
+              </span>
+            </div>
+            <div class="flex flex-col justify-between text-left space-y-3">
+              <div class="space-y-1">
+                <span class="text-[9px] uppercase font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ p.category }}</span>
+                <p class="text-xs text-slate-650 leading-relaxed font-semibold mt-1">{{ p.description || 'Aucune description fournie.' }}</p>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase block">Tarif</span>
+                  <strong class="text-slate-900 font-extrabold text-lg">{{ p.price?.toFixed(2) }} €</strong>
+                </div>
+                <div class="text-right">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase block">Disponibilité</span>
+                  <span class="text-xs font-bold px-2 py-0.5 rounded" [class]="p.stock <= p.threshold ? 'text-amber-800 bg-amber-50' : 'text-emerald-800 bg-emerald-50'">
+                    {{ p.stock }} en stock
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Vendu Par (Aux couleurs exclusives de l'entreprise) -->
+          <div class="p-4 rounded-xl flex items-center justify-between gap-3 shadow-sm border border-black/5" 
+               [style.backgroundColor]="p.companyColor" 
+               [style.color]="getTextColor(p.companyColor)">
+            <div class="text-left space-y-0.5">
+              <span class="text-[9px] uppercase font-bold tracking-wider block opacity-75">Vendu par notre partenaire exclusif</span>
+              <strong class="text-sm font-extrabold tracking-tight">{{ p.companyName }}</strong>
+            </div>
+            <div class="bg-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 border border-white/10 uppercase tracking-wider">
+               <span>Certifié biologique</span> 🛡️
+            </div>
+          </div>
+
+          <!-- Recommendation Block - other products of same partner -->
+          <div class="border-t border-slate-100 pt-5 text-left">
+            <h4 class="text-xs font-extrabold text-slate-900 mb-3 uppercase tracking-wider flex items-center gap-1.5 text-slate-500">
+              <mat-icon class="text-sm">shopping_basket</mat-icon> Autres pépites de chez {{ p.companyName }}
+            </h4>
+            
+            <div class="grid grid-cols-3 gap-3">
+              @for (other of products(); track other.id) {
+                @if (other.companyId === p.companyId && other.id !== p.id && other.status === 'active') {
+                  <button (click)="selectedProduct.set(other)" class="cursor-pointer bg-slate-50 hover:bg-white text-slate-700 border border-slate-200 hover:border-indigo-200 p-2.5 rounded-xl transition-all flex flex-col justify-between text-left h-full shadow-xs hover:shadow-xs hover:-translate-y-0.5 duration-200">
+                    <img [src]="other.image" alt="Aperçu recommandé" class="w-full h-16 object-cover rounded-md bg-slate-100 mb-2" referrerpolicy="no-referrer" />
+                    <div>
+                      <h5 class="text-[10px] font-bold text-slate-800 line-clamp-1 leading-tight mb-1">{{ other.name }}</h5>
+                      <div class="flex items-center justify-between">
+                        <strong class="text-[10px] text-slate-900 font-extrabold">{{ other.price?.toFixed(2) }} €</strong>
+                        <span class="text-[8px] font-bold text-emerald-600 bg-emerald-50/50 px-1 py-0.2 rounded">{{ other.stock }} dispo</span>
+                      </div>
+                    </div>
+                  </button>
+                }
+              } @empty {
+                <div class="col-span-3 text-center py-4 bg-slate-50 rounded-xl border text-[11px] text-slate-450 italic">
+                  Aucun autre produit listé pour cette enseigne.
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sticky Footer Actions -->
+        <div class="p-6 bg-slate-50 border-t border-slate-150 flex items-center justify-between gap-3">
+          <button (click)="selectedProduct.set(null)" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl leading-none">
+            Fermer la Fiche
+          </button>
+          
+          <button 
+            (click)="addToCart(p); selectedProduct.set(null)"
+            [disabled]="p.stock <= 0"
+            class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow shadow-slate-950/20 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 leading-none flex items-center gap-1.5">
+            <mat-icon class="text-sm">add_shopping_cart</mat-icon> Ajouter au panier - {{ p.price?.toFixed(2) }} €
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Footer Info -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© 2026 Plateforme Multi-Rôles E-Commerce. Conçu et déployé de manière découplée, solide et sécurisée.</p>
+      <div class="flex gap-4">
+        <span class="hover:underline">Conditions Générales</span>
+        <span>•</span>
+        <span class="hover:underline">Support & Ticket</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
