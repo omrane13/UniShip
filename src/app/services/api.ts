@@ -5,6 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: 'admin' | 'company' | 'client' | 'driver' | 'collaborator';
   status: 'active' | 'pending' | 'inactive';
   companyId?: string;
@@ -45,6 +46,7 @@ export interface User {
   driverMonthlyDeliveriesCount?: number;
   driverPaymentMethod?: 'konnect' | 'virement';
   driverEntryFeePaid?: boolean;
+  permissions?: 'read' | 'write' | 'admin';
 }
 
 export interface SubAccount {
@@ -161,6 +163,15 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface SimulatedEmail {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  createdAt: string;
+  read: boolean;
+}
+
 export interface SupportTicket {
   id: string;
   userId: string;
@@ -236,16 +247,16 @@ export class ApiClient {
   // ==========================================
   // Auth API
   // ==========================================
-  async login(email: string): Promise<User> {
+  async login(email: string, password?: string): Promise<User> {
     const data = await this.request<{ token: string; user: User }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, password })
     });
     this.currentUser.set(data.user);
     return data.user;
   }
 
-  async register(payload: { name: string; email: string; role: string; phone?: string; address?: string; companyColor?: string }): Promise<{ message: string; user: User }> {
+  async register(payload: { name: string; email: string; role: string; phone?: string; address?: string; companyColor?: string; password?: string }): Promise<{ message: string; user: User }> {
     return this.request<{ message: string; user: User }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -454,5 +465,18 @@ export class ApiClient {
 
   async getAuditLogs(): Promise<AuditLog[]> {
     return this.request<AuditLog[]>('/api/audit-logs');
+  }
+
+  // ==========================================
+  // Simulated Emails API
+  // ==========================================
+  async getSimulatedEmails(): Promise<SimulatedEmail[]> {
+    return this.request<SimulatedEmail[]>('/api/simulated-emails');
+  }
+
+  async markSimulatedEmailAsRead(id: string): Promise<{ success: boolean; email: SimulatedEmail }> {
+    return this.request<{ success: boolean; email: SimulatedEmail }>(`/api/simulated-emails/${id}/read`, {
+      method: 'PUT'
+    });
   }
 }

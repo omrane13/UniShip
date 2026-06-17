@@ -3,10 +3,37 @@ import { dbStore, User, Product, Order, OrderItem, SupportTicket, Offer, StockRe
 
 export const apiRouter = Router();
 
+// Helper to get the actual company owner ID (since collaborators act on behalf of their parent company)
+function getCompanyOwnerId(u: User): string {
+  return u.role === 'collaborator' && u.companyId ? u.companyId : u.id;
+}
+
 // Helper to check standard tokens or custom header for simulating session roles
 function getCurrentUser(req: Request): User | undefined {
   const userId = req.headers['x-user-id'] || 'usr_client1'; // default backup
-  const u = dbStore.users.find(u => u.id === userId);
+  let u = dbStore.users.find(u => u.id === userId);
+
+  if (!u) {
+    // Check if the user is a collaborator (subaccount)
+    const sub = dbStore.subAccounts.find(s => s.id === userId);
+    if (sub) {
+      const parentCompany = dbStore.users.find(usr => usr.id === sub.companyId);
+      u = {
+        id: sub.id,
+        name: sub.name,
+        email: sub.email,
+        password: sub.password || '',
+        role: 'collaborator',
+        status: sub.status || 'active',
+        color: parentCompany?.color || '#3b82f6',
+        companyId: sub.companyId,
+        permissions: sub.permissions,
+        phone: parentCompany?.phone,
+        address: parentCompany?.address,
+      };
+    }
+  }
+
   if (u && u.role === 'driver') {
     const drv = dbStore.drivers.find(d => d.userId === u.id);
     if (drv) {
@@ -27,16 +54,49 @@ function getCurrentUser(req: Request): User | undefined {
 
 // Login simulation
 apiRouter.post('/auth/login', (req: Request, res: Response): void => {
-  const { email } = req.body;
+  const { email, password } = req.body;
   if (!email) {
     res.status(400).json({ error: 'Email obligatoire' });
     return;
   }
 
-  // Find user by email
-  const user = dbStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  // Find user by email or subaccount email
+  let user = dbStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  let isCollab = false;
+
+  if (!user) {
+    const sub = dbStore.subAccounts.find(s => s.email.toLowerCase() === email.toLowerCase());
+    if (sub) {
+      isCollab = true;
+      const parentCompany = dbStore.users.find(usr => usr.id === sub.companyId);
+      user = {
+        id: sub.id,
+        name: sub.name,
+        email: sub.email,
+        password: sub.password || '',
+        role: 'collaborator',
+        status: sub.status || 'pending',
+        color: parentCompany?.color || '#3b82f6',
+        companyId: sub.companyId,
+        permissions: sub.permissions,
+        phone: parentCompany?.phone,
+        address: parentCompany?.address,
+      };
+    }
+  }
+
   if (!user) {
     res.status(401).json({ error: 'Identifiants incorrects ou compte inexistant' });
+    return;
+  }
+
+  if (!password) {
+    res.status(400).json({ error: 'Mot de passe obligatoire pour se connecter' });
+    return;
+  }
+
+  if (user.password !== password) {
+    res.status(401).json({ error: 'Mot de passe incorrect' });
     return;
   }
 
@@ -50,16 +110,34 @@ apiRouter.post('/auth/login', (req: Request, res: Response): void => {
     return;
   }
 
-  dbStore.log(user.id, user.name, 'LOGIN', 'Connexion réussie à la plateforme');
+  dbStore.log(user.id, user.name, 'LOGIN', isCollab ? 'Connexion réussie en tant que Collaborateur' : 'Connexion réussie à la plateforme');
   res.json({ token: 'mock-jwt-token-xyz', user });
 });
 
 // Register simulation
 apiRouter.post('/auth/register', (req: Request, res: Response): void => {
-  const { name, email, role, phone, address, companyColor } = req.body;
+  const { name, email, password, role, phone, address, companyColor } = req.body;
 
   if (!name || !email || !role) {
     res.status(400).json({ error: 'Informations obligatoires manquantes' });
+    return;
+  }
+
+  const creator = getCurrentUser(req);
+  const isCreatorAdmin = creator && creator.role === 'admin';
+
+  let finalPassword = password;
+  if (!finalPassword) {
+    if (isCreatorAdmin) {
+      finalPassword = 'UniShip-' + Math.floor(1000 + Math.random() * 9000);
+    } else {
+      res.status(400).json({ error: "Un mot de passe d'au moins 4 caractères est obligatoire pour s'inscrire." });
+      return;
+    }
+  }
+
+  if (finalPassword.length < 4) {
+    res.status(400).json({ error: 'Le mot de passe doit contenir au moins 4 caractères.' });
     return;
   }
 
@@ -77,6 +155,7 @@ apiRouter.post('/auth/register', (req: Request, res: Response): void => {
     id,
     name,
     email,
+    password: finalPassword,
     role,
     status,
     phone,
@@ -122,6 +201,13 @@ apiRouter.post('/auth/register', (req: Request, res: Response): void => {
   }
 
   dbStore.log(id, name, 'REGISTER', `Création de compte avec statut: ${status}`);
+
+  // Send initial simulated registration email so user of simulated system can see it on login page
+  if (role === 'client') {
+    dbStore.sendEmail(email, 'Bienvenue chez UniShip ! 🚀', `Bonjour ${name},\n\nVotre compte Client sur la plateforme UniShip a été créé avec succès.\n\nVoici vos identifiants pour vous connecter :\n- Adresse E-mail : ${email}\n- Mot de passe secret : ${finalPassword}\n\nBonnes livraisons !\nL'équipe UniShip.`);
+  } else {
+    dbStore.sendEmail(email, 'Demande d\'inscription reçue - En attente d\'activation ⏳', `Bonjour ${name},\n\nNous avons bien reçu votre demande d'inscription en tant que ${role === 'company' ? 'Entreprise 🏢' : 'Livreur 🚴'} sur la plateforme logistique UniShip.\n\nVotre compte est actuellement en attente d'approbation et d'activation par l'Administrateur.\n\nVoici un rappel de vos identifiants d'inscription :\n- Adresse E-mail : ${email}\n- Mot de passe choisi : ${finalPassword}\n\nVous recevrez un nouvel e-mail de confirmation dès que l'administrateur aura activé votre espace.\n\nCordialement,\nL'équipe Support UniShip.`);
+  }
 
   res.json({
     message: role === 'client' 
@@ -233,7 +319,29 @@ apiRouter.put('/users/:id', (req: Request, res: Response): void => {
     if (targetSub) {
       const { status } = req.body;
       if (status) {
+        const previousStatus = targetSub.status;
         targetSub.status = status;
+
+        if (status === 'active' && previousStatus === 'pending') {
+          const generatedPassword = 'Collab-' + Math.floor(1000 + Math.random() * 9000);
+          targetSub.password = generatedPassword;
+
+          const parentCompany = dbStore.users.find(u => u.id === targetSub.companyId);
+          const companyName = parentCompany ? parentCompany.name : 'Inconnue';
+          const companyEmail = parentCompany ? parentCompany.email : '';
+
+          const emailBody = `Bonjour ${targetSub.name},\n\nFélicitations ! Votre sous-compte Collaborateur (${targetSub.role}) rattaché à l'entreprise ${companyName} sur la plateforme UniShip a été activé avec succès par l'Administrateur.\n\nVoici vos identifiants pour vous connecter de manière sécurisée :\n- Adresse E-mail : ${targetSub.email}\n- Mot de passe de connexion généré automatiquement : ${generatedPassword}\n\nVous pouvez désormais vous connecter et utiliser toutes les fonctionnalités d'UniShip pour gérer vos activités.\n\nCordialement,\nL'équipe Support UniShip.`;
+
+          dbStore.sendEmail(targetSub.email, `Activation de votre compte Collaborateur UniShip 🎉`, emailBody);
+
+          if (companyEmail) {
+            const companyMailBody = `Bonjour ${companyName},\n\nLe sous-compte de votre collaborateur ${targetSub.name} (${targetSub.role}) a été activé avec succès par l'Administrateur d'UniShip.\n\nVoici ses accès générés automatiquement :\n- Nom : ${targetSub.name}\n- Adresse E-mail : ${targetSub.email}\n- Mot de passe généré automatiquement : ${generatedPassword}\n- Permissions : ${targetSub.permissions}\n\nVotre collaborateur peut dès maintenant se connecter à son espace de travail.\n\nCordialement,\nL'équipe Support UniShip.`;
+            dbStore.sendEmail(companyEmail, `Accès Activés - Collaborateur : ${targetSub.name} 🔑`, companyMailBody);
+          }
+
+          dbStore.log('system', 'Système Mail', 'SEND_ACTIVATION_EMAIL', `Email d'activation envoyé au collaborateur ${targetSub.email} et à l'entreprise ${companyEmail}`);
+        }
+
         dbStore.log(adminUser.id, adminUser.name, 'UPDATE_SUBACCOUNT_STATUS', `Mise à jour du collaborateur ${targetSub.name} vers le statut ${status}`);
         res.json({
           id: targetSub.id,
@@ -293,11 +401,21 @@ apiRouter.put('/users/:id', (req: Request, res: Response): void => {
 
   if (role) targetUser.role = role;
   if (status) {
+    const previousStatus = targetUser.status;
     targetUser.status = status;
     // If driver status gets marked inactive, mark their driver profile offline
     if (targetUser.role === 'driver') {
       const drv = dbStore.drivers.find(d => d.userId === targetUser.id);
       if (drv) drv.status = status === 'active' ? 'available' : 'offline';
+    }
+    
+    // Automatically generate password if missing, otherwise use their chosen password during registration, and send email upon activation of pending account
+    if (status === 'active' && previousStatus === 'pending') {
+      const activePassword = targetUser.password || 'UniShip-' + Math.floor(1000 + Math.random() * 9000);
+      targetUser.password = activePassword;
+      const emailBody = `Bonjour ${targetUser.name},\n\nFélicitations ! Votre compte ${targetUser.role === 'company' ? 'Entreprise 🏢' : 'Livreur 🚴'} sur la plateforme logistique UniShip a été activé avec succès par l'Administrateur.\n\nVoici vos identifiants pour vous connecter de manière sécurisée :\n- Adresse E-mail : ${targetUser.email}\n- Mot de passe de connexion : ${activePassword}\n\nVous pouvez désormais vous connecter et utiliser toutes les fonctionnalités d'UniShip pour gérer vos livraisons et activités.\n\nCordialement,\nL'équipe Support UniShip.`;
+      dbStore.sendEmail(targetUser.email, `Activation de votre compte UniShip 🎉 (Mot de passe de connexion)`, emailBody);
+      dbStore.log('system', 'Système Mail', 'SEND_ACTIVATION_EMAIL', `Email d'activation envoyé à ${targetUser.email} avec mot de passe.`);
     }
   }
   if (color && targetUser.role === 'company') targetUser.color = color;
@@ -344,7 +462,7 @@ apiRouter.put('/profile', (req: Request, res: Response): void => {
     return;
   }
 
-  const { name, email, phone, address, logo, baseFee, perKmFee, zone, driverStatus, photo,
+  const { name, email, password, phone, address, logo, baseFee, perKmFee, zone, driverStatus, photo,
           planId, billingCycle, paymentMethod, referralCode, referredByCode, isVerifiedPartner,
           cancellationRate, averageRating, suspended, entryFeePaid, inactivityDays,
           paymentDelayDays, nonConformingWarningsCount, monthlyOrdersCount } = req.body;
@@ -364,6 +482,13 @@ apiRouter.put('/profile', (req: Request, res: Response): void => {
   if (phone !== undefined) u.phone = phone;
   if (address !== undefined) u.address = address;
   if (logo !== undefined && u.role === 'company') u.logo = logo;
+  if (password !== undefined && password !== '') {
+    if (password.length < 4) {
+      res.status(400).json({ error: 'Le mot de passe doit contenir au moins 4 caractères.' });
+      return;
+    }
+    u.password = password;
+  }
 
   // Subscriptions & Tunisia specific fields (if company)
   if (u.role === 'company') {
@@ -432,9 +557,9 @@ apiRouter.get('/products', (req: Request, res: Response): void => {
   // Clients can only see ACTIVE products. Admin/Company can see all unless specified
   if (!u || u.role === 'client') {
     list = list.filter(p => p.status === 'active');
-  } else if (u && u.role === 'company' && !all) {
+  } else if (u && (u.role === 'company' || u.role === 'collaborator') && !all) {
     // By default, companies see only their own products
-    list = list.filter(p => p.companyId === u.id);
+    list = list.filter(p => p.companyId === getCompanyOwnerId(u));
   }
 
   // Filter conditions
@@ -455,8 +580,13 @@ apiRouter.get('/products', (req: Request, res: Response): void => {
 // Propose OR Direct Addition of products
 apiRouter.post('/products', (req: Request, res: Response): void => {
   const u = getCurrentUser(req);
-  if (!u || (u.role !== 'company' && u.role !== 'admin')) {
+  if (!u || (u.role !== 'company' && u.role !== 'collaborator' && u.role !== 'admin')) {
     res.status(403).json({ error: 'Permissions de création de produits insuffisantes' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas d\'ajouter des produits.' });
     return;
   }
 
@@ -469,6 +599,12 @@ apiRouter.post('/products', (req: Request, res: Response): void => {
   const id = `prod_${Date.now()}`;
   const finalStatus = (u.role === 'admin') ? 'active' : 'pending'; // admin addition auto-active
 
+  const isCompOrCollab = u.role === 'company' || u.role === 'collaborator';
+  const ownerId = isCompOrCollab ? getCompanyOwnerId(u) : 'usr_company1';
+  const ownerUser = dbStore.users.find(usr => usr.id === ownerId);
+  const ownerName = ownerUser ? ownerUser.name : 'EcoShop Bio';
+  const ownerColor = ownerUser ? (ownerUser.color || '#10b981') : '#10b981';
+
   const newProd: Product = {
     id,
     name,
@@ -478,9 +614,9 @@ apiRouter.post('/products', (req: Request, res: Response): void => {
     image: image || 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&h=300&fit=crop',
     stock: Number(stock) || 0,
     threshold: Number(threshold) || 10,
-    companyId: u.role === 'company' ? u.id : 'usr_company1', // fallback to default test company in admin mode
-    companyName: u.role === 'company' ? u.name : 'EcoShop Bio',
-    companyColor: u.role === 'company' ? (u.color || '#10b981') : '#10b981',
+    companyId: ownerId,
+    companyName: ownerName,
+    companyColor: ownerColor,
     status: finalStatus,
   };
 
@@ -504,8 +640,14 @@ apiRouter.put('/products/:id', (req: Request, res: Response): void => {
   }
 
   // Authorize check
-  if (u.role !== 'admin' && prod.companyId !== u.id) {
+  const ownerId = getCompanyOwnerId(u);
+  if (u.role !== 'admin' && prod.companyId !== ownerId) {
     res.status(403).json({ error: 'Vous ne possédez pas les droits sur ce produit' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas de modifier des produits.' });
     return;
   }
 
@@ -539,8 +681,14 @@ apiRouter.delete('/products/:id', (req: Request, res: Response): void => {
   }
 
   const prod = dbStore.products[idx];
-  if (u.role !== 'admin' && prod.companyId !== u.id) {
+  const ownerId = getCompanyOwnerId(u);
+  if (u.role !== 'admin' && prod.companyId !== ownerId) {
     res.status(403).json({ error: 'Permissions non acquises' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas de supprimer des produits.' });
     return;
   }
 
@@ -562,8 +710,8 @@ apiRouter.get('/stock-requests', (req: Request, res: Response): void => {
   }
 
   let list = dbStore.stockRequests;
-  if (u.role === 'company') {
-    list = list.filter(r => r.companyId === u.id);
+  if (u.role === 'company' || u.role === 'collaborator') {
+    list = list.filter(r => r.companyId === getCompanyOwnerId(u));
   }
 
   res.json(list);
@@ -571,8 +719,13 @@ apiRouter.get('/stock-requests', (req: Request, res: Response): void => {
 
 apiRouter.post('/products/:id/stock-request', (req: Request, res: Response): void => {
   const u = getCurrentUser(req);
-  if (!u || u.role !== 'company') {
+  if (!u || (u.role !== 'company' && u.role !== 'collaborator')) {
     res.status(403).json({ error: 'Réservé aux partenaires' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas d\'initier des demandes de stock.' });
     return;
   }
 
@@ -588,12 +741,16 @@ apiRouter.post('/products/:id/stock-request', (req: Request, res: Response): voi
     return;
   }
 
+  const ownerId = getCompanyOwnerId(u);
+  const ownerUser = dbStore.users.find(usr => usr.id === ownerId);
+  const ownerName = ownerUser ? ownerUser.name : u.name;
+
   const reqObj: StockRequest = {
     id: `req_${Date.now()}`,
     productId: prod.id,
     productName: prod.name,
-    companyId: u.id,
-    companyName: u.name,
+    companyId: ownerId,
+    companyName: ownerName,
     quantity: Number(quantity),
     justification,
     status: 'pending',
@@ -749,9 +906,10 @@ apiRouter.get('/orders', (req: Request, res: Response): void => {
     if (drvProfile) {
       list = list.filter(o => o.driverId === drvProfile.id);
     }
-  } else if (u.role === 'company') {
-    // Companies only see orders containing at least one product of their own
-    list = list.filter(o => o.items.some(item => item.companyId === u.id));
+  } else if (u.role === 'company' || u.role === 'collaborator') {
+    // Companies and collaborators only see orders containing at least one product of their own
+    const ownerId = getCompanyOwnerId(u);
+    list = list.filter(o => o.items.some(item => item.companyId === ownerId));
   }
 
   // Sort by newest
@@ -834,8 +992,13 @@ apiRouter.post('/orders', (req: Request, res: Response): void => {
 // Select Driver for Order (Step 06 - Company action)
 apiRouter.put('/orders/:id/select-driver', (req: Request, res: Response): void => {
   const u = getCurrentUser(req);
-  if (!u || u.role !== 'company') {
-    res.status(403).json({ error: 'Seule l’entreprise peut assigner un livreur' });
+  if (!u || (u.role !== 'company' && u.role !== 'collaborator')) {
+    res.status(403).json({ error: 'Seule l’entreprise ou un collaborateur autorisé peut assigner un livreur' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas d\'assigner de livreur.' });
     return;
   }
 
@@ -950,11 +1113,23 @@ apiRouter.put('/orders/:id/status', (req: Request, res: Response): void => {
   } 
   
   // Company prepares
-  else if (u.role === 'company') {
+  else if (u.role === 'company' || u.role === 'collaborator') {
+    if (u.role === 'collaborator' && u.permissions === 'read') {
+      res.status(403).json({ error: 'Vos permissions de collaborateur (Lecture seule) ne vous permettent pas de modifier le statut de la commande.' });
+      return;
+    }
+
+    const ownerId = getCompanyOwnerId(u);
+    const hasCompanyItem = o.items.some(item => item.companyId === ownerId);
+    if (!hasCompanyItem) {
+      res.status(403).json({ error: 'Vous ne possédez pas les droits requis pour modifier le statut de cette commande' });
+      return;
+    }
+
     if (status === 'preparing') {
       o.status = 'preparing';
     } else if (status === 'cancelled') {
-      // Allow company to cancel order if it is pending and no driver was accepted yet
+      // Allow company/collaborator to cancel order if it is pending and no driver was accepted yet
       if (o.status !== 'pending' && o.status !== 'accepted') {
         res.status(400).json({ error: 'Vous ne pouvez plus annuler cette commande' });
         return;
@@ -966,7 +1141,7 @@ apiRouter.put('/orders/:id/status', (req: Request, res: Response): void => {
       o.status = 'cancelled';
       o.paymentStatus = 'refunded';
     } else {
-      res.status(400).json({ error: 'Action non autorisée pour l’entreprise' });
+      res.status(400).json({ error: 'Action non autorisée' });
       return;
     }
   } 
@@ -1042,7 +1217,8 @@ apiRouter.get('/tickets', (req: Request, res: Response): void => {
   if (u.role === 'admin') {
     res.json(dbStore.tickets);
   } else {
-    res.json(dbStore.tickets.filter(t => t.userId === u.id));
+    const ownerId = getCompanyOwnerId(u);
+    res.json(dbStore.tickets.filter(t => t.userId === u.id || (u.role === 'collaborator' && t.userId === ownerId)));
   }
 });
 
@@ -1145,12 +1321,13 @@ apiRouter.get('/stats', (req: Request, res: Response): void => {
     });
   } 
   
-  else if (u.role === 'company') {
-    const myProducts = dbStore.products.filter(p => p.companyId === u.id);
-    const myOrders = dbStore.orders.filter(o => o.items.some(it => it.companyId === u.id));
+  else if (u.role === 'company' || u.role === 'collaborator') {
+    const ownerId = getCompanyOwnerId(u);
+    const myProducts = dbStore.products.filter(p => p.companyId === ownerId);
+    const myOrders = dbStore.orders.filter(o => o.items.some(it => it.companyId === ownerId));
     const activeSales = myOrders.filter(o => o.status === 'delivered').reduce((sum, o) => {
       const itemsCost = o.items
-        .filter(it => it.companyId === u.id)
+        .filter(it => it.companyId === ownerId)
         .reduce((s, it) => s + (it.price * it.quantity), 0);
       return sum + itemsCost;
     }, 0);
@@ -1196,4 +1373,57 @@ apiRouter.get('/audit-logs', (req: Request, res: Response): void => {
     return;
   }
   res.json(dbStore.auditLogs);
+});
+
+// Simulated Emails endpoints
+apiRouter.get('/simulated-emails', (req: Request, res: Response): void => {
+  const userId = req.headers['x-user-id'];
+  if (!userId) {
+    // Anonymous/Visitor on the login page - let them see ALL simulated emails
+    // so they can read and copy their registration & activation credentials!
+    res.json(dbStore.simulatedEmails);
+    return;
+  }
+
+  let emailToCheck = '';
+  let isAdminUser = false;
+
+  const standardUser = dbStore.users.find(usr => usr.id === userId);
+  if (standardUser) {
+    emailToCheck = standardUser.email.toLowerCase();
+    if (standardUser.role === 'admin') {
+      isAdminUser = true;
+    }
+  } else {
+    const subUser = dbStore.subAccounts.find(s => s.id === userId);
+    if (subUser) {
+      emailToCheck = subUser.email.toLowerCase();
+    }
+  }
+
+  if (!emailToCheck) {
+    // If we can't find a valid email associated with the token, return all so they aren't blocked on the login page in manual testing
+    res.json(dbStore.simulatedEmails);
+    return;
+  }
+
+  if (isAdminUser) {
+    // Admin can see all simulated emails sent on the platform
+    res.json(dbStore.simulatedEmails);
+  } else {
+    // Other users can only see emails sent to them
+    const filtered = dbStore.simulatedEmails.filter(email => email.to.toLowerCase() === emailToCheck);
+    res.json(filtered);
+  }
+});
+
+apiRouter.put('/simulated-emails/:id/read', (req: Request, res: Response): void => {
+  const emailId = req.params['id'];
+  const email = dbStore.simulatedEmails.find(e => e.id === emailId);
+  if (email) {
+    email.read = true;
+    res.json({ success: true, email });
+  } else {
+    res.status(404).json({ error: 'Email introuvable' });
+  }
 });

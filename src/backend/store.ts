@@ -2,9 +2,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: 'admin' | 'company' | 'client' | 'driver' | 'collaborator';
   status: 'active' | 'pending' | 'inactive';
   companyId?: string; // For sub-accounts
+  permissions?: 'read' | 'write' | 'admin'; // For collaborators
   color?: string; // For companies, assigned by admin
   logo?: string;
   phone?: string;
@@ -50,6 +52,7 @@ export interface SubAccount {
   companyId: string;
   name: string;
   email: string;
+  password?: string;
   role: string;
   permissions: 'read' | 'write' | 'admin';
   status?: 'active' | 'pending' | 'inactive';
@@ -170,6 +173,15 @@ export interface SupportTicket {
   }[];
 }
 
+export interface SimulatedEmail {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  createdAt: string;
+  read: boolean;
+}
+
 // In-Memory Database State
 class InMemoryStore {
   users: User[] = [
@@ -177,6 +189,7 @@ class InMemoryStore {
       id: 'usr_admin',
       name: 'Super Admin',
       email: 'admin@market.com',
+      password: 'admin123',
       role: 'admin',
       status: 'active',
       phone: '+33 6 12 34 56 78',
@@ -185,6 +198,7 @@ class InMemoryStore {
       id: 'usr_company1',
       name: 'EcoShop Bio',
       email: 'contact@ecoshop.com',
+      password: 'ecoshop123',
       role: 'company',
       status: 'active',
       color: '#10b981', // Emerald
@@ -211,6 +225,7 @@ class InMemoryStore {
       id: 'usr_company2',
       name: 'Boulangerie d’Antan',
       email: 'antan@boulange.fr',
+      password: 'antan123',
       role: 'company',
       status: 'active',
       color: '#f59e0b', // Amber
@@ -237,6 +252,7 @@ class InMemoryStore {
       id: 'usr_company3',
       name: 'BioAliment',
       email: 'sales@bioaliment.com',
+      password: 'bioaliment123',
       role: 'company',
       status: 'pending', // Requires admin activation
       color: '#3b82f6', // Blue
@@ -263,6 +279,7 @@ class InMemoryStore {
       id: 'usr_client1',
       name: 'Alice Dubois',
       email: 'alice@gmail.com',
+      password: 'alice123',
       role: 'client',
       status: 'active',
       phone: '+33 6 55 44 33 22',
@@ -272,6 +289,7 @@ class InMemoryStore {
       id: 'usr_driver1',
       name: 'Lucas Martin',
       email: 'lucas@delivery.com',
+      password: 'lucas123',
       role: 'driver',
       status: 'active',
       phone: '+216 22 333 444',
@@ -291,6 +309,7 @@ class InMemoryStore {
       id: 'usr_driver2',
       name: 'Emma Bernard',
       email: 'emma@delivery.com',
+      password: 'emma123',
       role: 'driver',
       status: 'active',
       phone: '+216 55 666 777',
@@ -533,7 +552,29 @@ class InMemoryStore {
     }
   ];
 
+  simulatedEmails: SimulatedEmail[] = [
+    {
+      id: 'email_welcome',
+      to: 'contact@ecoshop.com',
+      subject: 'Bienvenue chez UniShip ! 🚀',
+      body: 'Bonjour EcoShop Bio,\n\nNous sommes ravis de vous compter parmi nos partenaires sur la plateforme logistique UniShip.\n\nVotre compte est actif et configuré avec le Plan Professionnel.\n\nBonne livraison,\nL’équipe UniShip logistique.',
+      createdAt: new Date().toISOString(),
+      read: true
+    }
+  ];
+
   // Helper actions
+  sendEmail(to: string, subject: string, body: string) {
+    this.simulatedEmails.unshift({
+      id: `email_${Date.now()}_` + Math.random().toString(36).substr(2, 4),
+      to,
+      subject,
+      body,
+      createdAt: new Date().toISOString(),
+      read: false
+    });
+  }
+
   log(userId: string, userName: string, action: string, details: string) {
     this.auditLogs.unshift({
       id: `log_${Date.now()}_` + Math.random().toString(36).substr(2, 4),

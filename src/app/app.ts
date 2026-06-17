@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats } from './services/api';
+import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats, SimulatedEmail } from './services/api';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +19,7 @@ export class App implements OnInit {
   // Registration Form Signals
   regName = signal('');
   regEmail = signal('');
+  regPassword = signal('');
   regRole = signal<'client' | 'company' | 'driver'>('client');
   regPhone = signal('');
   regAddress = signal('');
@@ -34,6 +35,7 @@ export class App implements OnInit {
   // Profile management editing signals
   profileName = signal('');
   profileEmail = signal('');
+  profilePassword = signal('');
   profilePhone = signal('');
   profileAddress = signal('');
   profileLogo = signal('');
@@ -58,6 +60,11 @@ export class App implements OnInit {
   tickets = signal<SupportTicket[]>([]);
   subAccounts = signal<SubAccount[]>([]);
   globalStats = signal<AppStats | null>(null);
+  
+  // Simulated Email Signals
+  simulatedEmails = signal<SimulatedEmail[]>([]);
+  showEmailsInbox = signal(false);
+  activeEmailDetails = signal<SimulatedEmail | null>(null);
 
   // Client search and filters
   searchQuery = signal('');
@@ -122,6 +129,7 @@ export class App implements OnInit {
           this.loadDriverData();
           this.initDriverSimulatorFromUser(user);
         }
+        this.loadSimulatedEmails();
       } else {
         // Visitor default load
         this.loadVisitorData();
@@ -143,6 +151,31 @@ export class App implements OnInit {
     this.regFeedback.set('');
   }
 
+  async loadSimulatedEmails() {
+    try {
+      const emails = await this.api.getSimulatedEmails();
+      this.simulatedEmails.set(emails || []);
+    } catch (e) {
+      console.warn('Erreur lors du chargement des e-mails :', e);
+    }
+  }
+
+  async markEmailAsRead(id: string) {
+    try {
+      const res = await this.api.markSimulatedEmailAsRead(id);
+      if (res.success) {
+        await this.loadSimulatedEmails();
+        // Update active email view if open
+        const active = this.activeEmailDetails();
+        if (active && active.id === id) {
+          this.activeEmailDetails.set({ ...active, read: true });
+        }
+      }
+    } catch (e) {
+      console.warn('Erreur marquage lu e-mail :', e);
+    }
+  }
+
   // ==========================================
   // Quick Switch Simulated Playground logins
   // ==========================================
@@ -160,11 +193,12 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       let email = 'admin@market.com';
-      if (role === 'company') email = 'contact@ecoshop.com';
-      if (role === 'client') email = 'alice@gmail.com';
-      if (role === 'driver') email = 'lucas@delivery.com';
+      let password = 'admin123';
+      if (role === 'company') { email = 'contact@ecoshop.com'; password = 'ecoshop123'; }
+      if (role === 'client') { email = 'alice@gmail.com'; password = 'alice123'; }
+      if (role === 'driver') { email = 'lucas@delivery.com'; password = 'lucas123'; }
 
-      await this.api.login(email);
+      await this.api.login(email, password);
       this.successMessage.set(`Connecté en tant que ${role === 'admin' ? '👑 Administrateur' : role === 'company' ? '🏢 EcoShop Bio' : role === 'client' ? '🛒 Alice Dubois' : '🚚 Lucas Martin (Livreur)'}`);
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message || 'Échec de la connexion simulée.');
@@ -181,10 +215,17 @@ export class App implements OnInit {
       return;
     }
 
+    const isCreatorAdmin = this.api.currentUser()?.role === 'admin';
+    if (!isCreatorAdmin && (!this.regPassword() || this.regPassword().length < 4)) {
+      this.regFeedback.set('Un mot de passe d\'au moins 4 caractères est obligatoire.');
+      return;
+    }
+
     try {
       const res = await this.api.register({
         name: this.regName(),
         email: this.regEmail(),
+        password: this.regPassword() || undefined,
         role: this.regRole(),
         phone: this.regPhone(),
         address: this.regAddress(),
@@ -193,9 +234,11 @@ export class App implements OnInit {
 
       this.successMessage.set(res.message);
       this.activeAuthMode.set('login');
+      this.loadSimulatedEmails();
       // Reset registration form
       this.regName.set('');
       this.regEmail.set('');
+      this.regPassword.set('');
       this.regPhone.set('');
       this.regAddress.set('');
     } catch (err) { const error = err as { message: string };
@@ -205,6 +248,7 @@ export class App implements OnInit {
 
   // Standard Login handle
   manualEmail = signal('');
+  manualPassword = signal('');
   async handleManualLogin() {
     this.clearMessages();
     if (!this.manualEmail()) {
@@ -214,9 +258,10 @@ export class App implements OnInit {
 
     this.loading.set(true);
     try {
-      await this.api.login(this.manualEmail());
+      await this.api.login(this.manualEmail(), this.manualPassword());
       this.successMessage.set('Connexion réussie !');
       this.manualEmail.set('');
+      this.manualPassword.set('');
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
     } finally {
@@ -228,6 +273,9 @@ export class App implements OnInit {
   triggerLogout() {
     this.api.logout();
     this.loadVisitorData();
+    this.simulatedEmails.set([]);
+    this.showEmailsInbox.set(false);
+    this.activeEmailDetails.set(null);
     this.successMessage.set('Déconnecté avec succès.');
   }
 
@@ -237,6 +285,7 @@ export class App implements OnInit {
     if (user) {
       this.profileName.set(user.name || '');
       this.profileEmail.set(user.email || '');
+      this.profilePassword.set('');
       this.profilePhone.set(user.phone || '');
       this.profileAddress.set(user.address || '');
       this.profileLogo.set(user.logo || '');
@@ -252,12 +301,16 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       const user = this.api.currentUser();
-      const payload: Partial<User> & { baseFee?: number; perKmFee?: number; zone?: string; driverStatus?: string; photo?: string } = {
+      const payload: Partial<User> & { password?: string; baseFee?: number; perKmFee?: number; zone?: string; driverStatus?: string; photo?: string } = {
         name: this.profileName(),
         email: this.profileEmail(),
         phone: this.profilePhone(),
         address: this.profileAddress(),
       };
+
+      if (this.profilePassword() !== '') {
+        payload.password = this.profilePassword();
+      }
 
       if (user?.role === 'company') {
         payload.logo = this.profileLogo();
@@ -291,6 +344,7 @@ export class App implements OnInit {
     try {
       const prods = await this.api.getProducts();
       this.products.set(prods);
+      this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
     } finally {
@@ -557,6 +611,7 @@ export class App implements OnInit {
       await this.api.updateUser(u.id, { status: newStatus });
       this.successMessage.set(`L'utilisateur ${u.name} est maintenant ${newStatus === 'active' ? 'activé' : 'désactivé'}.`);
       await this.loadAdminData();
+      await this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
     } finally {
@@ -1431,6 +1486,7 @@ export class App implements OnInit {
       await this.api.updateUser(userId, updates);
       this.successMessage.set(`Configuration du partenaire mise à jour avec succès.`);
       await this.loadAdminData();
+      await this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message || 'Erreur lors de la mise à jour.');
     } finally {
