@@ -2,11 +2,15 @@ import { ChangeDetectionStrategy, Component, OnInit, signal, effect, inject } fr
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats, SimulatedEmail } from './services/api';
+import { AdminDashboard } from './components/admin-dashboard';
+import { CompanyDashboard } from './components/company-dashboard';
+import { DriverConsole } from './components/driver-console';
+import { ClientHub } from './components/client-hub';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, AdminDashboard, CompanyDashboard, DriverConsole, ClientHub],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

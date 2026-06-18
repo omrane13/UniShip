@@ -1,0 +1,977 @@
+      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left flex flex-col gap-6 animate-in fade-in duration-200">
+        
+        <!-- Tab Navigation Livreur -->
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3 select-none">
+          <button 
+            (click)="app.driverCurrentTab.set('dashboard')"
+            [class]="app.driverCurrentTab() === 'dashboard' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-dashboard">
+            <mat-icon class="text-sm">dashboard</mat-icon> Courses & Activité
+          </button>
+          <button 
+            (click)="app.driverCurrentTab.set('subscription')"
+            [class]="app.driverCurrentTab() === 'subscription' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-subscription">
+            <mat-icon class="text-sm">workspace_premium</mat-icon> Forfait & Simulateur
+          </button>
+          <button 
+            (click)="app.driverCurrentTab.set('profile')"
+            [class]="app.driverCurrentTab() === 'profile' ? 'flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 font-extrabold rounded-xl border border-violet-100 text-xs' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold'"
+            id="tab-drv-profile">
+            <mat-icon class="text-sm">account_circle</mat-icon> Profil Coursier
+          </button>
+        </div>
+
+        @if (app.driverCurrentTab() === 'dashboard') {
+          <!-- Header Livreur shift controls -->
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <mat-icon class="text-violet-600 animate-pulse">sports_motorsports</mat-icon> Espace Coursier Livreur
+              </h3>
+              <p class="text-xs text-slate-500">Activez votre disponibilité pour voir apparaître des colis de livraison dans votre zone.</p>
+            </div>
+
+            <!-- Availability controls -->
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+              <button 
+                (click)="app.toggleDriverShift('available')"
+                [class]="app.selectedDriver()?.status === 'available' ? 'bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg border-0' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs bg-transparent border-0'"
+                id="btn-drv-status-available">
+                🟢 En ligne
+              </button>
+              <button 
+                (click)="app.toggleDriverShift('busy')"
+                [class]="app.selectedDriver()?.status === 'busy' ? 'bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg border-0' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs bg-transparent border-0'"
+                id="btn-drv-status-busy">
+                🟡 Occupé
+              </button>
+              <button 
+                (click)="app.toggleDriverShift('offline')"
+                [class]="app.selectedDriver()?.status === 'offline' ? 'bg-slate-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg border-0' : 'text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs bg-transparent border-0'"
+                id="btn-drv-status-offline">
+                🔴 Hors ligne
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Column 1: Stats summary -->
+            <div class="md:col-span-1 flex flex-col gap-4">
+              <div class="bg-violet-50/50 p-4 border border-violet-100 rounded-2xl text-left">
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Mes revenus cumulés</span>
+                <p class="text-3xl font-extrabold text-violet-700 mt-1 mb-2">{{ app.globalStats()?.metrics?.earningsTotal?.toFixed(2) }} DTN</p>
+                <div class="flex justify-between items-center text-xs text-slate-500 border-t border-violet-100/50 pt-2 leading-tight">
+                  <span>Courses livrées :</span>
+                  <strong class="font-extrabold text-slate-800">{{ app.globalStats()?.metrics?.deliveredCount }}</strong>
+                </div>
+              </div>
+
+              <!-- Dummy visual map simulator of driver position -->
+              <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-inner p-4 flex flex-col gap-3 text-left">
+                <span class="text-xs font-bold text-slate-400 uppercase">Radar Local de Commande</span>
+                <div class="h-44 bg-slate-100 rounded-xl relative flex items-center justify-center border border-slate-350">
+                  
+                  <!-- dynamic mock canvas elements -->
+                  <div class="absolute inset-0 bg-cover opacity-15" style="background-image: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=300&h=200&fit=crop');"></div>
+                  
+                  <!-- Target radar circles -->
+                  <div class="w-24 h-24 rounded-full border border-violet-400/35 animate-ping absolute"></div>
+                  
+                  <div class="absolute flex flex-col items-center gap-1 z-10">
+                    <span class="bg-violet-600 text-white text-[9px] font-bold py-0.5 px-2 rounded-full flex items-center gap-1 shadow">
+                      🚴 VOUS ({{ app.selectedDriver()?.zone || 'Tunisie' }})
+                    </span>
+                    @if (app.selectedDriver()?.status === 'available') {
+                      <span class="text-[10px] text-emerald-600 font-bold bg-white/90 shadow-sm px-1.5 py-0.5 rounded border border-emerald-100 animate-bounce">
+                        Recherche de courses...
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2 & 3: Order listings available/assigned -->
+            <div class="md:col-span-2 flex flex-col gap-6">
+              
+              <!-- Assigned Order section -->
+              <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 text-left">Ma Course Active en cours</h3>
+                
+                @for (o of app.orders(); track o.id) {
+                  @if (o.driverId === app.selectedDriver()?.id && o.status !== 'delivered' && o.status !== 'cancelled') {
+                    <div class="border-2 border-violet-500/80 bg-violet-50/10 p-5 rounded-2xl flex flex-col gap-4 text-left">
+                      <div class="flex justify-between items-start border-b border-dashed border-slate-200 pb-3">
+                        <div>
+                          <strong class="text-sm font-extrabold text-slate-900 leading-none">COMMANDE {{ o.id }}</strong>
+                          <p class="text-[11px] text-slate-500">Reçue à {{ o.createdAt | date:'shortTime' }}</p>
+                        </div>
+                        <div class="text-right">
+                          <span class="text-violet-700 font-extrabold text-base block leading-none">+{{ o.driverFee?.toFixed(2) }} DTN</span>
+                          <span class="text-[10px] text-slate-400 block font-medium">Revenu course</span>
+                        </div>
+                      </div>
+
+                      <div class="text-xs flex flex-col gap-2">
+                        <div class="flex items-start gap-2">
+                          <mat-icon class="text-slate-400 text-sm">storefront</mat-icon>
+                          <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Point de retrait :</span>
+                            <span class="text-slate-700 block font-medium">Boutique partenaire affiliée</span>
+                          </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                          <mat-icon class="text-slate-400 text-sm">location_on</mat-icon>
+                          <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Adresse de livraison :</span>
+                            <span class="text-slate-800 font-bold block">{{ o.deliveryAddress }}</span>
+                          </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                          <mat-icon class="text-slate-400 text-sm">person_outline</mat-icon>
+                          <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Destinataire :</span>
+                            <span class="text-slate-700 block leading-none font-bold">{{ o.clientName }} ({{ o.clientEmail }})</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Step Tracker Control Buttons -->
+                      <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/60 text-center font-sans">
+                        <p class="text-[11px] font-bold text-indigo-700 uppercase tracking-wide mb-2.5">Mettre à Jour le Statut de Livraison</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                          @if (o.status === 'accepted') {
+                            <button 
+                              (click)="app.updateOrderProgress(o.id, 'preparing')"
+                              class="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-indigo-700 leading-none border-0"
+                              id="btn-progress-preparing">
+                              Préparation en boutique
+                            </button>
+                          } @else if (o.status === 'preparing') {
+                            <button 
+                              (click)="app.updateOrderProgress(o.id, 'transit')"
+                              class="bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg hover:bg-amber-600 leading-none border-0"
+                              id="btn-progress-transit">
+                              Prendre en charge (En transit)
+                            </button>
+                          } @else if (o.status === 'transit') {
+                            <div class="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                              <button 
+                                (click)="app.updateOrderProgress(o.id, 'delivered')"
+                                class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-700 leading-none border-0"
+                                id="btn-progress-delivery">
+                                Confirmer livraison manuelle
+                              </button>
+                              <button 
+                                (click)="app.startQRScanner(o.id)"
+                                class="bg-violet-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-violet-750 leading-none flex items-center justify-center gap-1.5 shadow-sm border-0 cursor-pointer"
+                                id="btn-progress-qr-scan">
+                                <mat-icon class="text-xs">qr_code_scanner</mat-icon>
+                                Scanner QR Code Client
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                } @empty {
+                  <div class="border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400 italic rounded-xl bg-white">
+                    Aucune course active affectée.
+                  </div>
+                }
+              </div>
+
+              <!-- Available Orders radar list -->
+              <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 text-left">Commandes Disponibles dans la Zone</h3>
+                
+                <div class="space-y-3">
+                  @for (o of app.orders(); track o.id) {
+                    @if (o.status === 'pending') {
+                      <div class="border border-slate-200 p-4 rounded-xl hover:bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left bg-white">
+                        <div class="text-xs">
+                          <strong class="text-sm block text-slate-800">COMMANDE {{ o.id }}</strong>
+                          <p class="text-slate-500 text-xs mt-0.5 font-medium">Destination : {{ o.deliveryAddress }}</p>
+                          <p class="text-[10px] text-slate-400 font-mono">Montant marchandises: {{ o.total?.toFixed(2) }} DTN • Client: {{ o.clientName }}</p>
+                        </div>
+
+                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 pt-2.5 md:pt-0 md:border-t-0 font-sans">
+                          <div class="text-left font-sans">
+                            <span class="text-slate-400 text-[10px] uppercase font-bold block text-left">Frais course</span>
+                            <strong class="text-indigo-600 font-extrabold text-sm">{{ o.driverFee?.toFixed(2) }} DTN</strong>
+                          </div>
+                          
+                          @if (app.selectedDriver()?.status === 'available') {
+                            <button 
+                              (click)="app.updateOrderProgress(o.id, 'accepted')"
+                              class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-slate-850 transition-colors leading-none border-0 font-sans"
+                              id="btn-accept-order-{{ o.id }}">
+                              Accepter la course
+                            </button>
+                          } @else {
+                            <span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-1 rounded">Mettez-vous EN LIGNE</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  } @empty {
+                    <div class="border border-dashed border-slate-200 py-8 text-center text-xs text-slate-400 italic rounded-xl bg-white">
+                      Aucune nouvelle commande en attente dans la zone de livraison.
+                    </div>
+                  }
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        } <!-- End of driverCurrentTab() === 'dashboard' -->
+
+        @if (app.driverCurrentTab() === 'subscription') {
+          <!-- LIVREUR TUNISIA SUBSCRIPTION & GAINS SIMULATOR -->
+          <div class="space-y-6 animate-in fade-in duration-200 text-left">
+            
+            <!-- Welcome Info Alert Card -->
+            <div class="bg-gradient-to-r from-violet-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md text-left flex items-start gap-4">
+              <div class="p-2.5 bg-white/10 rounded-xl">
+                <mat-icon class="text-white">motorcycle</mat-icon>
+              </div>
+              <div class="space-y-1">
+                <h4 class="text-sm font-extrabold tracking-wide uppercase">Système de Rémunération des Livreurs (Tunisie)</h4>
+                <p class="text-xs text-violet-100 leading-relaxed font-medium">
+                  Tarifs réglementés en <strong>Dinars Tunisiens (TND)</strong>. Vous encaissez un tarif fixe avantageux par course, complété par des paliers de bonus de volume et récompenses de qualité selon vos performances mensuelles.
+                </p>
+              </div>
+            </div>
+
+            <!-- SECTION 1: FRAIS DE LIVRAISON DE BASE -->
+            <div>
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">Grille des frais de livraison de base (versé au livreur)</span>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 font-sans text-center">
+                <div class="bg-slate-900 text-white p-4 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">7 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison locale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Même ville)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">11 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison régionale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Même gouvernorat)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-emerald-400">16 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Livraison nationale</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Autre gouvernorat)</div>
+                </div>
+                <div class="bg-slate-900 text-white p-4 rounded-xl border border-slate-850 text-center shadow-sm">
+                  <div class="text-lg font-black font-mono text-amber-400">+3 TND</div>
+                  <div class="text-[10px] font-bold text-slate-300 mt-1">Supplément express</div>
+                  <div class="text-[8px] text-slate-400 font-medium">(Livraison en &lt; 2h)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: PLANS D'ENGAGEMENT DES LIVREURS -->
+            <div>
+              <div class="flex items-center justify-between mb-3 text-left">
+                <span class="text-xs font-bold uppercase text-slate-400 tracking-wider font-sans">Plans d'engagement mensuel / annuel</span>
+                <span class="text-xs text-slate-500 font-bold font-sans">Votre plan actif : 
+                  <span class="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase bg-violet-100 text-violet-800 border border-violet-200">
+                    {{ app.api.currentUser()?.driverPlanId || 'freelance' }}
+                  </span>
+                </span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- FREELANCE CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all"
+                  [class]="(app.api.currentUser()?.driverPlanId || 'freelance') === 'freelance' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2 font-sans">
+                      <span class="bg-neutral-100 text-neutral-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded animate-pulse">Flexible</span>
+                      @if ((app.api.currentUser()?.driverPlanId || 'freelance') === 'freelance') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5 leading-none">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5 mt-0.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 font-sans">Freelance</h3>
+                    
+                    <!-- Pricing and specs -->
+                    <div class="my-3 font-sans">
+                      <div class="text-2xl font-black text-slate-900 font-sans">0 <span class="text-xs font-medium text-slate-500 font-sans">TND/mois</span></div>
+                      <p class="text-[10px] text-slate-500 leading-tight mt-1 font-bold">Sans engagement — commission plateforme 15% sur chaque course</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium font-sans">
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Livraisons à la demande
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Accepter / refuser librement
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Paiement hebdomadaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px]">close</mat-icon> Pas de bonus de volume
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px]">close</mat-icon> Pas de missions prioritaires
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 font-bold opacity-80">
+                        <mat-icon class="text-[14px]">close</mat-icon> Pas d'assurance accident
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if ((app.api.currentUser()?.driverPlanId || 'freelance') === 'freelance') {
+                      <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="app.openDriverSubscriptionCheckout('freelance', 'monthly')"
+                        class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs py-2 rounded-xl transition-all border-0 hover:cursor-pointer leading-tight">
+                        Rétrograder en Freelance (Gratuit)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- PARTENAIRE CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all font-sans"
+                  [class]="app.api.currentUser()?.driverPlanId === 'partenaire' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2 font-sans">
+                      <span class="bg-blue-100 text-blue-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded leading-none">⭐️ Populaire</span>
+                      @if (app.api.currentUser()?.driverPlanId === 'partenaire') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5 leading-none">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5 mt-0.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1 font-sans">
+                      Partenaire
+                    </h3>
+
+                    <!-- Pricing and specs -->
+                    <div class="my-3 font-sans">
+                      <div class="text-2xl font-black text-slate-900 font-sans">49 <span class="text-xs font-medium text-slate-500">TND/mois</span></div>
+                      <p class="text-[10px] text-blue-700 leading-tight mt-1 font-bold">Ou 490 TND/an (2 mois offerts) — commission plateforme 10%</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium font-sans">
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px]">verified</mat-icon> Badge "Livreur vérifié"
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Missions prioritaires attribuées
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Paiement bi-hebdomadaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Accès aux bonus de volume
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Support prioritaire
+                      </li>
+                      <li class="flex items-center gap-1.5 text-rose-700 opacity-80">
+                        <mat-icon class="text-[14px]">close</mat-icon> Pas d'assurance accident
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if (app.api.currentUser()?.driverPlanId === 'partenaire') {
+                      <button disabled class="w-full bg-slate-105 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="app.openDriverSubscriptionCheckout('partenaire', 'monthly')"
+                        class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm border-0 cursor-pointer">
+                        Sélectionner ce plan (49 TND)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- PRO CARD -->
+                <div class="border rounded-2xl p-5 text-left flex flex-col justify-between transition-all"
+                  [class]="app.api.currentUser()?.driverPlanId === 'pro' ? 'bg-white border-violet-500 shadow-lg ring-1 ring-violet-500' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'">
+                  <div>
+                    <div class="flex items-center justify-between gap-1 mb-2 font-sans">
+                      <span class="bg-violet-100 text-violet-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded leading-none">👑 Elite &amp; Assuré</span>
+                      @if (app.api.currentUser()?.driverPlanId === 'pro') {
+                        <span class="bg-violet-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-0.5 leading-none">
+                          Actif <mat-icon class="text-[9px] leading-none h-2.5 w-2.5 mt-0.5">check_circle</mat-icon>
+                        </span>
+                      }
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 font-sans">Pro</h3>
+
+                    <!-- Pricing and specs -->
+                    <div class="my-3 font-sans">
+                      <div class="text-2xl font-black text-slate-900">119 <span class="text-xs font-medium text-slate-500">TND/mois</span></div>
+                      <p class="text-[10px] text-violet-700 leading-tight mt-1 font-bold">Ou 1 190 TND/an (2 mois offerts) — commission réduite à 6%</p>
+                    </div>
+
+                    <ul class="space-y-1.5 border-t border-slate-100 pt-3 text-[11px] text-slate-600 font-medium font-sans">
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px]">workspace_premium</mat-icon> Badge "Livreur Elite"
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px]">health_and_safety</mat-icon> Assurance Accident Incluse
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Missions prioritaires garanties
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700 font-bold">
+                        <mat-icon class="text-[14px]">done</mat-icon> Paiement quotidien disponible
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Bonus de volume maximisés
+                      </li>
+                      <li class="flex items-center gap-1.5 text-emerald-700">
+                        <mat-icon class="text-[14px]">done</mat-icon> Zone de livraison élargie
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="pt-5 mt-4 border-t border-slate-100">
+                    @if (app.api.currentUser()?.driverPlanId === 'pro') {
+                      <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2 rounded-xl border border-slate-200 cursor-not-allowed">
+                        Forfait Actif
+                      </button>
+                    } @else {
+                      <button 
+                        (click)="app.openDriverSubscriptionCheckout('pro', 'monthly')"
+                        class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm border-0 cursor-pointer">
+                        Sélectionner ce plan (119 TND)
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SECTION 3: PALIERS DE PERFORMANCE MENSUELLE -->
+            <div>
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">Paliers de Performance Mensuelle &amp; SLA de Qualité</span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- VOLUME BONUS CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left">
+                  <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                    <mat-icon class="text-violet-600 font-bold">trending_up</mat-icon> Bonus sur volume
+                  </h4>
+                  <div class="space-y-3.5 text-xs text-slate-600 font-semibold font-sans">
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs">
+                      <span>0 – 29 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-500 uppercase font-bold">Taux normal</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(app.api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 30 && (app.api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) <= 59">
+                      <span>30 – 59 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700">+1 TND / liv</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(app.api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 60 && (app.api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) <= 99">
+                      <span>60 – 99 livraisons</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700">+2 TND / liv</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/60 shadow-xs"
+                      [class.border-emerald-300]="(app.api.currentUser()?.driverMonthlyDeliveriesCount ?? 0) >= 100">
+                      <div>
+                        <span class="font-sans block">100+ livraisons</span>
+                        <div class="text-[9px] text-violet-600 font-medium">Prime Fixe : 50 TND</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-700 font-mono">+3 TND / liv</span>
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-slate-400 italic mt-3 text-center font-sans">Volume calculé et versé en fin de mois.</p>
+                </div>
+
+                <!-- SPECIAL REWARDS CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left">
+                  <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                    <mat-icon class="text-emerald-600 font-bold">emoji_events</mat-icon> Récompenses Spéciales
+                  </h4>
+                  <div class="space-y-3 text-xs text-slate-600 font-medium font-sans">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800 font-sans">Note &ge; 4.8 / 5</div>
+                        <div class="text-[9px] text-slate-400">Bonus Qualité (Ce mois)</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+30 TND</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">0 Annulation</div>
+                        <div class="text-[9px] text-slate-400">Bonus Fiabilité (Ce mois)</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+20 TND</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800">3 mois consécutifs &ge; 60</div>
+                        <div class="text-[9px] text-slate-400">Gratuit : Plan Supérieur</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-50 text-indigo-700 uppercase uppercase text-[9px] tracking-wide">Upgrade</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-slate-800 font-sans">Top Livreur du Mois</div>
+                        <div class="text-[9px] text-slate-400">Mise en avant sur la zone</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-700 font-mono">+75 TND</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SURVEILLANCE & PENALTIES CARD -->
+                <div class="bg-slate-50 border border-slate-150 p-5 rounded-2xl text-left font-sans">
+                  <h4 class="text-xs font-black text-rose-850 flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3 font-sans">
+                    <mat-icon class="text-rose-600 font-bold">gavel</mat-icon> Conditions &amp; Pénalités
+                  </h4>
+                  <div class="space-y-3 text-xs text-slate-600 font-medium">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150 font-sans">
+                      <div>
+                        <div class="font-bold text-rose-850">Note &lt; 3 / 5</div>
+                        <div class="text-[9px] text-slate-400">SLA de Service Inférieur</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-50 text-rose-700">Avertissement</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150">
+                      <div>
+                        <div class="font-bold text-rose-850">Annulations &gt; 15%</div>
+                        <div class="text-[9px] text-slate-400">Hors standard contractuel</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-50 text-rose-700 font-mono">-10% sur base</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150 font-sans">
+                      <div>
+                        <div class="font-bold text-rose-850 font-sans">Inactivité &gt; 15 jours</div>
+                        <div class="text-[9px] text-slate-400">Prévu pour statut de veille</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600">Désactivation t.</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-150 font-sans">
+                      <div>
+                        <div class="font-bold text-rose-850 font-sans">Réclamation grave</div>
+                        <div class="text-[9px] text-slate-400">Enquête du support</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black bg-rose-100 text-rose-700 font-sans font-semibold">Suspension direct</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SECTION 4: INTERACTIVE PAYOUT SIMULATOR -->
+            <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-left">
+              <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 mb-5 gap-3">
+                <div>
+                  <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <mat-icon class="text-violet-600">calculate</mat-icon>
+                    Simulateur de Gains Interactif du Livreur (Tunisie)
+                  </h3>
+                  <p class="text-xs text-slate-500">Ajustez les curseurs pour simuler votre activité mensuelle et voir l'impact en Direct sur vos commissions et primes de volume !</p>
+                </div>
+                
+                <!-- Reset simulated plan toggle -->
+                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 font-sans">
+                  <button 
+                    (click)="app.selectedDriverPlan.set('freelance')"
+                    [class]="app.selectedDriverPlan() === 'freelance' ? 'bg-slate-100 text-slate-800 font-bold px-3 py-1 rounded-lg text-[10px] border-0' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold bg-transparent border-0'">
+                    Freelance
+                  </button>
+                  <button 
+                    (click)="app.selectedDriverPlan.set('partenaire')"
+                    [class]="app.selectedDriverPlan() === 'partenaire' ? 'bg-violet-600 text-white font-bold px-3 py-1 rounded-lg text-[10px] border-0' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold bg-transparent border-0'">
+                    Partenaire
+                  </button>
+                  <button 
+                    (click)="app.selectedDriverPlan.set('pro')"
+                    [class]="app.selectedDriverPlan() === 'pro' ? 'bg-violet-600 text-white font-bold px-3 py-1 rounded-lg text-[10px] border-0' : 'text-slate-500 hover:text-slate-800 px-3 py-1 rounded-lg text-[10px] font-semibold bg-transparent border-0'">
+                    Pro
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sliders panel (7 columns) -->
+                <div class="lg:col-span-7 space-y-4.5">
+                  
+                  <!-- Deliveries Count Slider -->
+                  <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="font-bold text-slate-700">Volume de Livraisons Réalisées (mensuel)</span>
+                      <strong class="text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg font-mono text-xs">{{ app.simulatedDriverMonthlyDeliveries() }} livs / mois</strong>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="150" 
+                      [value]="app.simulatedDriverMonthlyDeliveries()"
+                      (input)="app.simulatedDriverMonthlyDeliveries.set($any($event.target).valueAsNumber)"
+                      class="w-full accent-violet-600 cursor-pointer" />
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold font-sans">
+                      <span>0 coursé</span>
+                      <span>30 (Étape +1)</span>
+                      <span>60 (Étape +2)</span>
+                      <span>100 (Étape +3 &amp; Prime)</span>
+                      <span>150 max</span>
+                    </div>
+                  </div>
+
+                  <!-- Destinations Distribution percent row -->
+                  <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-150 text-left">
+                    <span class="text-xs font-bold text-slate-700 block text-left">Répartition estimée des livraisons :</span>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-left font-sans">
+                      <div class="space-y-1 text-left">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block text-left">Local (7 TND) : {{ app.simulatedDriverLocalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="app.simulatedDriverLocalPercent()"
+                          (input)="app.simulatedDriverLocalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1 cursor-pointer" />
+                      </div>
+                      <div class="space-y-1 text-left">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block text-left">Régional (11 TND) : {{ app.simulatedDriverRegionalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="app.simulatedDriverRegionalPercent()"
+                          (input)="app.simulatedDriverRegionalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1 cursor-pointer" />
+                      </div>
+                      <div class="space-y-1 text-left">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block text-left">National (16 TND) : {{ app.simulatedDriverNationalPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="app.simulatedDriverNationalPercent()"
+                          (input)="app.simulatedDriverNationalPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-violet-600 h-1 cursor-pointer" />
+                      </div>
+                      <div class="space-y-1 text-left">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase block text-left">Express (+3 TND) : {{ app.simulatedDriverExpressPercent() }}%</div>
+                        <input 
+                          type="range" min="0" max="100" [value]="app.simulatedDriverExpressPercent()"
+                          (input)="app.simulatedDriverExpressPercent.set($any($event.target).valueAsNumber)"
+                          class="w-full accent-amber-500 h-1 cursor-pointer" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Rating Slider -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Note moyenne des clients</span>
+                        <strong class="text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-lg text-xs font-mono">{{ app.simulatedDriverRating() }} ★</strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="5" 
+                        step="0.1"
+                        [value]="app.simulatedDriverRating()"
+                        (input)="app.simulatedDriverRating.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-amber-500 cursor-pointer" />
+                      <div class="flex justify-between text-[9px] text-slate-400 font-medium font-sans animate-pulse">
+                        <span>1.0 Mécontent</span>
+                        <span>3.0 (Alerte)</span>
+                        <span>4.8 (Bonus Qualité!)</span>
+                        <span>5.0 Parfait</span>
+                      </div>
+                    </div>
+
+                    <!-- Cancellation rate Slider -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Taux d'annulation coursier</span>
+                        <strong class="px-2.5 py-0.5 rounded-lg text-xs font-mono animate-pulse"
+                          [class]="app.simulatedDriverCancellationRate() > 15 ? 'text-rose-700 bg-rose-50':'text-emerald-700 bg-emerald-50'">
+                          {{ app.simulatedDriverCancellationRate() }} %
+                        </strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="20" 
+                        step="0.5"
+                        [value]="app.simulatedDriverCancellationRate()"
+                        (input)="app.simulatedDriverCancellationRate.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-violet-600 cursor-pointer" />
+                      <div class="flex justify-between text-[9px] text-slate-400 font-medium font-sans">
+                        <span>0% (Bonus de 20 TND)</span>
+                        <span>15% (Seuil Pénalité)</span>
+                        <span>20% max</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Referral Input / count -->
+                    <div class="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-150">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">Parrainages effectués (Livreurs)</span>
+                        <strong class="text-slate-700 text-xs font-mono">{{ app.simulatedDriverReferralsCount() }} parrainés</strong>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="10" 
+                        [value]="app.simulatedDriverReferralsCount()"
+                        (input)="app.simulatedDriverReferralsCount.set($any($event.target).valueAsNumber)"
+                        class="w-full accent-violet-600 cursor-pointer" />
+                      <p class="text-[9px] text-slate-400 font-bold font-sans">Un bonus fixe de +20 TND par parrainage actif validé !</p>
+                    </div>
+
+                    <!-- Optional top driver box -->
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-150 flex items-center justify-between gap-3">
+                      <div>
+                        <span class="text-xs font-bold text-slate-700 block">Top Livreur du Mois (+75 TND)</span>
+                        <p class="text-[9px] text-slate-400 leading-tight">Cocher si vous êtes élu par la communauté pour ce mois.</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        [checked]="app.simulatedDriverTopDriver()" 
+                        (change)="app.simulatedDriverTopDriver.set($any($event.target).checked)"
+                        class="w-5 h-5 accent-violet-600 cursor-pointer" />
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Simulation Output Panel (5 columns) -->
+                <div class="lg:col-span-5 space-y-4">
+                  <div class="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-md flex flex-col justify-between h-full relative overflow-hidden text-left">
+                    
+                    <div>
+                      <div class="text-[10px] uppercase font-mono tracking-widest text-indigo-400 font-bold mb-3">Relevé Financier Estimé (Tunisie)</div>
+                      
+                      <div class="space-y-2 text-xs font-medium border-b border-white/10 pb-4 font-sans text-left">
+                        <!-- Gross deliveries -->
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Gains courses bruts :</span>
+                          <span class="font-mono">{{ app.calculateDriverRealTimePayout(null).gross.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Platform commission -->
+                        <div class="flex justify-between text-yellow-105 italic">
+                          <span class="text-slate-400">Commission plateforme ({{ app.selectedDriverPlan() === 'pro' ? '6%' : app.selectedDriverPlan() === 'partenaire' ? '10%' : '15%' }}) :</span>
+                          <span class="font-mono">- {{ app.calculateDriverRealTimePayout(null).commission.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Volume bonus -->
+                        <div class="flex justify-between text-emerald-400 font-bold">
+                          <span class="text-slate-400">Primes de volume :</span>
+                          <span class="font-mono">+ {{ app.calculateDriverRealTimePayout(null).volumeBonus.toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Special rewards -->
+                        <div class="flex justify-between text-emerald-400">
+                          <span class="text-slate-400">Bonus Qualité &amp; Parrains :</span>
+                          <span class="font-mono">+ {{ (app.calculateDriverRealTimePayout(null).qualityBonus + app.calculateDriverRealTimePayout(null).reliabilityBonus).toFixed(1) }} TND</span>
+                        </div>
+
+                        <!-- Penalties -->
+                        @if (app.calculateDriverRealTimePayout(null).penalty > 0) {
+                          <div class="flex justify-between text-rose-450 font-bold uppercase transition-all animate-bounce">
+                            <span>Pénalité annulations &gt; 15%</span>
+                            <span>- {{ app.calculateDriverRealTimePayout(null).penalty.toFixed(1) }} TND</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Subscriptions comparison check of potential monthly and annual costs -->
+                      <div class="pt-4 pb-2 text-[10px] text-slate-400 border-b border-white/10 font-sans">
+                        <div class="flex justify-between">
+                          <span>Abonnement de Forfait :</span>
+                          <strong class="text-slate-200">
+                            {{ app.selectedDriverPlan() === 'pro' ? '119 TND / mois' : app.selectedDriverPlan() === 'partenaire' ? '49 TND / mois' : 'Gratuit' }}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-6">
+                      <!-- Total Net payment -->
+                      <div class="bg-black/40 p-4.5 rounded-xl border border-white/5 text-center">
+                        <span class="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold block mb-1 font-sans">Gains Net Estimés (Versés)</span>
+                        <div class="text-3xl font-black font-mono text-emerald-400 leading-none">
+                          {{ app.calculateDriverRealTimePayout(null).net.toFixed(1) }} TND
+                        </div>
+                        <p class="text-[9px] text-slate-505 mt-1.5 font-bold font-sans">Estimations calculées en Tunisie. Résiliable à tout moment.</p>
+                      </div>
+
+                      <!-- SLA surclassement badge -->
+                      @if (app.calculateDriverRealTimePayout(null).upgradeEligible) {
+                        <div class="mt-3 bg-indigo-900/60 text-indigo-300 rounded-xl p-2.5 text-center text-[10px] border border-indigo-700/50 flex items-center justify-center gap-1.5 font-bold">
+                          <mat-icon class="text-xs">rocket_launch</mat-icon> Surclassement gratuit débloqué (&ge; 60 livs pour 3 mois) !
+                        </div>
+                      }
+
+                      <!-- Submit simulation indicators to company backend -->
+                      <button 
+                        (click)="app.syncDriverSimulationMetrics()"
+                        class="w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow p-2.5 text-center flex items-center justify-center gap-2 border-0 hover:cursor-pointer leading-none font-sans">
+                        <mat-icon class="text-sm">sync_alt</mat-icon> Mettre à jour mon profil réel
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[10px] text-slate-400 italic text-left bg-slate-50 p-3 rounded-xl border border-slate-200">
+              * Estimations basées sur livraisons locales à 7 TND. Paiement via <strong>Konnect ou virement bancaire</strong>. L'abonnement mensuel de votre forfait est prélevé automatiquement sur vos encaissements ou facturé à terme. Résiliable avec un préavis de 15 jours.
+            </div>
+
+          </div>
+        }
+
+        @if (app.driverCurrentTab() === 'profile') {
+          <!-- Driver Profile View -->
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Coursier / Livreur</h3>
+              <p class="text-xs text-slate-500">Gérez vos tarifs de livraison, votre zone d'activité, votre statut et vos informations personnelles.</p>
+            </div>
+
+            <!-- General Rules Card -->
+            <div class="bg-violet-50/50 p-4 rounded-xl border border-violet-100 flex items-start gap-3">
+              <mat-icon class="text-violet-700 font-bold">lock_outline</mat-icon>
+              <div class="text-xs text-violet-955 space-y-1 font-sans">
+                <p class="font-bold">🚴 Qui peut consulter et modifier ce compte ?</p>
+                <p>• <strong>Consultation :</strong> Consultable par les entreprises partenaires (pour vous assigner à la livraison) et par l'Administrateur de la plateforme.</p>
+                <p>• <strong>Modification :</strong> Réservé exclusivement à vous. Vos tarifs sont répercutés instantanément sur le calcul des frais de livraison dynamique.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans">Nom Complet</span>
+                <input 
+                  [value]="app.profileName()" 
+                  (input)="app.profileName.set($any($event.target).value)"
+                  placeholder="Nom" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-name" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans">Adresse E-mail</span>
+                <input 
+                  [value]="app.profileEmail()" 
+                  (input)="app.profileEmail.set($any($event.target).value)"
+                  placeholder="Email" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-email" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans">Téléphone Mobile</span>
+                <input 
+                  [value]="app.profilePhone()" 
+                  (input)="app.profilePhone.set($any($event.target).value)"
+                  placeholder="Téléphone" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-phone" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans">Zone d'Activité / Ville</span>
+                <input 
+                  [value]="app.profileZone()" 
+                  (input)="app.profileZone.set($any($event.target).value)"
+                  placeholder="Ex: Tunis, Sousse, Sfax..." 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-zone" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans font-semibold">Frais Fixe de Base (DTN)</span>
+                <input 
+                  type="number" step="0.1"
+                  [value]="app.profileBaseFee()" 
+                  (input)="app.profileBaseFee.set($any($event.target).value)"
+                  placeholder="3.00" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-mono font-bold" 
+                  id="profile-driver-basefee" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left">
+                <span class="font-bold text-slate-500 font-sans font-semibold">Frais par Kilomètre (DTN / km)</span>
+                <input 
+                  type="number" step="0.1"
+                  [value]="app.profilePerKmFee()" 
+                  (input)="app.profilePerKmFee.set($any($event.target).value)"
+                  placeholder="0.80" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-mono font-bold" 
+                  id="profile-driver-kmfee" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                <span class="font-bold text-slate-500 font-sans">URL Photo du Chauffeur</span>
+                <input 
+                  [value]="app.profilePhoto()" 
+                  (input)="app.profilePhoto.set($any($event.target).value)"
+                  placeholder="https://images.unsplash.com/..." 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-photo" />
+              </div>
+
+              <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+                <span class="font-bold text-slate-500 font-sans">Modifier le Mot de Passe (Laisser vide si inchangé)</span>
+                <input 
+                  type="password"
+                  [value]="app.profilePassword()" 
+                  (input)="app.profilePassword.set($any($event.target).value)"
+                  placeholder="Nouveau mot de passe" 
+                  class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                  id="profile-driver-password" />
+              </div>
+            </div>
+
+            <!-- Preview section -->
+            <div class="border-t pt-4 font-sans text-left">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2 font-sans">Aperçu De Votre Profil Chauffeur</span>
+              <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <img [src]="app.profilePhoto() || 'https://picsum.photos/seed/driver/120'" alt="Photo chauffeur" class="w-14 h-14 object-cover rounded-full border-2 border-violet-500 bg-white" referrerpolicy="no-referrer" />
+                <div class="text-xs">
+                  <strong class="text-sm font-bold text-slate-900 block font-sans">{{ app.profileName() || 'Coursier Anonyme' }}</strong>
+                  <span class="text-slate-505 block">📍 Secteur : {{ app.profileZone() || 'Non spécifié' }}</span>
+                  <span class="text-slate-400 block font-sans">📞 {{ app.profilePhone() || 'Aucun numéro' }} • Grille : <strong>{{ app.profileBaseFee() }} DTN</strong> base + <strong>{{ app.profilePerKmFee() }} DTN/km</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t">
+              <button 
+                (click)="app.updateUserProfile()"
+                class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 border-0 hover:cursor-pointer">
+                <mat-icon class="text-xs">save</mat-icon> Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
