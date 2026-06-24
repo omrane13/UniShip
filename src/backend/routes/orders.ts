@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { dbStore, Order, OrderItem } from '../store';
-import { getCurrentUser, getCompanyOwnerId } from './helpers';
+import { getCurrentUser, getCompanyOwnerId, notifyOrderStatusChange } from './helpers';
 
 export const ordersRouter = Router();
 
@@ -149,7 +149,7 @@ ordersRouter.put('/orders/:id/select-driver', (req: Request, res: Response): voi
 });
 
 // Update order status
-ordersRouter.put('/orders/:id/status', (req: Request, res: Response): void => {
+ordersRouter.put('/orders/:id/status', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u) {
     res.status(403).json({ error: 'Authentification obligatoire' });
@@ -162,6 +162,7 @@ ordersRouter.put('/orders/:id/status', (req: Request, res: Response): void => {
     return;
   }
 
+  const oldStatus = o.status;
   const { status } = req.body; // pending, accepted, preparing, transit, delivered, cancelled
 
   // Rights validation
@@ -278,6 +279,11 @@ ordersRouter.put('/orders/:id/status', (req: Request, res: Response): void => {
 
   o.updatedAt = new Date().toISOString();
   dbStore.log(u.id, u.name, `ORDER_${status.toUpperCase()}`, `Mise à jour statut commande ${o.id} -> ${status}`);
+  
+  if (oldStatus !== o.status) {
+    await notifyOrderStatusChange(o, oldStatus, o.status);
+  }
+
   res.json(o);
 });
 

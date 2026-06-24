@@ -1,15 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { dbStore, User, SubAccount } from '../store';
 import { getCurrentUser } from './helpers';
+import { UserRepository } from '../db/repository';
 
 export const authRouter = Router();
+
 
 // ==========================================
 // 1. MODULE AUTHENTICATION & ACCESS
 // ==========================================
 
 // Login simulation
-authRouter.post('/auth/login', (req: Request, res: Response): void => {
+authRouter.post('/auth/login', async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
   if (!email) {
     res.status(400).json({ error: 'Email obligatoire' });
@@ -17,14 +19,14 @@ authRouter.post('/auth/login', (req: Request, res: Response): void => {
   }
 
   // Find user by email or subaccount email
-  let user = dbStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  let user = await UserRepository.getByEmail(email);
   let isCollab = false;
 
   if (!user) {
     const sub = dbStore.subAccounts.find(s => s.email.toLowerCase() === email.toLowerCase());
     if (sub) {
       isCollab = true;
-      const parentCompany = dbStore.users.find(usr => usr.id === sub.companyId);
+      const parentCompany = await UserRepository.getById(sub.companyId);
       user = {
         id: sub.id,
         name: sub.name,
@@ -45,6 +47,7 @@ authRouter.post('/auth/login', (req: Request, res: Response): void => {
     res.status(401).json({ error: 'Identifiants incorrects ou compte inexistant' });
     return;
   }
+
 
   if (!password) {
     res.status(400).json({ error: 'Mot de passe obligatoire pour se connecter' });
@@ -71,7 +74,7 @@ authRouter.post('/auth/login', (req: Request, res: Response): void => {
 });
 
 // Register simulation
-authRouter.post('/auth/register', (req: Request, res: Response): void => {
+authRouter.post('/auth/register', async (req: Request, res: Response): Promise<void> => {
   const { name, email, password, role, phone, address, companyColor } = req.body;
 
   if (!name || !email || !role) {
@@ -97,7 +100,7 @@ authRouter.post('/auth/register', (req: Request, res: Response): void => {
     return;
   }
 
-  const existing = dbStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  const existing = await UserRepository.getByEmail(email);
   if (existing) {
     res.status(400).json({ error: 'Cet email est déjà enregistré' });
     return;
@@ -126,11 +129,8 @@ authRouter.post('/auth/register', (req: Request, res: Response): void => {
       return;
     }
     // Check if color is already used by an active company
-    const conflict = dbStore.users.find(u => 
-      u.role === 'company' && 
-      u.status === 'active' && 
-      u.color && u.color.toLowerCase() === selectedColor.toLowerCase()
-    );
+    const activeCompanies = await UserRepository.getAll('company', 'active');
+    const conflict = activeCompanies.find(u => u.color && u.color.toLowerCase() === selectedColor.toLowerCase());
     if (conflict) {
       res.status(409).json({ error: `Cette couleur est déjà utilisée par ${conflict.name}` });
       return;
@@ -139,7 +139,8 @@ authRouter.post('/auth/register', (req: Request, res: Response): void => {
     newUser.logo = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop';
   }
 
-  dbStore.users.push(newUser);
+  await UserRepository.create(newUser);
+
 
   // If driver registered, add metadata too
   if (role === 'driver') {
@@ -221,7 +222,7 @@ authRouter.post('/auth/subaccounts', (req: Request, res: Response): void => {
 });
 
 // List users for Admin
-authRouter.get('/users', (req: Request, res: Response): void => {
+authRouter.get('/users', async (req: Request, res: Response): Promise<void> => {
   const user = getCurrentUser(req);
   if (!user || user.role !== 'admin') {
     res.status(403).json({ error: 'Accès restreint à l’Administrateur' });
@@ -230,14 +231,15 @@ authRouter.get('/users', (req: Request, res: Response): void => {
 
   const { role, status } = req.query;
   
-  // 1. Get standard users
-  const list: User[] = dbStore.users.map(u => ({ ...u }));
+  // 1. Get standard users from repository
+  const list: User[] = await UserRepository.getAll();
 
   // 2. Fetch and map subaccounts (collaborators) so the Admin can view & activate them!
-  const subList: User[] = dbStore.subAccounts.map(s => {
-    const parentCompany = dbStore.users.find(u => u.id === s.companyId);
+  const subList: User[] = [];
+  for (const s of dbStore.subAccounts) {
+    const parentCompany = await UserRepository.getById(s.companyId);
     const compName = parentCompany ? parentCompany.name : 'Inconnu';
-    return {
+    subList.push({
       id: s.id,
       name: `${s.name} (Poste : ${s.role})`,
       email: s.email,
@@ -246,8 +248,8 @@ authRouter.get('/users', (req: Request, res: Response): void => {
       phone: `Entreprise : ${compName}`,
       address: `Permissions : ${s.permissions}`,
       companyId: s.companyId
-    };
-  });
+    });
+  }
 
   let fullList = [...list, ...subList];
 
@@ -261,15 +263,16 @@ authRouter.get('/users', (req: Request, res: Response): void => {
   res.json(fullList);
 });
 
+
 // Update User (Admin role updates, activation, colors)
-authRouter.put('/users/:id', (req: Request, res: Response): void => {
+authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> => {
   const adminUser = getCurrentUser(req);
   if (!adminUser || adminUser.role !== 'admin') {
     res.status(403).json({ error: 'Accès restreint' });
     return;
   }
 
-  const targetUser = dbStore.users.find(u => u.id === req.params['id']);
+  const targetUser = await UserRepository.getById(req.params['id'] as string);
   if (!targetUser) {
     const targetSub = dbStore.subAccounts.find(s => s.id === req.params['id']);
     if (targetSub) {
@@ -282,11 +285,11 @@ authRouter.put('/users/:id', (req: Request, res: Response): void => {
           const generatedPassword = 'Collab-' + Math.floor(1000 + Math.random() * 9000);
           targetSub.password = generatedPassword;
 
-          const parentCompany = dbStore.users.find(u => u.id === targetSub.companyId);
+          const parentCompany = await UserRepository.getById(targetSub.companyId);
           const companyName = parentCompany ? parentCompany.name : 'Inconnue';
           const companyEmail = parentCompany ? parentCompany.email : '';
 
-          const emailBody = `Bonjour ${targetSub.name},\n\nFélicitations ! Votre sous-compte Collaborateur (${targetSub.role}) rattaché à l'entreprise ${companyName} sur la plateforme UniShip a été activé avec succès par l'Administrateur.\n\nVoici vos identifiants pour vous connecter de manière sécurisée :\n- Adresse E-mail : ${targetSub.email}\n- Mot de passe de connexion généré automatiquement : ${generatedPassword}\n\nVous pouvez désormais vous connecter et utiliser toutes les fonctionnalités d'UniShip pour gérer vos activités.\n\nCordialement,\nL'équipe Support UniShip.`;
+          const emailBody = `Bonjour ${targetSub.name},\n\nFélicitations ! Votre sous-compte Collaborateur (${targetSub.role}) rattaché à l'entreprise ${companyName} sur la plateforme UniShip a été activé avec succès par l'Administrateur.\n\nVoici vos identifiants pour vous connecter de manière sécurisée :\n- Adresse E-mail : ${targetSub.email}\n- Mot de passe de connexion de manière sécurisée : ${generatedPassword}\n\nVous pouvez désormais vous connecter et utiliser toutes les fonctionnalités d'UniShip pour gérer vos activités.\n\nCordialement,\nL'équipe Support UniShip.`;
 
           dbStore.sendEmail(targetSub.email, `Activation de votre compte Collaborateur UniShip 🎉`, emailBody);
 
@@ -326,7 +329,8 @@ authRouter.put('/users/:id', (req: Request, res: Response): void => {
     }
     const targetStatus = status || targetUser.status;
     if (targetStatus === 'active') {
-      const conflict = dbStore.users.find(u => 
+      const allUsers = await UserRepository.getAll();
+      const conflict = allUsers.find(u => 
         u.role === 'company' && 
         u.status === 'active' && 
         u.id !== targetUser.id && 
@@ -342,7 +346,8 @@ authRouter.put('/users/:id', (req: Request, res: Response): void => {
   if (status === 'active' && targetUser.role === 'company') {
     const colorToCheck = color || targetUser.color;
     if (colorToCheck) {
-      const conflict = dbStore.users.find(u => 
+      const allUsers = await UserRepository.getAll();
+      const conflict = allUsers.find(u => 
         u.role === 'company' && 
         u.status === 'active' && 
         u.id !== targetUser.id && 
@@ -354,6 +359,7 @@ authRouter.put('/users/:id', (req: Request, res: Response): void => {
       }
     }
   }
+
 
   if (role) targetUser.role = role;
   if (status) {
@@ -407,11 +413,12 @@ authRouter.put('/users/:id', (req: Request, res: Response): void => {
   }
 
   dbStore.log(adminUser.id, adminUser.name, 'UPDATE_USER', `Mise à jour de l'utilisateur ${targetUser.name} (${targetUser.id})`);
+  await UserRepository.create(targetUser);
   res.json(targetUser);
 });
 
 // Update logged in user's profile self-care
-authRouter.put('/profile', (req: Request, res: Response): void => {
+authRouter.put('/profile', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u) {
     res.status(401).json({ error: 'Non authentifié. Veuillez vous connecter.' });
@@ -425,7 +432,8 @@ authRouter.put('/profile', (req: Request, res: Response): void => {
 
   // Validate or enforce email uniqueness if it's being modified
   if (email && email.toLowerCase() !== u.email.toLowerCase()) {
-    const emailConflict = dbStore.users.find(usr => usr.email.toLowerCase() === email.toLowerCase() && usr.id !== u.id);
+    const allUsers = await UserRepository.getAll();
+    const emailConflict = allUsers.find(usr => usr.email.toLowerCase() === email.toLowerCase() && usr.id !== u.id);
     if (emailConflict) {
       res.status(400).json({ error: 'Cette adresse email est déjà utilisée.' });
       return;
@@ -483,7 +491,7 @@ authRouter.put('/profile', (req: Request, res: Response): void => {
   dbStore.log(u.id, u.name, 'UPDATE_PROFILE', `Mise à jour du profil personnel (Rôle: ${u.role})`);
   
   // Re-fetch decorated user to return updated status/driver attributes
-  const updatedUser = dbStore.users.find(usr => usr.id === u.id) || u;
+  const updatedUser = (await UserRepository.getById(u.id)) || u;
   if (updatedUser.role === 'driver') {
     const drv = dbStore.drivers.find(d => d.userId === updatedUser.id);
     if (drv) {
@@ -495,6 +503,9 @@ authRouter.put('/profile', (req: Request, res: Response): void => {
       updatedUser.rating = drv.rating;
     }
   }
+
+  // Persist update
+  await UserRepository.create(updatedUser);
 
   res.json({ message: 'Profil mis à jour avec succès', user: updatedUser });
 });

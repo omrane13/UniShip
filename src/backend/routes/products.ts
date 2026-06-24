@@ -1,18 +1,24 @@
 import { Router, Request, Response } from 'express';
 import { dbStore, Product, StockRequest } from '../store';
 import { getCurrentUser, getCompanyOwnerId } from './helpers';
+import { ProductRepository, UserRepository } from '../db/repository';
 
 export const productsRouter = Router();
+
 
 // ==========================================
 // 2. MODULE CATALOGUE & CONTRATS & PRODUITS
 // ==========================================
 
-productsRouter.get('/products', (req: Request, res: Response): void => {
+productsRouter.get('/products', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   const { category, search, companyId, all } = req.query;
 
-  let list = dbStore.products;
+  let list = await ProductRepository.getAll({
+    category: category as string,
+    search: search as string,
+    companyId: companyId as string
+  });
 
   // Clients can only see ACTIVE products. Admin/Company can see all unless specified
   if (!u || u.role === 'client') {
@@ -22,23 +28,11 @@ productsRouter.get('/products', (req: Request, res: Response): void => {
     list = list.filter(p => p.companyId === getCompanyOwnerId(u));
   }
 
-  // Filter conditions
-  if (category) {
-    list = list.filter(p => p.category.toLowerCase().includes((category as string).toLowerCase()));
-  }
-  if (search) {
-    const q = (search as string).toLowerCase();
-    list = list.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
-  }
-  if (companyId) {
-    list = list.filter(p => p.companyId === companyId);
-  }
-
   res.json(list);
 });
 
 // Propose OR Direct Addition of products
-productsRouter.post('/products', (req: Request, res: Response): void => {
+productsRouter.post('/products', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u || (u.role !== 'company' && u.role !== 'collaborator' && u.role !== 'admin')) {
     res.status(403).json({ error: 'Permissions de création de produits insuffisantes' });
@@ -61,7 +55,7 @@ productsRouter.post('/products', (req: Request, res: Response): void => {
 
   const isCompOrCollab = u.role === 'company' || u.role === 'collaborator';
   const ownerId = isCompOrCollab ? getCompanyOwnerId(u) : 'usr_company1';
-  const ownerUser = dbStore.users.find(usr => usr.id === ownerId);
+  const ownerUser = await UserRepository.getById(ownerId);
   const ownerName = ownerUser ? ownerUser.name : 'EcoShop Bio';
   const ownerColor = ownerUser ? (ownerUser.color || '#10b981') : '#10b981';
 
@@ -80,20 +74,20 @@ productsRouter.post('/products', (req: Request, res: Response): void => {
     status: finalStatus,
   };
 
-  dbStore.products.push(newProd);
+  await ProductRepository.create(newProd);
   dbStore.log(u.id, u.name, 'PROPOSE_PRODUCT', `Ajout produit '${name}' avec statut: ${finalStatus}`);
   res.json(newProd);
 });
 
 // Update products
-productsRouter.put('/products/:id', (req: Request, res: Response): void => {
+productsRouter.put('/products/:id', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u) {
     res.status(403).json({ error: 'Non authentifié' });
     return;
   }
 
-  const prod = dbStore.products.find(p => p.id === req.params['id']);
+  const prod = await ProductRepository.getById(req.params['id'] as string);
   if (!prod) {
     res.status(404).json({ error: 'Produit non trouvé' });
     return;
@@ -122,25 +116,25 @@ productsRouter.put('/products/:id', (req: Request, res: Response): void => {
   if (status) prod.status = status;
   if (rejectionReason !== undefined) prod.rejectionReason = rejectionReason;
 
+  await ProductRepository.create(prod);
   dbStore.log(u.id, u.name, 'UPDATE_PRODUCT', `Produit '${prod.name}' mis à jour`);
   res.json(prod);
 });
 
 // Delete Product
-productsRouter.delete('/products/:id', (req: Request, res: Response): void => {
+productsRouter.delete('/products/:id', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u) {
     res.status(403).json({ error: 'Non authentifié' });
     return;
   }
 
-  const idx = dbStore.products.findIndex(p => p.id === req.params['id']);
-  if (idx === -1) {
+  const prod = await ProductRepository.getById(req.params['id'] as string);
+  if (!prod) {
     res.status(404).json({ error: 'Produit non trouvé' });
     return;
   }
 
-  const prod = dbStore.products[idx];
   const ownerId = getCompanyOwnerId(u);
   if (u.role !== 'admin' && prod.companyId !== ownerId) {
     res.status(403).json({ error: 'Permissions non acquises' });
@@ -152,7 +146,7 @@ productsRouter.delete('/products/:id', (req: Request, res: Response): void => {
     return;
   }
 
-  dbStore.products.splice(idx, 1);
+  await ProductRepository.delete(req.params['id'] as string);
   dbStore.log(u.id, u.name, 'DELETE_PRODUCT', `Produit '${prod.name}' supprimé`);
   res.json({ success: true, message: 'Produit supprimé avec succès' });
 });
@@ -177,7 +171,7 @@ productsRouter.get('/stock-requests', (req: Request, res: Response): void => {
   res.json(list);
 });
 
-productsRouter.post('/products/:id/stock-request', (req: Request, res: Response): void => {
+productsRouter.post('/products/:id/stock-request', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u || (u.role !== 'company' && u.role !== 'collaborator')) {
     res.status(403).json({ error: 'Réservé aux partenaires' });
@@ -189,7 +183,7 @@ productsRouter.post('/products/:id/stock-request', (req: Request, res: Response)
     return;
   }
 
-  const prod = dbStore.products.find(p => p.id === req.params['id']);
+  const prod = await ProductRepository.getById(req.params['id'] as string);
   if (!prod) {
     res.status(404).json({ error: 'Produit introuvable' });
     return;
@@ -202,7 +196,7 @@ productsRouter.post('/products/:id/stock-request', (req: Request, res: Response)
   }
 
   const ownerId = getCompanyOwnerId(u);
-  const ownerUser = dbStore.users.find(usr => usr.id === ownerId);
+  const ownerUser = await UserRepository.getById(ownerId);
   const ownerName = ownerUser ? ownerUser.name : u.name;
 
   const reqObj: StockRequest = {
@@ -222,7 +216,7 @@ productsRouter.post('/products/:id/stock-request', (req: Request, res: Response)
   res.json(reqObj);
 });
 
-productsRouter.put('/stock-requests/:id', (req: Request, res: Response): void => {
+productsRouter.put('/stock-requests/:id', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
   if (!u || u.role !== 'admin') {
     res.status(403).json({ error: 'Administrateur requis' });
@@ -239,9 +233,10 @@ productsRouter.put('/stock-requests/:id', (req: Request, res: Response): void =>
   reqObj.status = status;
 
   if (status === 'approved') {
-    const prod = dbStore.products.find(p => p.id === reqObj.productId);
+    const prod = await ProductRepository.getById(reqObj.productId);
     if (prod) {
       prod.stock += reqObj.quantity;
+      await ProductRepository.create(prod);
     }
   }
 
