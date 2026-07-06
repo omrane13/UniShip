@@ -1,0 +1,1089 @@
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left Side Tab Navigation -->
+        <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-1.5">
+          <p class="text-xs font-bold text-slate-400 px-3 uppercase tracking-wider mb-2">Interface Admin</p>
+          
+          <button 
+            (click)="app.adminCurrentTab.set('users')"
+            [class]="app.adminCurrentTab() === 'users' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-users">
+            <mat-icon class="text-md">people</mat-icon> Utilisateurs & Contrats
+          </button>
+
+          <button 
+            (click)="app.adminCurrentTab.set('offers')"
+            [class]="app.adminCurrentTab() === 'offers' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-offers">
+            <mat-icon class="text-md">branding_watermark</mat-icon> Offres Tarifaires
+          </button>
+
+          <button 
+            (click)="app.adminCurrentTab.set('stocks')"
+            [class]="app.adminCurrentTab() === 'stocks' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm flex items-center justify-between' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm flex items-center justify-between'"
+            id="tab-admin-stocks">
+            <span class="flex items-center gap-3">
+              <mat-icon class="text-md">inventory_2</mat-icon> Stocks & Produits
+            </span>
+            @if ((app.globalStats()?.metrics?.lowStocksCount ?? 0) > 0) {
+              <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                {{ app.globalStats()?.metrics?.lowStocksCount }}
+              </span>
+            }
+          </button>
+
+          <button 
+            (click)="app.adminCurrentTab.set('logs')"
+            [class]="app.adminCurrentTab() === 'logs' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-logs">
+            <mat-icon class="text-md">list_alt</mat-icon> Journal d’Audit
+          </button>
+
+          <button 
+            (click)="app.adminCurrentTab.set('support')"
+            [class]="app.adminCurrentTab() === 'support' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-tickets">
+            <mat-icon class="text-md">support_agent</mat-icon> Support & Tickets
+          </button>
+
+          <button 
+            (click)="app.adminCurrentTab.set('profile')"
+            [class]="app.adminCurrentTab() === 'profile' ? 'flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-left border border-purple-100 text-sm' : 'flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl text-left text-sm'"
+            id="tab-admin-profile">
+            <mat-icon class="text-md">account_circle</mat-icon> Mon Compte Profil
+          </button>
+        </div>
+
+        <!-- Right Side Dashboard Body -->
+        <div class="lg:col-span-3 flex flex-col gap-6">
+          
+          <!-- Metriques Card Layout -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">CA Total</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ app.globalStats()?.metrics?.totalEarnings?.toFixed(2) }} DTN</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Partenaires actifs</span>
+              <p class="text-2xl font-extrabold text-emerald-600 mt-1">{{ app.globalStats()?.metrics?.activeContracts }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Alertes Stock</span>
+              <p class="text-2xl font-extrabold text-rose-600 mt-1">{{ app.globalStats()?.metrics?.lowStocksCount }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-left">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Commandes</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ app.globalStats()?.metrics?.ordersCount }}</p>
+            </div>
+          </div>
+
+          <!-- Répartition Statistique des Partenaires (Bar Charts) -->
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="p-2 bg-indigo-50 text-indigo-700 rounded-xl">
+                <mat-icon>bar_chart</mat-icon>
+              </span>
+              <div>
+                <h4 class="text-sm font-extrabold text-slate-900">Répartition de l’Activité des Partenaires</h4>
+                <p class="text-xs text-slate-500">Visualisation par couleur d'entreprise (Nombre de produits & Volume de ventes cumulé).</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Col A: Nombre de Produits Actifs -->
+              <div class="border border-slate-100 p-4 rounded-xl flex flex-col gap-3.5 bg-slate-50/30">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>Nombre de références actives</span>
+                  <span class="text-[10px] text-slate-400 normal-case font-medium">Par partenaire</span>
+                </h5>
+                <div class="flex flex-col gap-3">
+                  @for (u of app.users(); track u.id) {
+                    @if (u.role === 'company' && u.status === 'active') {
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs font-semibold">
+                          <span class="text-slate-800">{{ u.name }}</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ app.getCompanyProductCount(u.id) }} produits</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
+                          <div class="h-full rounded-full transition-all duration-500" 
+                               [style.backgroundColor]="u.color || '#10b981'"
+                               [style.width.%]="(app.getCompanyProductCount(u.id) / app.getCompanyMaxProductCount()) * 100">
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+
+              <!-- Col B: Volume d'Affaires Cumulé (Euros) -->
+              <div class="border border-slate-100 p-4 rounded-xl flex flex-col gap-3.5 bg-slate-50/30">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>Volume de ventes réalisé</span>
+                  <span class="text-[10px] text-slate-400 normal-case font-medium">Par partenaire (Livré)</span>
+                </h5>
+                <div class="flex flex-col gap-3">
+                  @for (u of app.users(); track u.id) {
+                    @if (u.role === 'company' && u.status === 'active') {
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs font-semibold">
+                          <span class="text-slate-800">{{ u.name }}</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ app.getCompanyRevenue(u.id)?.toFixed(2) }} DTN</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
+                          <div class="h-full rounded-full transition-all duration-500" 
+                               [style.backgroundColor]="u.color || '#10b981'"
+                               [style.width.%]="(app.getCompanyRevenue(u.id) / app.getCompanyMaxRevenue()) * 100">
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 1: Users & Contrats -->
+          @if (app.adminCurrentTab() === 'users') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Gestion des Utilisateurs & Activation de Contrats</h3>
+                  <p class="text-xs text-slate-500">Supervisez l'affiliation des entreprises et leur couleur d'affichage.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- User creation form -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                  <h4 class="text-sm font-bold text-slate-800 mb-3">Ajouter un Utilisateur</h4>
+                  <div class="flex flex-col gap-3">
+                    <input 
+                      [value]="app.regName()" 
+                      (input)="app.regName.set($any($event.target).value)"
+                      placeholder="Nom complet / Boutique" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    <input 
+                      [value]="app.regEmail()" 
+                      (input)="app.regEmail.set($any($event.target).value)" 
+                      placeholder="E-mail" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                    
+                    <div class="flex gap-2">
+                      <select 
+                        [value]="app.regRole()" 
+                        (change)="app.setRegRole($any($event.target).value)"
+                        class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs flex-1">
+                        <option value="client">Rôle : Client</option>
+                        <option value="company">Rôle : Entreprise</option>
+                        <option value="driver">Rôle : Livreur</option>
+                        <option value="admin">Rôle : Admin</option>
+                      </select>
+
+                      @if (app.regRole() === 'company') {
+                        <div class="flex gap-1 items-center">
+                          <input 
+                            type="color" 
+                            [value]="app.regColor()" 
+                            (input)="app.regColor.set($any($event.target).value)" 
+                            class="h-8 w-12 border rounded cursor-pointer" 
+                            title="Couleur de l'entreprise" />
+                          <button 
+                            type="button"
+                            (click)="app.regColor.set(app.generateRandomColor())"
+                            class="bg-slate-100 hover:bg-slate-200 p-1.5 rounded flex items-center justify-center"
+                            title="Générer une couleur aléatoire">
+                            <mat-icon class="text-xs">cached</mat-icon>
+                          </button>
+                        </div>
+                      }
+                    </div>
+
+                    <button 
+                      (click)="app.handleRegistration()"
+                      class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg">
+                      Créer le Compte
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Color chart legend -->
+                <div class="border border-slate-150 p-5 rounded-2xl text-left flex flex-col gap-4 bg-slate-50/20">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                       <span class="p-1.5 bg-orange-50 text-orange-600 rounded-lg text-xs flex items-center justify-center">
+                         <mat-icon class="text-xs">palette</mat-icon>
+                       </span>
+                       Identification Visuelle des Partenaires
+                    </h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Chaque entreprise possède une couleur exclusive (Niveau 2) pour identifier immédiatement ses produits dans le catalogue. Le rôle est identifié en orange standard #E8710A (Niveau 1).
+                  </p>
+                  
+                  <div class="flex flex-col gap-3">
+                    @for (u of app.users(); track u.id) {
+                      @if (u.role === 'company') {
+                        <div class="p-3.5 border border-slate-150 rounded-xl bg-white flex flex-col gap-3 shadow-sm">
+                          <!-- Row layout -->
+                          <div class="flex items-center justify-between gap-1">
+                            <!-- Clickable block + Mono hex label -->
+                            <div class="flex items-center gap-1.5 relative">
+                              <span 
+                                class="h-6 w-6 rounded border border-black/10 cursor-pointer shadow-inner block relative overflow-hidden" 
+                                [style.backgroundColor]="u.color || '#64748b'"
+                                title="Cliquer pour modifier la couleur">
+                                <input 
+                                  type="color" 
+                                  [value]="u.color || '#10b981'" 
+                                  (change)="app.assignCompanyColor(u.id, $any($event.target).value)" 
+                                  class="absolute inset-0 opacity-0 cursor-pointer w-6 h-6" />
+                              </span>
+                              <code class="font-mono font-bold text-[10px] text-slate-700 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                                {{ u.color || '#64748b' }}
+                              </code>
+                            </div>
+
+                            <!-- Rendered short brand badge -->
+                            <div class="text-[10px]">
+                              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold shadow-sm" [style.backgroundColor]="u.color" [style.color]="app.getTextColor(u.color ?? '')">
+                                🏬 {{ u.name.slice(0, 10) }}
+                              </span>
+                            </div>
+
+                            <!-- "Modifier la couleur" button -->
+                            <div class="relative">
+                              <button class="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-150 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 leading-none transition-colors">
+                                <mat-icon class="text-xs">colorize</mat-icon> Modifier
+                              </button>
+                              <input 
+                                type="color" 
+                                [value]="u.color || '#10b981'" 
+                                (change)="app.assignCompanyColor(u.id, $any($event.target).value)" 
+                                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                            </div>
+                          </div>
+
+                          <!-- Real-time demo card preview -->
+                          <div class="border-t border-slate-100 pt-2 flex items-center justify-between gap-2">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Rendu Catalogue :</span>
+                            <div class="w-32 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col text-left">
+                              <div class="h-1 w-full" [style.backgroundColor]="u.color || '#10b981'"></div>
+                              <div class="px-2 py-1 flex items-center justify-between text-[8px]">
+                                <span class="font-bold text-slate-800 truncate max-w-[50px]">Produit Démo</span>
+                                <span class="px-1 py-0.2 rounded text-[7px] font-extrabold scale-90" [style.backgroundColor]="u.color || '#10b981'" [style.color]="app.getTextColor(u.color ?? '')">
+                                  {{ u.name.split(' ')[0] }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Users list -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-400 font-bold uppercase tracking-wider">
+                      <th class="py-3 px-4">Utilisateur</th>
+                      <th class="py-3 px-4">Type / Affiliation</th>
+                      <th class="py-3 px-4">E-mail / Contact</th>
+                      <th class="py-3 px-4">Contrat Statut</th>
+                      <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (u of app.users(); track u.id) {
+                      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td class="py-3 px-4 font-bold text-slate-800">
+                          <div class="flex items-center gap-2">
+                            @if (u.role === 'company') {
+                              <span class="h-3 w-3 rounded bg-indigo-50 border border-slate-200" [style.backgroundColor]="u.color"></span>
+                            }
+                            {{ u.name }}
+                          </div>
+                        </td>
+                        <td class="py-3 px-4 text-left">
+                          @if (u.role === 'collaborator') {
+                            <div class="flex flex-col">
+                              <span class="px-2 py-0.5 rounded font-extrabold text-[10px] bg-indigo-50 text-indigo-700 uppercase self-start w-fit">
+                                Collaborateur
+                              </span>
+                              <span class="text-[10px] text-slate-500 font-bold mt-1 leading-none">
+                                {{ u.phone }}
+                              </span>
+                            </div>
+                          } @else {
+                            <span class="px-2 py-0.5 rounded font-bold text-[10px] uppercase"
+                              [class]="u.role === 'admin' ? 'bg-purple-100 text-purple-700' : u.role === 'company' ? 'bg-blue-100 text-blue-700' : u.role === 'driver' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+                              {{ u.role }}
+                            </span>
+                          }
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">{{ u.email }}</td>
+                        <td class="py-3 px-4">
+                          <span class="flex items-center gap-1.5">
+                            <span class="h-2 w-2 rounded-full" [class]="u.status === 'active' ? 'bg-emerald-500' : u.status === 'pending' ? 'bg-amber-500' : 'bg-rose-500'"></span>
+                            <span class="font-bold uppercase text-[10px]" [class]="u.status === 'active' ? 'text-emerald-700' : u.status === 'pending' ? 'text-amber-700' : 'text-rose-700'">
+                              {{ u.status === 'active' ? 'ACTIF / SIGNÉ' : u.status === 'pending' ? 'EN ATTENTE' : 'DÉSACTIVÉ' }}
+                            </span>
+                          </span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                          <div class="flex justify-end gap-1">
+                            <button 
+                              (click)="app.toggleUserActivation(u)"
+                              class="px-2.5 py-1 text-slate-700 bg-white border border-slate-300 rounded-lg font-bold hover:bg-slate-50 leading-none">
+                              {{ u.status === 'active' ? 'Désactiver' : 'Activer / Valider' }}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- SUB-TAB 2: Offres Tarifaires -->
+          @if (app.adminCurrentTab() === 'offers') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">Éditeur d’Offres de la Plateforme</h3>
+                  <p class="text-xs text-slate-500">Formulez des contrats commissionnés sur mesure pour les entreprises partenaires.</p>
+                </div>
+              </div>
+
+              <!-- Offer Creation Panel -->
+              <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-left mb-6">
+                <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wide mb-3">Nouvelle Grille Tarifaire</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="flex flex-col gap-1 md:col-span-2">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Titre de l'Offre</span>
+                    <input 
+                      [value]="app.newOfferTitle()" 
+                      (input)="app.newOfferTitle.set($any($event.target).value)"
+                      placeholder="Ex: Formule Privilège Commande Locale" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Commission %</span>
+                    <input 
+                      type="number" 
+                      [value]="app.newOfferCommission()" 
+                      (input)="app.newOfferCommission.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Frais d'Entrée (DTN)</span>
+                    <input 
+                      type="number" 
+                      [value]="app.newOfferFee()" 
+                      (input)="app.newOfferFee.set($any($event.target).value)" 
+                      class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-1 mb-4">
+                  <span class="text-[10px] uppercase font-bold text-slate-500">Description des Conditions</span>
+                  <input 
+                    [value]="app.newOfferDesc()" 
+                    (input)="app.newOfferDesc.set($any($event.target).value)" 
+                    placeholder="Avantages uniques de cette formule de commission" 
+                    class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                </div>
+
+                <button 
+                  (click)="app.submitNewOffer()"
+                  class="bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors">
+                  Publier l'Offre
+                </button>
+              </div>
+
+              <!-- Display list -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (of of app.offers(); track of.id) {
+                  <div class="border border-slate-200 p-4 rounded-xl text-left flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center justify-between mb-2">
+                        <strong class="text-sm font-bold text-slate-800">{{ of.title }}</strong>
+                        <button 
+                          (click)="app.deleteOffer(of.id)"
+                          class="hover:text-rose-600 p-1 text-slate-400">
+                          <mat-icon class="text-xs">delete</mat-icon>
+                        </button>
+                      </div>
+                      <p class="text-xs text-slate-500 mb-4">{{ of.description || 'Aucune description disponible.' }}</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-2.5 rounded-lg flex items-center justify-around text-center text-xs border border-slate-100">
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Commission</span>
+                        <strong class="text-indigo-600 font-extrabold text-sm">{{ of.commissionRate }}%</strong>
+                      </div>
+                      <div class="w-px h-6 bg-slate-200"></div>
+                      <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Frais Fixes</span>
+                        <strong class="text-slate-700 font-extrabold text-sm">{{ of.entryFee }} DTN</strong>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Admin SLA contract supervisor & Month End Simulator -->
+              <div class="border-t border-slate-200 mt-8 pt-8 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
+                  <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                      <mat-icon class="text-indigo-600">admin_panel_settings</mat-icon>
+                      Supervision des SLA Contracts & Simulateur de Fin de Mois
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                      Chaque mois, les entreprises sont auditées. Celles qui dépassent 50 commandes/mois pendant 3 mois consécutifs gagnent un surclassement gratuit.
+                    </p>
+                  </div>
+                  <button 
+                    (click)="app.simulateEndOfMonthBilling()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4.5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2">
+                    <mat-icon class="text-sm">schedule_send</mat-icon> Simuler une Transition Fin de Mois
+                  </button>
+                </div>
+
+                <!-- Admin Partners Matrix Table -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
+                  <div class="p-4 bg-slate-100 border-b border-slate-200 text-left">
+                    <strong class="text-xs text-slate-800 uppercase tracking-tight">Matrice Contractuelle en Direct (Tunisie)</strong>
+                  </div>
+
+                  <div class="overflow-x-auto text-left">
+                    <table class="w-full text-xs" id="adminPartnersMatrix">
+                      <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold">
+                          <th class="py-2.5 px-4">Boutique partenaire</th>
+                          <th class="py-2.5 px-4 font-medium">Formule Actuelle</th>
+                          <th class="py-2.5 px-4 select-all text-center">Volume Comm. / Taux d'Annulation</th>
+                          <th class="py-2.5 px-4 text-center">Note Clients / Warns</th>
+                          <th class="py-2.5 px-4 text-center">Bonus consécutifs</th>
+                          <th class="py-2.5 px-4 text-right">Actions de Contrôle Rapides</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-150 bg-white">
+                        @for (u of app.users(); track u.id) {
+                          @if (u.role === 'company') {
+                            <tr class="hover:bg-slate-50/60">
+                              <td class="py-3 px-4 font-bold text-slate-800">
+                                <div class="flex items-center gap-1.5">
+                                  <span>{{ u.name }}</span>
+                                  @if (u.planId === 'pro' || u.planId === 'premium') {
+                                    <mat-icon class="text-indigo-600 text-xs" title="Partenaire Vérifié">verified</mat-icon>
+                                  }
+                                </div>
+                                <span class="text-[9px] text-slate-400 font-mono block">Code : {{ u.referralCode || 'N/A' }}</span>
+                              </td>
+                              <td class="py-3 px-4">
+                                <select 
+                                  #planSelect
+                                  (change)="app.adminUpdateUserPlanDetails(u.id, { planId: $any(planSelect.value) })"
+                                  class="bg-white border border-slate-200 p-1 rounded font-bold text-[10px]">
+                                  <option value="starter" [selected]="u.planId === 'starter'">starter (HT 149 TND)</option>
+                                  <option value="pro" [selected]="u.planId === 'pro' || !u.planId">pro (HT 349 TND)</option>
+                                  <option value="premium" [selected]="u.planId === 'premium'">premium (HT 790 TND)</option>
+                                </select>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Volume override inputs -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #volInput
+                                      type="number"
+                                      [value]="u.monthlyOrdersCount || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { monthlyOrdersCount: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Vol / m</span>
+                                  </div>
+
+                                  <!-- Cancellation Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #cancelInput
+                                      type="number"
+                                      step="0.5"
+                                      [value]="u.cancellationRate || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { cancellationRate: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Annul %</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Rating input -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #rateInput
+                                      type="number"
+                                      step="0.1"
+                                      [value]="u.averageRating || 5.0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { averageRating: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Note★</span>
+                                  </div>
+
+                                  <!-- Warnings Count -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      #warnInput
+                                      type="number"
+                                      [value]="u.nonConformingWarningsCount || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { nonConformingWarningsCount: $any($event.target).valueAsNumber })"
+                                      class="w-9 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Warns</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-mono">{{ u.consecutiveMonthsCount ?? 0 }} / 3 mois</span>
+                                <span class="text-[9px] text-slate-400 block mt-0.5">&gt;= 50 comms/m</span>
+                              </td>
+                              <td class="py-3 px-4 text-right">
+                                <div class="flex justify-end gap-1">
+                                  <button 
+                                    (click)="app.adminUpdateUserPlanDetails(u.id, { isVerifiedPartner: !u.isVerifiedPartner })"
+                                    [class]="u.isVerifiedPartner ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'"
+                                    class="px-2 py-1 rounded font-bold text-[10px] flex items-center gap-0.5 leading-none">
+                                    <mat-icon class="text-[10px] leading-none">verified</mat-icon>
+                                    {{ u.isVerifiedPartner ? 'Vérifié' : 'Vérifier' }}
+                                  </button>
+                                  <button 
+                                    (click)="app.toggleUserActivation(u)"
+                                    [class]="u.status === 'active' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'"
+                                    class="px-2 py-1 rounded font-bold text-[10px] leading-none">
+                                    {{ u.status === 'active' ? 'Restreindre' : 'Activer' }}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          }
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Admin Delivery Drivers Matrix Table -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden mt-6">
+                  <div class="p-4 bg-slate-100 border-b border-slate-200 text-left flex items-center justify-between">
+                    <strong class="text-xs text-slate-800 uppercase tracking-tight">Matrice d'Engagement des Livreurs (Tunisie)</strong>
+                    <span class="text-[10px] text-indigo-700 bg-indigo-50 font-bold px-2 py-0.5 rounded">Objectif : >= 60 livs/m pour upgrade gratuit</span>
+                  </div>
+
+                  <div class="overflow-x-auto text-left">
+                    <table class="w-full text-xs" id="adminDriversMatrix">
+                      <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold">
+                          <th class="py-2.5 px-4">Livreur Coursier</th>
+                          <th class="py-2.5 px-4 font-medium">Forfait Actuel</th>
+                          <th class="py-2.5 px-4 text-center">Vol. Livraisons / Annul. %</th>
+                          <th class="py-2.5 px-4 text-center">Note★ / Alert Inactivité</th>
+                          <th class="py-2.5 px-4 text-center">Warns / Consécutifs</th>
+                          <th class="py-2.5 px-4 text-right">Fiche Financière / Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-150 bg-white">
+                        @for (u of app.users(); track u.id) {
+                          @if (u.role === 'driver') {
+                            <tr class="hover:bg-slate-50/60">
+                              <td class="py-3 px-4 font-bold text-slate-800">
+                                <div class="flex items-center gap-1.5">
+                                  <span>{{ u.name }}</span>
+                                  @if (u.driverPlanId === 'pro' || u.driverPlanId === 'partenaire') {
+                                    <mat-icon class="text-violet-600 text-xs" title="Livreur Certifié">verified</mat-icon>
+                                  }
+                                </div>
+                                <span class="text-[9px] text-slate-400 font-mono block">Tél : {{ u.phone || 'N/A' }}</span>
+                              </td>
+                              <td class="py-3 px-4">
+                                <select 
+                                  #drvPlanSelect
+                                  (change)="app.adminUpdateUserPlanDetails(u.id, { driverPlanId: $any(drvPlanSelect.value) })"
+                                  class="bg-white border border-slate-200 p-1 rounded font-bold text-[10px] text-violet-700">
+                                  <option value="freelance" [selected]="u.driverPlanId === 'freelance' || !u.driverPlanId">freelance (0 TND)</option>
+                                  <option value="partenaire" [selected]="u.driverPlanId === 'partenaire'">partenaire (49 TND)</option>
+                                  <option value="pro" [selected]="u.driverPlanId === 'pro'">pro (119 TND)</option>
+                                </select>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Volume override inputs -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverMonthlyDeliveriesCount || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { driverMonthlyDeliveriesCount: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Livs / m</span>
+                                  </div>
+
+                                  <!-- Cancellation Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      step="0.5"
+                                      [value]="u.driverCancellationRate || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { driverCancellationRate: $any($event.target).valueAsNumber })"
+                                      class="w-12 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Annul %</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Rating input -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      step="0.1"
+                                      [value]="u.driverAverageRating || 5.0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { driverAverageRating: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Note★</span>
+                                  </div>
+
+                                  <!-- Inactivity Override -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverInactivityDays || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { driverInactivityDays: $any($event.target).valueAsNumber })"
+                                      class="w-11 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-1">Inactif d</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                  <!-- Warnings -->
+                                  <div class="flex flex-col items-center">
+                                    <input 
+                                      type="number"
+                                      [value]="u.driverNonConformingWarningsCount || 0"
+                                      (change)="app.adminUpdateUserPlanDetails(u.id, { driverNonConformingWarningsCount: $any($event.target).valueAsNumber })"
+                                      class="w-9 bg-slate-50 border border-slate-200 text-center rounded p-0.5 font-bold text-[11px]" />
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-0.5">Warns</span>
+                                  </div>
+
+                                  <!-- Consecutive Months -->
+                                  <div class="flex flex-col items-center">
+                                    <span class="text-[11px] font-black text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded font-mono">{{ u.driverConsecutiveMonthsCount ?? 0 }}/3 m</span>
+                                    <span class="text-[8px] text-slate-400 font-bold block uppercase mt-1">SLA ok</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 text-right">
+                                <div class="flex flex-col items-end gap-1.5">
+                                  <div class="text-[11px]">
+                                    <span class="text-slate-400">Net estimé :</span>
+                                    <strong class="text-emerald-600 font-extrabold ml-1 font-mono">{{ app.calculateDriverRealTimePayout(u).net.toFixed(1) }} TND</strong>
+                                  </div>
+                                  <div class="flex justify-end gap-1">
+                                    <button 
+                                      (click)="app.toggleUserActivation(u)"
+                                      [class]="u.status === 'active' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'"
+                                      class="px-2 py-0.5 rounded font-bold text-[10px] leading-none">
+                                      {{ u.status === 'active' ? 'Restreindre' : 'Activer' }}
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          }
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          <!-- SUB-TAB 3: Stocks & Validation de nouveaux produits et Demandes Stock -->
+          @if (app.adminCurrentTab() === 'stocks') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col gap-6">
+              
+              <!-- Segment A: Proposions de nouveaux produits par partenaires -->
+              <div class="text-left">
+                <h3 class="text-base font-extrabold text-slate-900 mb-2">Validation de Nouveaux Produits</h3>
+                <p class="text-xs text-slate-500 mb-4">Ces produits ont été proposés par des entreprises et nécessitent votre accord avant l’affichage public.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  @for (prod of app.products(); track prod.id) {
+                    @if (prod.status === 'pending') {
+                      <div class="border border-slate-200 bg-amber-50/20 p-4 rounded-xl flex gap-3">
+                        <img [src]="prod.image" alt="Visuel du produit proposé" class="w-20 h-20 rounded-lg object-cover bg-slate-100" referrerpolicy="no-referrer" />
+                        <div class="flex-1 flex flex-col justify-between text-left">
+                          <div>
+                            <div class="flex items-center justify-between gap-1">
+                              <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded text-white" [style.backgroundColor]="prod.companyColor">
+                                {{ prod.companyName }}
+                              </span>
+                              <span class="text-xs font-bold">{{ prod.price?.toFixed(2) }} DTN</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800">{{ prod.name }}</h4>
+                            <p class="text-[11px] text-slate-500 line-clamp-2 leading-tight">{{ prod.description }}</p>
+                          </div>
+
+                          <div class="flex justify-end gap-1.5 mt-2">
+                            <button 
+                              (click)="app.decideOnProductApproval(prod, 'rejected', 'Refusé temporairement par Admin')"
+                              class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 leading-none">
+                              Refuser
+                            </button>
+                            <button 
+                              (click)="app.decideOnProductApproval(prod, 'active')"
+                              class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-800 leading-none">
+                              Approuver
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  } @empty {
+                    <div class="md:col-span-2 border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400">
+                      Aucune demande d'ajout de produit en attente.
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <!-- Segment B: Demandes d'augmentation de stock -->
+              <div class="text-left">
+                <h3 class="text-base font-extrabold text-slate-900 mb-2">Demandes de Ravitaillement / Augmentations de Stock</h3>
+                <p class="text-xs text-slate-500 mb-4">Approuvez les allocations de stock d'entrepôt requises par vos partenaires.</p>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200">
+                        <th class="py-2.5 px-4">Partenaire</th>
+                        <th class="py-2.5 px-4">Produit</th>
+                        <th class="py-2.5 px-4">Quantité demandée</th>
+                        <th class="py-2.5 px-4">Justification</th>
+                        <th class="py-2.5 px-4">État de la Demande</th>
+                        <th class="py-2.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (sr of app.stockRequests(); track sr.id) {
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                          <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 rounded text-[10px] font-extrabold shadow-sm inline-flex items-center gap-1 leading-none" 
+                              [style.backgroundColor]="app.getCompanyColor(sr.companyId)" 
+                              [style.color]="app.getTextColor(app.getCompanyColor(sr.companyId))">
+                              🏬 {{ sr.companyName }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-4 font-bold">{{ sr.productName }}</td>
+                          <td class="py-3 px-4 text-indigo-600 font-extrabold">+{{ sr.quantity }}</td>
+                          <td class="py-3 px-4 text-slate-500 italic">"{{ sr.justification }}"</td>
+                          <td class="py-3 px-4 uppercase text-[10px] font-bold">
+                            <span [class]="sr.status === 'pending' ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded' : sr.status === 'approved' ? 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded' : 'text-rose-700 bg-rose-50 px-2 py-0.5 rounded'">
+                              {{ sr.status === 'pending' ? 'EN ATTENTE' : sr.status === 'approved' ? 'ACCEPTÉE' : 'REJETÉE' }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-4 text-right">
+                            @if (sr.status === 'pending') {
+                              <div class="flex justify-end gap-1">
+                                <button 
+                                  (click)="app.decideOnStockRequest(sr, 'rejected')"
+                                  class="bg-white border border-slate-300 text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-50">
+                                  Refuser
+                                </button>
+                                <button 
+                                  (click)="app.decideOnStockRequest(sr, 'approved')"
+                                  class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-800">
+                                  Approuver
+                                </button>
+                              </div>
+                            } @else {
+                              <span class="text-slate-400 text-[10px] italic">Traité</span>
+                            }
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="6" class="py-6 text-center text-slate-400">Aucune demande de stock disponible.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <!-- Segment C: Stock global de tous les produits (avec adjusteurs) -->
+              <div class="text-left">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Inventaire Complet & Ajustement Manuel</h3>
+                <div class="overflow-x-auto text-xs">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Partenaire</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Produit</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Stock Phsyique</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase">Statut d'Alerte</th>
+                        <th class="py-2.5 px-4 font-bold text-slate-400 uppercase text-right">Ajuster de force</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (p of app.products(); track p.id) {
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                          <td class="py-2.5 px-4 whitespace-nowrap font-extrabold text-[10px] border-l-4 transition-all" 
+                              [style.borderLeftColor]="p.companyColor" 
+                              [style.backgroundColor]="p.companyColor + '10'" 
+                              [style.color]="p.companyColor">
+                            🏬 {{ p.companyName }}
+                          </td>
+                          <td class="py-2.5 px-4 font-bold text-slate-800">{{ p.name }}</td>
+                          <td class="py-2.5 px-4 font-mono font-bold">{{ p.stock }} unités</td>
+                          <td class="py-2.5 px-4 uppercase text-[10px] font-bold">
+                            @if (p.stock <= p.threshold) {
+                              <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold">🚨 ALERTE SEUIL</span>
+                            } @else {
+                              <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">🟢 OK</span>
+                            }
+                          </td>
+                          <td class="py-2.5 px-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                              <button 
+                                (click)="app.manualAdjustProductStock(p, p.stock - 5)"
+                                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-1.5 py-1 rounded text-[10px] font-extrabold leading-none">
+                                -5
+                              </button>
+                              <button 
+                                (click)="app.manualAdjustProductStock(p, p.stock + 10)"
+                                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-1.5 py-1 rounded text-[10px] font-extrabold leading-none">
+                                +10
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          <!-- SUB-TAB 4: Journal d’Audit -->
+          @if (app.adminCurrentTab() === 'logs') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-left">
+                  <h3 class="text-lg font-extrabold text-slate-900">Journal d'Audit Système</h3>
+                  <p class="text-xs text-slate-500">Historisation complète des évènements critiques et actions administratives.</p>
+                </div>
+              </div>
+
+              <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-200 overflow-y-auto max-h-96 border border-slate-800 text-left">
+                @for (log of app.auditLogs(); track log.id) {
+                  <div class="py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded flex flex-wrap items-center gap-1.5">
+                    <span class="text-purple-400 font-bold">[{{ log.createdAt | date: 'mediumTime' }}]</span>
+                    <span class="text-emerald-400 font-bold"> {{ log.action }}</span>
+                    @if (app.isCompanyUser(log.userId)) {
+                      <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold shadow-sm flex items-center gap-1" [style.backgroundColor]="app.getCompanyColor(log.userId)" [style.color]="app.getTextColor(app.getCompanyColor(log.userId))">
+                        🏬 {{ log.userName }}
+                      </span>
+                    } @else {
+                      <span class="text-slate-300"> par {{ log.userName }} ({{ log.userId }}) :</span>
+                    }
+                    <span class="text-slate-400 italic"> {{ log.details }}</span>
+                  </div>
+                } @empty {
+                  <div class="text-slate-500 text-center py-4">Aucun log disponible.</div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- SUB-TAB 5: Tickets Support -->
+          @if (app.adminCurrentTab() === 'support') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left">
+              <h3 class="text-lg font-extrabold text-slate-900 mb-2">Centre de Support Clientèle & Partenaire</h3>
+              <p class="text-xs text-slate-500 mb-6">Répondez aux réclamations ou questions des utilisateurs et entreprises.</p>
+
+              <!-- Ticket Box component -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 border-r border-slate-100 pr-4 flex flex-col gap-2">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Boîte d'attente</p>
+                  @for (t of app.tickets(); track t.id) {
+                    <button 
+                      (click)="app.selectedTicket.set(t)"
+                      [class]="app.selectedTicket()?.id === t.id ? 'p-3 bg-indigo-50 border border-indigo-200 text-slate-800 rounded-xl text-left block w-full shadow-sm' : 'p-3 hover:bg-slate-50 border border-transparent rounded-xl text-left text-slate-600 block w-full'"
+                      id="btn-tkt-{{ t.id }}">
+                      <div class="flex items-center justify-between mb-1">
+                        <strong class="text-sm font-bold">{{ t.subject }}</strong>
+                        <span [class]="t.status === 'open' ? 'h-2 w-2 rounded-full bg-amber-500' : 'h-2 w-2 rounded-full bg-slate-400'"></span>
+                      </div>
+                      <div class="flex justify-between items-center text-[10px] text-slate-400 font-medium font-mono uppercase">
+                        <span>{{ t.userName }}</span>
+                        <span>{{ t.createdAt | date:'shortTime' }}</span>
+                      </div>
+                    </button>
+                  } @empty {
+                    <p class="text-xs text-slate-400 italic text-center py-4">Sain et sauf. Aucun ticket.</p>
+                  }
+                </div>
+
+                <div class="md:col-span-2">
+                  @if (app.selectedTicket(); as tkt) {
+                    <div class="border border-slate-200 p-4 rounded-xl flex flex-col gap-4">
+                      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                          <h4 class="text-sm font-bold text-slate-950">{{ tkt.subject }}</h4>
+                          <span class="text-xs text-slate-400">Émis par {{ tkt.userName }} ({{ tkt.userRole }})</span>
+                        </div>
+                        <span [class]="tkt.status === 'open' ? 'bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded font-bold' : 'bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded font-bold'">
+                          {{ tkt.status === 'open' ? 'OUVERT' : 'RÉSOLU' }}
+                        </span>
+                      </div>
+
+                      <div class="bg-indigo-50/40 p-3 rounded-lg border border-indigo-100 text-slate-700 text-xs">
+                        <strong class="block text-slate-900 text-xs mb-1">Message initial:</strong>
+                        {{ tkt.message }}
+                      </div>
+
+                      <!-- Comments loop -->
+                      <div class="flex flex-col gap-2 mx-2">
+                        @for (rep of tkt.replies; track rep.createdAt) {
+                          <div class="p-2 w-3/4 rounded-xl border border-slate-100" [class]="rep.senderRole === 'admin' ? 'self-end bg-slate-900 border-slate-800 text-slate-100 ml-4' : 'self-start bg-slate-50 pl-4 border-slate-200'">
+                            <span class="text-[9px] uppercase font-bold tracking-wider leading-none" [class]="rep.senderRole === 'admin' ? 'text-indigo-400':'text-indigo-600'">
+                              {{ rep.senderName }} ({{ rep.senderRole }})
+                            </span>
+                            <p class="text-xs font-medium mt-0.5 leading-tight">{{ rep.message }}</p>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Reply block -->
+                      @if (tkt.status === 'open') {
+                        <div class="flex flex-col gap-2 border-t border-slate-100 pt-3">
+                          <input 
+                            [value]="app.ticketReplyText()" 
+                            (input)="app.ticketReplyText.set($any($event.target).value)"
+                            placeholder="Écrire votre réponse..." 
+                            class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs" />
+                          
+                          <div class="flex gap-2 justify-end">
+                            <button 
+                              (click)="app.postTicketReply(tkt, true)"
+                              class="bg-white border border-slate-300 text-slate-700 font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-slate-50">
+                              Marquer Résolu
+                            </button>
+                            <button 
+                              (click)="app.postTicketReply(tkt)"
+                              class="bg-slate-900 text-white font-bold text-xs px-4 py-1.5 rounded-lg hover:bg-slate-800">
+                              Répondre
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="flex items-center justify-center p-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                      <p class="text-xs text-slate-400 italic">Sélectionnez un ticket pour entamer la discussion ou répondre.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Admin Profile View -->
+          @if (app.adminCurrentTab() === 'profile') {
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-left space-y-6">
+              <div>
+                <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Administrateur</h3>
+                <p class="text-xs text-slate-500">Consultez et modifiez les informations de votre profil administrateur.</p>
+              </div>
+
+              <!-- General Rules Card -->
+              <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
+                <mat-icon class="text-purple-700">lock_outline</mat-icon>
+                <div class="text-xs text-purple-900 space-y-1 font-sans">
+                  <p class="font-bold">🔑 Qui peut consulter et modifier ce compte ?</p>
+                  <p>• <strong>Consultation :</strong> Uniquement vous (en tant que super utilisateur).</p>
+                  <p>• <strong>Modification :</strong> Strictement réservé aux privilèges administrateur.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Nom Complet</span>
+                  <input 
+                    [value]="app.profileName()" 
+                    (input)="app.profileName.set($any($event.target).value)"
+                    placeholder="Nom" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-name" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left">
+                  <span class="font-bold text-slate-500">Adresse E-mail</span>
+                  <input 
+                    [value]="app.profileEmail()" 
+                    (input)="app.profileEmail.set($any($event.target).value)"
+                    placeholder="Email" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-email" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2">
+                  <span class="font-bold text-slate-500">Téléphone</span>
+                  <input 
+                    [value]="app.profilePhone()" 
+                    (input)="app.profilePhone.set($any($event.target).value)"
+                    placeholder="Téléphone" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-phone" />
+                </div>
+
+                <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+                  <span class="font-bold text-slate-500">Modifier le Mot de Passe (Laisser vide si inchangé)</span>
+                  <input 
+                    type="password"
+                    [value]="app.profilePassword()" 
+                    (input)="app.profilePassword.set($any($event.target).value)"
+                    placeholder="Nouveau mot de passe" 
+                    class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                    id="profile-admin-password" />
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-4 border-t">
+                <button 
+                  (click)="app.updateUserProfile()"
+                  class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                  <mat-icon class="text-xs">save</mat-icon> Enregistrer les modifications
+                </button>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>

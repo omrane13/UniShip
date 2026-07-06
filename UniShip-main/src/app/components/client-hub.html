@@ -1,0 +1,643 @@
+    <!-- Case D: CLIENT HUB & BROWSING CATALOGUE AND BACKOFFICE COEXISTENCE -->
+    @if (!app.api.currentUser() || app.api.currentUser()?.role === 'client') {
+      
+      @if (app.api.currentUser()) {
+        <!-- Tab selector for logged-in clients -->
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-3 mb-6 bg-white p-3 rounded-2xl shadow-sm text-left animate-in fade-in duration-200 select-none">
+          <button 
+            (click)="app.clientCurrentTab.set('browse')"
+            [class]="app.clientCurrentTab() === 'browse' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all border-0 cursor-pointer' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold bg-transparent border-0 cursor-pointer'"
+            id="tab-client-browse">
+            <mat-icon class="text-sm">storefront</mat-icon> Catalogue Produits
+          </button>
+          
+          <button 
+            (click)="app.clientCurrentTab.set('orders')"
+            [class]="app.clientCurrentTab() === 'orders' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all border-0 cursor-pointer' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold bg-transparent border-0 cursor-pointer'"
+            id="tab-client-orders">
+            <span class="flex items-center gap-2">
+              <mat-icon class="text-xs">receipt_long</mat-icon> Suivi Commandes & Factures
+            </span>
+            @if (app.orders().length > 0) {
+              <span class="bg-indigo-50 text-indigo-700 text-[10px] px-1.5 rounded-full font-bold ml-1">
+                {{ app.orders().length }}
+              </span>
+            }
+          </button>
+
+          <button 
+            (click)="app.clientCurrentTab.set('support')"
+            [class]="app.clientCurrentTab() === 'support' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all border-0 cursor-pointer' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold bg-transparent border-0 cursor-pointer'"
+            id="tab-client-support">
+            <mat-icon class="text-sm">contact_support</mat-icon> Réclamations & Service Client
+          </button>
+
+          <button 
+            (click)="app.clientCurrentTab.set('profile')"
+            [class]="app.clientCurrentTab() === 'profile' ? 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-100 text-xs shadow-sm transition-all border-0 cursor-pointer' : 'flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-semibold bg-transparent border-0 cursor-pointer'"
+            id="tab-client-profile">
+            <mat-icon class="text-sm">account_circle</mat-icon> Mon Compte Client
+          </button>
+        </div>
+      }
+
+      @if (!app.api.currentUser() || app.clientCurrentTab() === 'browse') {
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-200">
+        
+        <!-- Left filter segments -->
+        <div class="lg:col-span-1 flex flex-col gap-6 text-left">
+          
+          <!-- Category list filters -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Catégories de Produits</h3>
+            <div class="flex flex-col gap-1 select-none">
+              <button 
+                (click)="app.categoryFilter.set('all')"
+                [class]="app.categoryFilter() === 'all' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                id="btn-cat-all">
+                🌿 Tout Afficher
+              </button>
+              <button 
+                (click)="app.categoryFilter.set('Fruits & Légumes')"
+                [class]="app.categoryFilter() === 'Fruits & Légumes' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                id="btn-cat-prov">
+                🍎 Fruits & Légumes
+              </button>
+              <button 
+                (click)="app.categoryFilter.set('Boulangerie & Pâtisserie')"
+                [class]="app.categoryFilter() === 'Boulangerie & Pâtisserie' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                id="btn-cat-boul">
+                🥖 Boulangerie & Pâtisserie
+              </button>
+              <button 
+                (click)="app.categoryFilter.set('Boissons & Jus')"
+                [class]="app.categoryFilter() === 'Boissons & Jus' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                id="btn-cat-boiss">
+                🍹 Boissons & Jus
+              </button>
+            </div>
+          </div>
+
+          <!-- Enterprise list filters -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Filtrer par Partenaire</h3>
+            <div class="flex flex-col gap-1 select-none">
+              <button 
+                (click)="app.companyFilter.set('all')"
+                [class]="app.companyFilter() === 'all' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                id="btn-partner-all">
+                🏬 Tous les partenaires
+              </button>
+              
+              @for (u of app.users(); track u.id) {
+                @if (u.role === 'company' && u.status === 'active') {
+                  <button 
+                    (click)="app.companyFilter.set(u.id)"
+                    [style.backgroundColor]="app.companyFilter() === u.id ? u.color : ''"
+                    [style.color]="app.companyFilter() === u.id ? app.getTextColor(u.color ?? '') : ''"
+                    [class]="app.companyFilter() === u.id ? 'px-3 py-2 font-bold text-xs rounded-xl text-left border-0 cursor-pointer shadow-xs transition-all' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl transition-all flex items-center gap-2 bg-transparent border-0 cursor-pointer'"
+                    [id]="'btn-partner-' + u.id">
+                    @if (app.companyFilter() !== u.id) {
+                      <span class="h-2 w-2 rounded-full inline-block" [style.backgroundColor]="u.color || '#10b981'"></span>
+                    }
+                    {{ u.name }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Checkout / Basket Cart overlay panel -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span>Mon Panier d'Achat</span>
+              <span class="bg-indigo-50 text-indigo-700 font-extrabold text-[11px] px-2 py-0.5 rounded-full select-none">
+                {{ app.api.cart().length }} références
+              </span>
+            </h3>
+
+            @if (app.api.cart().length > 0) {
+              <!-- items loop -->
+              <div class="flex flex-col gap-3 max-h-56 overflow-y-auto mb-4 border-b border-slate-100 pb-3">
+                @for (item of app.api.cart(); track item.product.id) {
+                  <div class="flex items-center justify-between gap-1.5 text-xs text-left">
+                    <div class="flex-1 text-left">
+                      <strong class="text-slate-800 line-clamp-1 font-bold text-left">{{ item.product.name }}</strong>
+                      <span class="text-slate-400 text-[10px] block leading-none text-left mt-0.5">{{ item.product.price?.toFixed(2) }} DTN l'unité</span>
+                    </div>
+
+                    <!-- incrementors -->
+                    <div class="flex items-center gap-1.5 bg-slate-50 p-1 border rounded-lg select-none">
+                      <button (click)="app.decrementCartItem(item.product.id)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-250 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">-</button>
+                      <span class="font-mono font-bold leading-none">{{ item.quantity }}</span>
+                      <button (click)="app.incrementCartItem(item.product.id, item.product.stock)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-250 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">+</button>
+                    </div>
+
+                    <button 
+                      (click)="app.removeFromCart(item.product.id)"
+                      class="text-slate-400 hover:text-rose-600 pl-1 border-0 bg-transparent cursor-pointer">
+                      <mat-icon class="text-[14px]">delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- totals and checkout controls -->
+              <div class="space-y-3.5">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-slate-500">Sous-total marchandises:</span>
+                  <strong class="text-slate-800 text-sm font-extrabold">{{ app.getCartTotal() }} DTN</strong>
+                </div>
+
+                <!-- Geolocation shipping address simulator -->
+                <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+                  <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Adresse de Livraison</span>
+                  <input 
+                    [value]="app.deliveryAddress()" 
+                    (input)="app.deliveryAddress.set($any($event.target).value)"
+                    placeholder="Saisissez votre rue, ville..." 
+                    class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs" />
+                </div>
+
+                <!-- Payment methods -->
+                <div class="flex flex-col gap-1 text-xs text-slate-400 text-left">
+                  <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Mode de Paiement</span>
+                  <div class="grid grid-cols-3 gap-1 grid-flow-col select-none">
+                    <button 
+                      (click)="app.paymentMethod.set('stripe')"
+                      [class]="app.paymentMethod() === 'stripe' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                      Stripe
+                    </button>
+                    <button 
+                      (click)="app.paymentMethod.set('paypal')"
+                      [class]="app.paymentMethod() === 'paypal' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                      Paypal
+                    </button>
+                    <button 
+                      (click)="app.paymentMethod.set('cash')"
+                      [class]="app.paymentMethod() === 'cash' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                      Cash
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  (click)="app.triggerCheckout()"
+                  class="bg-rose-500 hover:bg-rose-600 text-white font-bold w-full py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
+                  <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer ({{ app.getCartTotal().toFixed(2) }} DTN)
+                </button>
+              </div>
+            } @else {
+              <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-xl mt-2 bg-white">
+                <p class="text-[11px] text-slate-400 italic font-medium leading-normal">Votre panier est vide. Parcourez nos produits et ajoutez-les pour commander !</p>
+              </div>
+            }
+          </div>
+
+          <!-- Active Order steps tracker for clients -->
+          @if (app.api.currentUser()?.role === 'client') {
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left space-y-4">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suivi Commandes en Direct</h3>
+              
+              <div class="space-y-3 max-h-8d0 overflow-y-auto">
+                @for (ord of app.orders(); track ord.id) {
+                  <div class="border border-slate-100 p-3.5 rounded-xl space-y-2 text-xs text-left bg-white">
+                    <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border">
+                      <strong class="font-mono text-xs">{{ ord.id }}</strong>
+                      <span class="font-extrabold text-indigo-700">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</span>
+                    </div>
+
+                    <!-- Steps display -->
+                    <div class="flex items-center justify-between text-[10px] font-bold py-1 select-none font-sans">
+                      <span [class]="ord.status === 'pending' ? 'text-amber-500 font-extrabold': 'text-slate-300'">1. En attente</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'preparing' ? 'text-blue-500 font-extrabold': 'text-slate-300'">2. Préparation</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'transit' ? 'text-indigo-500 font-extrabold': 'text-slate-300'">3. En Route</span>
+                      <span class="text-slate-300">➔</span>
+                      <span [class]="ord.status === 'delivered' ? 'text-emerald-600 font-extrabold': 'text-slate-300'">4. Livré</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                      <span>Livreur: <strong>{{ ord.driverName }}</strong></span>
+                      <span class="uppercase font-bold tracking-wide" [class]="ord.status === 'cancelled'?'text-rose-700 bg-rose-50 px-1 py-0.5 rounded':'text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded'">
+                        {{ ord.status }}
+                      </span>
+                    </div>
+
+                    <div class="flex gap-1">
+                      <a 
+                        [href]="ord.invoiceUrl" 
+                        target="_blank" 
+                        class="bg-white border border-slate-300 hover:bg-slate-50 text-[10px] font-bold py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 w-full justify-center transition-all">
+                        <mat-icon class="text-[12px]">download</mat-icon> Facture PDF
+                      </a>
+                      
+                      @if (ord.status === 'pending') {
+                        <button 
+                          (click)="app.cancelOrder(ord.id)"
+                          class="hover:bg-rose-50 border border-slate-200 text-rose-600 text-[10px] font-bold px-2 py-1 rounded-lg leading-none whitespace-nowrap bg-transparent cursor-pointer">
+                          Annuler
+                        </button>
+                      }
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="text-[11px] text-slate-400 italic">Aucune commande historique.</p>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <!-- Right Side: Catalogue Items Display Grid -->
+        <div class="lg:col-span-3 flex flex-col gap-6 text-left">
+          
+          <!-- Banner carousel promo and search query filter -->
+          <div class="bg-indigo-950 text-white rounded-3xl p-6 relative overflow-hidden shadow-lg flex flex-col justify-between h-52">
+            <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&fit=crop');"></div>
+            
+            <div class="z-10 max-w-lg text-left">
+              <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/35 font-extrabold text-[10px] tracking-widest uppercase py-1 px-3 rounded-full mb-2 inline-block">
+                PANIER LOCAL DE PROXIMITÉ
+              </span>
+              <h2 class="text-xl md:text-2xl font-black tracking-tight mt-1 text-white">Consommez Local, Livré Instantanément !</h2>
+              <p class="text-xs text-indigo-200 mt-1 font-medium leading-relaxed">Choisissez les meilleurs produits frais listés directement auprès de nos entreprises partenaires certifiées.</p>
+            </div>
+
+            <!-- Auto-search autocomplete search box -->
+            <div class="z-10 flex bg-white rounded-2xl p-1 shadow-md max-w-md w-full border border-indigo-850">
+              <span class="flex items-center pl-3 text-slate-400">
+                <mat-icon class="text-sm">search</mat-icon>
+              </span>
+              <input 
+                [value]="app.searchQuery()" 
+                (input)="app.searchQuery.set($any($event.target).value)" 
+                placeholder="Rechercher une pomme Gala, baguette, jus..." 
+                class="w-full bg-transparent px-2.5 text-slate-900 border-0 outline-0 focus:ring-0 focus:outline-none py-2 text-xs" />
+              <button class="bg-slate-950 text-white font-bold text-xs px-4 py-1.5 rounded-xl hover:bg-slate-800 leading-none border-0 cursor-pointer"> Rechercher</button>
+            </div>
+          </div>
+
+          <!-- Active grid list -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @for (p of app.getFilteredProducts(); track p.id) {
+              <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative cursor-pointer group" 
+                   role="button" 
+                   tabindex="0"
+                   (click)="app.selectedProduct.set(p)"
+                   (keydown.enter)="app.selectedProduct.set(p)"
+                   (keydown.space)="app.selectedProduct.set(p)">
+                
+                <!-- Bandeau supérieur coloré de 6px -->
+                <div class="h-[6px] w-full transition-all duration-300" [style.backgroundColor]="p.companyColor"></div>
+
+                <div class="relative">
+                  <img [src]="p.image" alt="Image du catalogue produit" class="w-full h-40 object-cover bg-slate-100 group-hover:scale-[1.02] transition-transform duration-300" referrerpolicy="no-referrer" />
+                  
+                  <!-- Tag representing producing enterprise along with unique brand color -->
+                  <span class="absolute top-2.5 left-2.5 px-2.5 py-1 text-[9px] font-extrabold shadow-sm rounded-lg" [style.backgroundColor]="p.companyColor" [style.color]="app.getTextColor(p.companyColor)">
+                    🏬 {{ p.companyName }}
+                  </span>
+
+                  @if (p.stock <= 0) {
+                    <span class="absolute top-2.5 right-2.5 bg-rose-605 text-white text-[9px] font-semibold py-1 px-2.5 rounded shadow bg-rose-600">
+                      RUPTURE
+                    </span>
+                  }
+                </div>
+
+                <div class="p-4 text-left flex-1 flex flex-col justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-950 line-clamp-1 mb-0.5">{{ p.name }}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2 leading-tight mb-2 font-medium">{{ p.description }}</p>
+                    
+                    <!-- Bottom enterprise badge with contrast text -->
+                    <div class="mt-2.5 flex items-center justify-between gap-1 select-none">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-extrabold shadow-sm inline-flex items-center gap-1 leading-none" 
+                        [style.backgroundColor]="p.companyColor" 
+                        [style.color]="app.getTextColor(p.companyColor)">
+                        🏬 {{ p.companyName }}
+                      </span>
+                      <span class="text-[9px] text-indigo-605 font-bold bg-indigo-50 group-hover:bg-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-0.5 leading-none transition-colors text-indigo-600">
+                        Détails <mat-icon class="text-[9px] h-2.5 w-2.5">arrow_forward</mat-icon>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <div>
+                      <strong class="text-slate-400 text-[9px] uppercase font-bold block leading-none">Prix</strong>
+                      <strong class="text-slate-900 font-extrabold text-base">{{ p.price?.toFixed(2) }} DTN</strong>
+                    </div>
+
+                    <div class="text-right">
+                      <span class="text-[9px] text-slate-400 block uppercase font-bold leading-none">Stock</span>
+                      <span class="text-xs font-bold" [class]="p.stock <= p.threshold ? 'text-amber-600':'text-emerald-600'">
+                        {{ p.stock }} restants
+                      </span>
+                    </div>
+
+                    <button 
+                      (click)="app.addToCart(p); $event.stopPropagation()"
+                      [disabled]="p.stock <= 0"
+                      class="bg-slate-900 hover:bg-slate-800 text-white p-2.5 rounded-xl transition-all active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 shadow-sm leading-none border-0 cursor-pointer"
+                      title="Ajouter au Panier"
+                      id="btn-add-cart-{{ p.id }}">
+                      <mat-icon class="text-xs">add_shopping_cart</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            } @empty {
+              <div class="md:col-span-3 border border-dashed border-slate-200 py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2 rounded-2xl bg-white">
+                <mat-icon class="text-3xl text-slate-350">search_off</mat-icon>
+                <p class="text-xs italic font-semibold">Aucun produit ne correspond à vos filtres ou à votre recherche.</p>
+              </div>
+            }
+          </div>
+
+          <!-- Support Tickets form dialog for Client -->
+          @if (app.api.currentUser(); as user) {
+            <hr class="border-slate-100" />
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 text-left">
+              <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-1">Passer une réclamation / Contacter l’aide</h3>
+                <p class="text-xs text-slate-500 font-medium">Parlez directement aux administrateurs si vous repérez des anomalies ou désirez un remboursement.</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-2.5">
+                  <input 
+                    [value]="app.ticketSubject()" 
+                    (input)="app.ticketSubject.set($any($event.target).value)" 
+                    placeholder="Sujet de votre message" 
+                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+                  <textarea 
+                    [value]="app.ticketMessage()" 
+                    (input)="app.ticketMessage.set($any($event.target).value)" 
+                    placeholder="Saisissez votre réclamation..." 
+                    rows="3"
+                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs"></textarea>
+                  <button 
+                    (click)="app.createSupportTicket()"
+                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg border-0 cursor-pointer leading-none">
+                    Envoyer le Ticket
+                  </button>
+                </div>
+
+                <div class="space-y-2.5 max-h-56 overflow-y-auto">
+                  @for (t of app.tickets(); track t.id) {
+                    <div class="border border-slate-150 p-2.5 rounded-lg text-xs bg-slate-50/50 text-left">
+                      <div class="flex justify-between items-center bg-slate-101 p-1.5 rounded border border-slate-200 bg-white">
+                        <strong class="font-bold">{{ t.subject }}</strong>
+                        <span class="text-[9px] uppercase font-bold" [class]="t.status === 'open'?'text-amber-700':'text-slate-500'">{{ t.status }}</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 italic mt-1 bg-white p-1 rounded font-medium">"{{ t.message }}"</p>
+                      @if (t.replies.length) {
+                        <div class="pl-2 border-l border-slate-200 text-[10px] text-indigo-700 font-medium mt-1">Admin: {{ t.replies[0].message }}</div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+
+      } <!-- End of clientCurrentTab() === 'browse' -->
+
+      @if (app.api.currentUser() && app.clientCurrentTab() === 'orders') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Suivi & Historique de Vos Commandes</h3>
+            <p class="text-xs text-slate-500 font-medium">Consultez le statut de préparation, de transport et téléchargez vos factures PDF certifiées.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 font-sans text-left">
+            @for (ord of app.orders(); track ord.id) {
+              <div class="border border-slate-200 p-5 rounded-2xl space-y-4 hover:shadow-sm transition-all text-left bg-white">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 font-sans">
+                  <div class="text-left animate-pulse">
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none">Référence Commande</span>
+                    <strong class="font-mono text-sm text-slate-850 block mt-1">{{ ord.id }}</strong>
+                  </div>
+                  <div class="text-left md:text-right">
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none font-sans">Montant Total Payé</span>
+                    <strong class="text-indigo-750 text-lg font-black font-sans text-indigo-700 block mt-1">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</strong>
+                  </div>
+                </div>
+
+                <!-- Live Status Flow Indicators -->
+                <div class="grid grid-cols-4 gap-2 text-center pt-2 font-sans select-none">
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'pending' ? 'bg-amber-500 animate-ping':'bg-amber-500'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'pending' ? 'text-amber-600':'text-slate-400'">1. En Attente</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'preparing' ? 'bg-blue-500 animate-ping':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'preparing' ? 'text-blue-500':'text-slate-400'">2. Préparation</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'transit' ? 'bg-indigo-500 animate-ping':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'transit' ? 'text-indigo-500':'text-slate-400'">3. En Route</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full" [class]="ord.status === 'delivered' ? 'bg-emerald-500':'bg-slate-200'"></span>
+                    <span class="text-[11px] font-bold" [class]="ord.status === 'delivered' ? 'text-emerald-600 font-extrabold':'text-slate-400'">4. Livré</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap md:flex-nowrap items-center justify-between text-xs text-slate-505 border-t border-slate-100 pt-3 gap-3 font-sans text-slate-500">
+                  <div class="flex items-center gap-2 text-left">
+                    <mat-icon class="text-sm text-slate-400">local_shipping</mat-icon>
+                    <span>Livreur Assigné : <strong class="text-slate-800">{{ ord.driverName }}</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2 text-left">
+                    <mat-icon class="text-sm text-slate-400">place</mat-icon>
+                    <span>Adresse : <strong class="text-slate-800">{{ ord.deliveryAddress }}</strong></span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded text-[11px] font-extrabold uppercase tracking-wider select-none" [class]="ord.status === 'cancelled'?'bg-rose-50 text-rose-700':'bg-indigo-50 text-indigo-700'">
+                    {{ ord.status }}
+                  </span>
+                </div>
+
+                <div class="flex gap-2">
+                  <a 
+                    [href]="ord.invoiceUrl" 
+                    target="_blank" 
+                    class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl inline-flex items-center gap-2 w-full justify-center transition-all">
+                    <mat-icon class="text-sm">download</mat-icon> Télécharger Facture PDF Officielle
+                  </a>
+                  
+                  @if (ord.status === 'pending') {
+                    <button 
+                      (click)="app.cancelOrder(ord.id)"
+                      class="hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold px-4 py-2.5 rounded-xl transition-all whitespace-nowrap bg-transparent cursor-pointer">
+                      Annuler la Commande
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="py-16 text-center border-2 border-dashed border-slate-150 rounded-2xl flex flex-col items-center gap-2 font-sans bg-white">
+                <mat-icon class="text-3xl text-slate-300">receipt_long</mat-icon>
+                <p class="text-xs text-slate-400 italic font-medium">Vous n'avez pas encore passé de commande. Commandez des produits frais dès aujourd'hui !</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (app.api.currentUser() && app.clientCurrentTab() === 'support') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Centre d'Assistance / Réclamations</h3>
+            <p class="text-xs text-slate-500 font-medium">Contactez directement les administrateurs de la plateforme pour signaler une commande défectueuse ou demander un remboursement.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
+            <div class="md:col-span-1 flex flex-col gap-3 justify-start">
+              <strong class="text-xs font-bold uppercase text-slate-400 select-none text-left">Ouvrir une Nouvelle Réclamation</strong>
+              
+              <input 
+                [value]="app.ticketSubject()" 
+                (input)="app.ticketSubject.set($any($event.target).value)" 
+                placeholder="Ex: Facture erronée, Livraison incomplète" 
+                class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs" />
+              
+              <textarea 
+                [value]="app.ticketMessage()" 
+                (input)="app.ticketMessage.set($any($event.target).value)" 
+                placeholder="Veuillez détailler le motif précis de votre réclamation..." 
+                rows="4"
+                class="bg-white border border-slate-300 px-3 py-2 rounded-lg text-xs"></textarea>
+              
+              <button 
+                (click)="app.createSupportTicket()"
+                class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg leading-none border-0 cursor-pointer">
+                Envoyer le Ticket
+              </button>
+            </div>
+
+            <div class="md:col-span-2 border-l border-slate-100 pl-4 space-y-4">
+              <strong class="text-xs font-bold uppercase text-slate-400 block mb-2 select-none text-left">Historique de vos requêtes d'aide</strong>
+              
+              @for (t of app.tickets(); track t.id) {
+                <div class="border border-slate-150 p-4 rounded-xl hover:bg-slate-50/50 text-left bg-white">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="text-left">
+                      <h4 class="text-sm font-bold text-slate-800">{{ t.subject }}</h4>
+                      <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">Créé le {{ t.createdAt | date: 'short' }}</span>
+                    </div>
+                    <span [class]="t.status === 'open' ? 'text-amber-700 bg-amber-50 px-2 py-0.5 text-[10px] font-bold rounded select-none' : 'text-slate-600 bg-slate-100 px-2 py-0.5 text-[10px] font-bold rounded select-none'">
+                      {{ t.status === 'open' ? 'OUVERT':'RÉSOLU' }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-601 italic bg-white p-2.5 rounded border border-slate-100 mb-3 font-medium text-slate-500">"{{ t.message }}"</p>
+                  
+                  @if (t.replies.length) {
+                    <div class="pl-3 border-l-2 border-slate-200 mt-1 space-y-1">
+                      <span class="text-[10px] uppercase font-bold text-slate-400 select-none">Réponse Support client:</span>
+                      <div class="text-[11px] text-slate-700">
+                        <strong class="text-indigo-600 font-bold">Admin :</strong> {{ t.replies[0].message }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @empty {
+                <div class="border border-dashed py-8 border-slate-200 text-center text-xs text-slate-400 italic bg-white rounded-xl">
+                  Aucun ticket ou réclamation en cours.
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (app.api.currentUser() && app.clientCurrentTab() === 'profile') {
+        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm text-left space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-900">Mon Compte Client Personnel</h3>
+            <p class="text-xs text-slate-500">Gérez vos informations de livraison et vos coordonnées de facturation pour vos paniers.</p>
+          </div>
+
+          <!-- General Rules Card -->
+          <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex items-start gap-3">
+            <mat-icon class="text-emerald-700 font-bold">lock_outline</mat-icon>
+            <div class="text-xs text-emerald-955 space-y-1 font-sans">
+              <p class="font-bold">🛒 Qui peut consulter et modifier ce compte ?</p>
+              <p>• <strong>Consultation :</strong> Consultable par l'administrateur (pour vous assister) et par vos coursiers lors de la livraison (votre adresse et votre nom de contact).</p>
+              <p>• <strong>Modification :</strong> Strictement réservé à vous en toute autonomie.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans text-left bg-white">
+            <div class="flex flex-col gap-1.5 text-xs text-left">
+              <span class="font-bold text-slate-500">Nom Complet</span>
+              <input 
+                [value]="app.profileName()" 
+                (input)="app.profileName.set($any($event.target).value)"
+                placeholder="Nom complet" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-name" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left font-sans">
+              <span class="font-bold text-slate-500">Adresse E-mail</span>
+              <input 
+                [value]="app.profileEmail()" 
+                (input)="app.profileEmail.set($any($event.target).value)"
+                placeholder="Email de facturation" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-email" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+              <span class="font-bold text-slate-500">Adresse de Livraison Par Défaut</span>
+              <input 
+                [value]="app.profileAddress()" 
+                (input)="app.profileAddress.set($any($event.target).value)"
+                placeholder="Saisissez votre rue, numéro, code postal..." 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-address" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+              <span class="font-bold text-slate-500">Téléphone de Contact Pour le Livreur</span>
+              <input 
+                [value]="app.profilePhone()" 
+                (input)="app.profilePhone.set($any($event.target).value)"
+                placeholder="Ex : +216 99 999 999" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-phone" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 text-xs text-left col-span-1 md:col-span-2 font-sans">
+              <span class="font-bold text-slate-500">Modifier le Mot de Passe (Laisser vide si inchangé)</span>
+              <input 
+                type="password"
+                [value]="app.profilePassword()" 
+                (input)="app.profilePassword.set($any($event.target).value)"
+                placeholder="Nouveau mot de passe" 
+                class="bg-white border border-slate-300 px-3 py-2.5 rounded-xl text-xs font-medium" 
+                id="profile-client-password" />
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4 border-t">
+            <button 
+              (click)="app.updateUserProfile()"
+              class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 border-0 cursor-pointer">
+              <mat-icon class="text-xs font-bold">save</mat-icon> Enregistrer et Mettre à jour mon profil
+            </button>
+          </div>
+        </div>
+      }
+
+    }

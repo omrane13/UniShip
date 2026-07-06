@@ -1,0 +1,476 @@
+<!-- Top Live Role Playground Switcher Banner -->
+@if (api.currentUser()?.role === 'admin') {
+  <div class="bg-slate-900 text-slate-100 py-3 px-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-medium tracking-wide">
+          <strong>Mode Bac à Sandbox (Playground) :</strong> Basculez instantanément de rôle pour tester le flux complet
+        </span>
+      </div>
+      
+      <div class="flex flex-wrap gap-1.5">
+        <button 
+          (click)="selectPlaygroundUser('visitor')"
+          [class]="!api.currentUser() ? 'bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0'"
+          id="btn-role-visitor">
+          🛒 Mode Visiteur
+        </button>
+
+        <button 
+          (click)="selectPlaygroundUser('client')"
+          [class]="api.currentUser()?.role === 'client' ? 'bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0'"
+          id="btn-role-client">
+          🛒 Client (Alice)
+        </button>
+
+        <button 
+          (click)="selectPlaygroundUser('company')"
+          [class]="api.currentUser()?.role === 'company' ? 'bg-blue-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0'"
+          id="btn-role-company">
+          🏢 Partenaire (EcoShop)
+        </button>
+
+        <button 
+          (click)="selectPlaygroundUser('driver')"
+          [class]="api.currentUser()?.role === 'driver' ? 'bg-violet-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0'"
+          id="btn-role-driver">
+          🚚 Livreur (Lucas)
+        </button>
+
+        <button 
+          (click)="selectPlaygroundUser('admin')"
+          [class]="api.currentUser()?.role === 'admin' ? 'bg-red-500 text-slate-100 font-bold px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs hover:cursor-pointer border-0'"
+          id="btn-role-admin">
+          👑 Administrateur
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Main App Hub Shell -->
+<div class="min-h-screen bg-slate-50 flex flex-col antialiased">
+  
+  <!-- Main Header with Brand and Active Session Badge -->
+  <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-950 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center">
+          <mat-icon class="text-white">hub</mat-icon>
+        </div>
+        <div class="text-left">
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900 leading-none mb-1">UNISHIP</h1>
+          <p class="text-xs text-slate-500 font-medium">Plateforme Logistique Intégrée &amp; E-Commerce de Proximité</p>
+        </div>
+      </div>
+
+      <!-- User Information Banner / Login Dialog Switcher -->
+      <div class="flex items-center gap-3">
+        @if (api.currentUser(); as user) {
+          <!-- Logged-in metadata card -->
+          <div class="flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-xl py-2 px-4 shadow-sm">
+            <span class="flex h-2.5 w-2.5 rounded-full" [style.backgroundColor]="user.color || '#64748b'"></span>
+            <div class="text-left font-sans">
+              <div class="text-sm font-bold text-slate-800 flex items-center gap-1.5 font-sans leading-none">
+                {{ user.name }}
+                @if (user.role === 'admin') {
+                  <span class="bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">ADMIN</span>
+                } @else if (user.role === 'company') {
+                  <span class="bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md font-sans">ENTREPRISE</span>
+                } @else if (user.role === 'driver') {
+                  <span class="bg-violet-100 text-violet-700 border border-violet-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">LIVREUR</span>
+                } @else if (user.role === 'client') {
+                  <span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">CLIENT</span>
+                } @else if (user.role === 'collaborator') {
+                  <span class="bg-cyan-100 text-cyan-700 border border-cyan-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md font-sans">COLLABORATEUR</span>
+                }
+              </div>
+              <p class="text-[11px] text-slate-500 leading-tight mt-1 font-mono font-medium">{{ user.email }}</p>
+            </div>
+            
+            <button 
+              (click)="triggerLogout()" 
+              class="ml-2 bg-transparent hover:bg-red-50 text-red-500 p-1.5 rounded-lg transition-colors border-0 cursor-pointer"
+              title="Déconnexion"
+              id="btn-logout">
+              <mat-icon class="text-sm">power_settings_new</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <!-- Simple login prompt badge -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-505 font-medium text-slate-500 font-sans">Non authentifié</span>
+            <button 
+              (click)="activeAuthMode.set('login')" 
+              class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2 border-0 cursor-pointer"
+              id="btn-open-login">
+              <mat-icon class="text-sm">login</mat-icon> S'authentifier
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Operation Messages -->
+  <div class="max-w-7xl w-full mx-auto px-6 mt-4">
+    @if (errorMessage()) {
+      <div class="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2.5">
+          <mat-icon class="text-rose-600">error_outline</mat-icon>
+          <span class="text-sm font-medium">{{ errorMessage() }}</span>
+        </div>
+        <button (click)="errorMessage.set('')" class="text-rose-400 hover:text-rose-650 bg-transparent border-0 cursor-pointer">
+          <mat-icon class="text-xs">close</mat-icon>
+        </button>
+      </div>
+    }
+    @if (successMessage()) {
+      <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2.5">
+          <mat-icon class="text-emerald-600">check_circle_outline</mat-icon>
+          <span class="text-sm font-medium">{{ successMessage() }}</span>
+        </div>
+        <button (click)="successMessage.set('')" class="text-emerald-400 hover:text-emerald-650 bg-transparent border-0 cursor-pointer">
+          <mat-icon class="text-xs">close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Loading Overlay indicator -->
+  @if (loading()) {
+    <div class="fixed inset-0 bg-slate-101/50 backdrop-blur-xs flex items-center justify-center z-[100] bg-slate-900/10">
+      <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-sm font-bold text-slate-705">Traitement en cours...</span>
+      </div>
+    </div>
+  }
+
+  <!-- APP CONTENT ROUTING -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-4">
+
+    <!-- Case A: ADMIN INTERFACE -->
+    @if (api.currentUser()?.role === 'admin') {
+      <app-admin-dashboard [app]="this"></app-admin-dashboard>
+    }
+
+    <!-- Case B: COMPANY DASHBOARD -->
+    @if (api.currentUser()?.role === 'company' || api.currentUser()?.role === 'collaborator') {
+      <app-company-dashboard [app]="this"></app-company-dashboard>
+    }
+
+    <!-- Case C: LIVREUR CONSOLE -->
+    @if (api.currentUser()?.role === 'driver') {
+      <app-driver-console [app]="this"></app-driver-console>
+    }
+
+    <!-- Case D: CLIENT HUB & BROWSING CATALOGUE AND BACKOFFICE COEXISTENCE -->
+    @if (!api.currentUser() || api.currentUser()?.role === 'client') {
+      <app-client-hub [app]="this"></app-client-hub>
+    }
+
+  </main>
+
+  <!-- Footer Info -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© 2026 UniShip - Gestion Logistique &amp; E-Commerce Tunisien. Tous droits réservés.</p>
+      <div class="flex gap-4">
+        <span class="hover:underline hover:cursor-pointer">Conditions Générales</span>
+        <span>•</span>
+        <span class="hover:underline hover:cursor-pointer">Support & Ticket</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Simulated Emails mailbox widget -->
+  <div class="fixed bottom-6 right-6 z-40 select-none">
+    <button 
+      (click)="showEmailsInbox.set(!showEmailsInbox()); loadSimulatedEmails()"
+      class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-5 py-3 shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-350 border-0 active:scale-95 leading-none">
+      <mat-icon class="text-xs">mail_outline</mat-icon>
+      <span class="text-xs font-bold font-sans tracking-wide">Messagerie Simulée</span>
+      
+      <!-- Counter of unread/received emails -->
+      @if (simulatedEmails().length > 0) {
+        <span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full border border-white leading-none">
+          {{ simulatedEmails().length }}
+        </span>
+      }
+    </button>
+  </div>
+
+  <!-- Simulated Email Inbox drawer modal -->
+  @if (showEmailsInbox()) {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-end z-50">
+      <div class="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col border-l border-slate-100 transition-all duration-300">
+        
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-150 flex items-center justify-between bg-slate-900 text-white">
+          <div class="flex items-center gap-2 text-left">
+            <mat-icon class="text-amber-400">mail</mat-icon>
+            <div class="text-left">
+              <h3 class="font-extrabold text-sm tracking-wide">Boîte de Réception Simulée</h3>
+              <p class="text-[10px] text-slate-300 font-medium">Emails reçus par les utilisateurs (notifications, authentifications)</p>
+            </div>
+          </div>
+          <button (click)="showEmailsInbox.set(false)" class="text-slate-400 hover:text-white transition-colors cursor-pointer bg-transparent border-0">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Body content split into two: active email details, or list of emails -->
+        <div class="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-3">
+          
+          @if (activeEmailDetails()) {
+            <!-- View Selected Email Details -->
+            <button (click)="activeEmailDetails.set(null)" class="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:underline mb-2 cursor-pointer bg-transparent border-0 text-left font-sans">
+              <mat-icon class="text-sm">arrow_back</mat-icon> Retour à la liste
+            </button>
+
+            <div class="bg-white rounded-2xl p-5 border border-slate-150 shadow-sm space-y-4 text-left">
+              <div class="border-b border-slate-100 pb-3 space-y-1">
+                <div class="text-xs text-slate-400 font-mono">Reçu le : {{ activeEmailDetails()?.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}</div>
+                <div class="text-[11px] font-bold text-slate-700">Vers : <span class="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-700 font-mono">{{ activeEmailDetails()?.to }}</span></div>
+                <h4 class="text-sm font-extrabold text-slate-900 mt-2">{{ activeEmailDetails()?.subject }}</h4>
+              </div>
+
+              <div class="text-xs text-slate-600 font-sans leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-left">
+                {{ activeEmailDetails()?.body }}
+              </div>
+              
+              <div class="bg-amber-50 p-3 rounded-xl border border-amber-200/50 text-slate-700 space-y-1 text-left">
+                <div class="text-[11px] font-bold text-amber-900 flex items-center gap-1 mb-1 font-sans">
+                  <mat-icon class="text-xs text-amber-600">info</mat-icon>
+                  Comment tester ?
+                </div>
+                <p class="text-[10px] text-amber-800 leading-snug font-medium">
+                  Copiez le mot de passe généré automatiquement ci-dessus, déconnectez-vous, puis reconnectez-vous avec l'adresse e-mail correspondante et ce mot de passe.
+                </p>
+              </div>
+            </div>
+          } @else {
+            <!-- List of All Emails -->
+            @if (simulatedEmails().length === 0) {
+              <div class="text-center py-16 space-y-2 select-none">
+                <div class="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                  <mat-icon>mail_outline</mat-icon>
+                </div>
+                <h4 class="text-xs font-bold text-slate-700">Aucun e-mail reçu</h4>
+                <p class="text-[10px] text-slate-400 max-w-xs mx-auto">Activez un collaborateur ou configurez un compte pour observer les codes de connexion générés.</p>
+              </div>
+            } @else {
+              <div class="grid gap-2 text-left">
+                @for (email of simulatedEmails(); track email.id) {
+                  <button 
+                    type="button"
+                    (click)="activeEmailDetails.set(email); markEmailAsRead(email.id)"
+                    class="w-full text-left bg-white hover:bg-slate-100 cursor-pointer rounded-xl p-3.5 border border-slate-150 transition-all flex flex-col gap-1.5 relative border-l-4 block font-sans"
+                    [class.border-l-indigo-600]="!email.read"
+                    [class.border-l-slate-200]="email.read">
+                    
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 w-full mb-1">
+                      <span class="font-mono bg-slate-105 text-slate-600 px-1.5 py-0.5 rounded bg-slate-100 font-bold">{{ email.to }}</span>
+                      <span>{{ email.createdAt | date:'HH:mm:ss' }}</span>
+                    </div>
+
+                    <div class="text-xs font-extrabold text-slate-800 line-clamp-1">
+                      {{ email.subject }}
+                    </div>
+
+                    <div class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                      {{ email.body }}
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-slate-50 border-t border-slate-100 text-center text-[10px] text-slate-400">
+          Système de Messagerie Simulée UniShip • Sandbox AI Studio
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Login Forms Box Dialog Modal -->
+  @if (!api.currentUser() && activeAuthMode() === 'login') {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="flex justify-between items-start mb-4 border-b pb-3">
+          <div class="text-left">
+            <h3 class="text-base font-extrabold text-slate-900">S'authentifier à la Plateforme</h3>
+            <p class="text-xs text-slate-500 leading-normal font-medium">Saisissez l'email d'un compte validé ou utilisez les raccourcis de test rapide ci-dessous.</p>
+          </div>
+          <button (click)="activeAuthMode.set('login')" class="text-slate-405 hover:text-slate-600 bg-transparent border-0">
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex flex-col gap-1 text-xs text-left">
+            <span class="font-bold text-slate-550 mb-1 font-sans">Adresse E-mail</span>
+            <input 
+              [value]="manualEmail()" 
+              (input)="manualEmail.set($any($event.target).value)"
+              placeholder="Ex: contact&#64;ecoshop.com" 
+              class="border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50" />
+          </div>
+
+          <div class="flex flex-col gap-1 text-xs font-sans text-left">
+            <span class="font-bold text-slate-550 mb-1 font-sans">Mot de Passe</span>
+            <input 
+              type="password" 
+              [value]="manualPassword()" 
+              (input)="manualPassword.set($any($event.target).value)"
+              placeholder="Mot de passe secret" 
+              class="border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50" />
+          </div>
+
+          <button 
+            (click)="handleManualLogin()"
+            class="bg-slate-950 text-white font-extrabold text-xs w-full py-2.5 rounded-xl hover:bg-slate-800 transition-all shadow shadow-slate-950/20 border-0 cursor-pointer">
+            Se Connecter Réellement
+          </button>
+
+          <div class="text-center text-xs text-slate-400 select-none">
+            <span>Pas de compte ? </span>
+            <button (click)="activeAuthMode.set('register')" class="text-indigo-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">S'inscrire</button>
+          </div>
+
+          <!-- Quick log hints -->
+          <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100/60 text-xs">
+            <strong class="text-indigo-805 text-xs block mb-1 font-sans text-indigo-800">Compte Sandbox prédéfinis</strong>
+            <p class="font-sans">Admin : <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">admin&#64;market.com</span> <span class="text-[10px] text-slate-500 font-bold">(admin123)</span></p>
+            <p class="mt-1 font-sans">Entreprise : <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">contact&#64;ecoshop.com</span> <span class="text-[10px] text-slate-500 font-bold">(ecoshop123)</span></p>
+            <p class="mt-1 font-sans">Client : <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">alice&#64;gmail.com</span> <span class="text-[10px] text-slate-500 font-bold">(alice123)</span></p>
+            <p class="mt-1 font-sans">Livreur : <span class="font-mono bg-white px-1 py-0.5 rounded border border-indigo-200">lucas&#64;delivery.com</span> <span class="text-[10px] text-slate-500 font-bold">(lucas123)</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Registration modal form -->
+  @if (!api.currentUser() && activeAuthMode() === 'register') {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left">
+        
+        <div class="flex justify-between items-start mb-4 border-b pb-3">
+          <div class="text-left">
+            <h3 class="text-base font-extrabold text-slate-900">Nouveau Dossier d'Inscription</h3>
+            <p class="text-xs text-slate-500 font-medium">L'inscription d'une entreprise ou d'un livreur nécessite une activation par l'administrateur.</p>
+          </div>
+        </div>
+
+        @if (regFeedback()) {
+          <p class="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded mb-3">{{ regFeedback() }}</p>
+        }
+
+        <div class="space-y-3.5">
+          <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+            <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Nom ou Raison Sociale *</span>
+            <input 
+              [value]="regName()" 
+              (input)="regName.set($any($event.target).value)"
+              placeholder="Ex: Alice Dubois / Pâtisserie Fleur" 
+              class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+          </div>
+
+          <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+            <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Adresse Email *</span>
+            <input 
+              [value]="regEmail()" 
+              (input)="regEmail.set($any($event.target).value)" 
+              placeholder="Ex: contact&#64;pains.com" 
+              class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+          </div>
+
+          <div class="flex flex-col gap-1 text-xs text-slate-500 font-sans text-left">
+            <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Mot de passe *</span>
+            <input 
+              type="password"
+              [value]="regPassword()" 
+              (input)="regPassword.set($any($event.target).value)" 
+              placeholder="Créez votre mot de passe secret" 
+              class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+              <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Type d'Acteur *</span>
+              <select 
+                [value]="regRole()" 
+                (change)="setRegRole($any($event.target).value)"
+                class="border border-slate-200 px-3 py-2.5 rounded-lg text-xs bg-white">
+                <option value="client">🛒 Client</option>
+                <option value="company">🏢 Entreprise Partenaire</option>
+                <option value="driver">🚚 Livreur Indépendant</option>
+              </select>
+            </div>
+
+            <!-- Conditional Color Selection for enterprise during registration -->
+            @if (regRole() === 'company') {
+              <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+                <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Couleur de marque</span>
+                <div class="flex gap-1.5 items-center">
+                  <input 
+                    type="color" 
+                    [value]="regColor()" 
+                    (input)="regColor.set($any($event.target).value)" 
+                    class="h-8 w-12 border rounded cursor-pointer bg-transparent" />
+                  <button 
+                    type="button"
+                    (click)="regColor.set(generateRandomColor())"
+                    class="bg-slate-100 hover:bg-slate-200 p-1.5 rounded flex items-center justify-center h-8 w-8 text-slate-700 border-0 cursor-pointer"
+                    title="Suggérer une autre couleur de marque">
+                    <mat-icon class="text-xs">cached</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-left">
+            <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+              <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Téléphone</span>
+              <input 
+                [value]="regPhone()" 
+                (input)="regPhone.set($any($event.target).value)"
+                placeholder="+216 ..." 
+                class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+            </div>
+            <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
+              <span class="font-bold text-slate-400 uppercase text-[9px] mb-1 font-sans text-left">Adresse de service</span>
+              <input 
+                [value]="regAddress()" 
+                (input)="regAddress.set($any($event.target).value)"
+                placeholder="Ex: Tunis, Sfax" 
+                class="border border-slate-200 px-3 py-2 rounded-lg text-xs" />
+            </div>
+          </div>
+
+          <button 
+            (click)="handleRegistration()"
+            class="bg-slate-900 text-white font-bold text-xs w-full py-2.5 rounded-lg hover:bg-slate-800 transition-all leading-none mt-2 border-0 cursor-pointer">
+            Créer et soumettre mon Dossier Inscription
+          </button>
+
+          <div class="text-center text-xs text-slate-400 pt-1 select-none">
+            <span>Déjà enregistré ? </span>
+            <button (click)="activeAuthMode.set('login')" class="text-indigo-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Se Connecter</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

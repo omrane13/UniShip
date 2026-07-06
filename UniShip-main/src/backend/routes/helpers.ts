@@ -1,0 +1,132 @@
+import { Request } from 'express';
+import { dbStore, User, Order } from '../store';
+import { UserRepository } from '../db/repository';
+
+// Helper to get the actual company owner ID (since collaborators act on behalf of their parent company)
+export function getCompanyOwnerId(u: User): string {
+  return u.role === 'collaborator' && u.companyId ? u.companyId : u.id;
+}
+
+
+// Helper to check standard tokens or custom header for simulating session roles
+export function getCurrentUser(req: Request): User | undefined {
+  const userId = req.headers['x-user-id'] || 'usr_client1'; // default backup
+  let u = dbStore.users.find(u => u.id === userId);
+
+  if (!u) {
+    // Check if the user is a collaborator (subaccount)
+    const sub = dbStore.subAccounts.find(s => s.id === userId);
+    if (sub) {
+      const parentCompany = dbStore.users.find(usr => usr.id === sub.companyId);
+      u = {
+        id: sub.id,
+        name: sub.name,
+        email: sub.email,
+        password: sub.password || '',
+        role: 'collaborator',
+        status: sub.status || 'active',
+        color: parentCompany?.color || '#3b82f6',
+        companyId: sub.companyId,
+        permissions: sub.permissions,
+        phone: parentCompany?.phone,
+        address: parentCompany?.address,
+      };
+    }
+  }
+
+  if (u && u.role === 'driver') {
+    const drv = dbStore.drivers.find(d => d.userId === u.id);
+    if (drv) {
+      u.baseFee = drv.baseFee;
+      u.perKmFee = drv.perKmFee;
+      u.zone = drv.zone;
+      u.driverStatus = drv.status;
+      u.photo = drv.photo;
+      u.rating = drv.rating;
+    }
+  }
+  return u;
+}
+
+// Automated notification engine for order status changes
+export async function notifyOrderStatusChange(o: Order, oldStatus: string, newStatus: string): Promise<void> {
+  // 1. Client notification
+  let clientSubject = '';
+  let clientBody = '';
+
+  const formattedItems = o.items.map(item => `- ${item.productName} (x${item.quantity}) : ${(item.price * item.quantity).toFixed(2)} DTN`).join('\n');
+
+  switch (newStatus) {
+    case 'accepted':
+      clientSubject = `Votre commande #${o.id} a été acceptée par un livreur ! 🚴`;
+      clientBody = `Bonjour ${o.clientName},\n\nBonne nouvelle ! Le livreur ${o.driverName} a accepté votre commande.\n\nRécapitulatif de la commande :\n${formattedItems}\n\nFrais de livraison : ${o.driverFee.toFixed(2)} DTN\nTotal général : ${(o.total + o.driverFee).toFixed(2)} DTN\nMode de paiement : ${o.paymentMethod.toUpperCase()}\n\nNous vous tiendrons informé des prochaines étapes !\n\nCordialement,\nL'équipe UniShip.`;
+      break;
+
+    case 'preparing':
+      clientSubject = `Votre commande #${o.id} est en préparation ! 📦`;
+      clientBody = `Bonjour ${o.clientName},\n\nVotre commande #${o.id} est actuellement en cours de préparation par nos marchands partenaires.\n\nElle sera remise très prochainement au livreur ${o.driverName}.\n\nMerci de votre confiance,\nL'équipe UniShip.`;
+      break;
+
+    case 'transit':
+      clientSubject = `Votre commande #${o.id} est en route ! 🚚`;
+      clientBody = `Bonjour ${o.clientName},\n\nVotre livreur ${o.driverName} a récupéré votre colis auprès de nos partenaires. Il est en chemin vers votre adresse de livraison :\n👉 ${o.deliveryAddress}\n\nSoyez prêt(e) pour la livraison !\n\nCordialement,\nL'équipe UniShip.`;
+      break;
+
+    case 'delivered':
+      clientSubject = `Commande #${o.id} livrée ! 🎉 Merci de votre confiance`;
+      clientBody = `Bonjour ${o.clientName},\n\nVotre commande #${o.id} a été confirmée comme livrée avec succès par votre livreur ${o.driverName} !\n\nVoici le montant réglé :\n- Total articles : ${o.total.toFixed(2)} DTN\n- Frais de livraison : ${o.driverFee.toFixed(2)} DTN\n- Total payé : ${(o.total + o.driverFee).toFixed(2)} DTN (${o.paymentMethod.toUpperCase()})\n\nVous pouvez télécharger ou imprimer votre facture officielle ici : ${o.invoiceUrl || ''}\n\nÀ très bientôt sur UniShip !\nL'équipe UniShip.`;
+      break;
+
+    case 'cancelled':
+      clientSubject = `Votre commande #${o.id} a été annulée ❌`;
+      clientBody = `Bonjour ${o.clientName},\n\nNous sommes au regret de vous informer que votre commande #${o.id} a été annulée.\n\nSi vous avez déjà été débité(e) en ligne, le remboursement total de ${(o.total + o.driverFee).toFixed(2)} DTN sera traité sous les plus brefs délais.\n\nPour toute question, n'hésitez pas à ouvrir un ticket de support dans votre espace client.\n\nCordialement,\nL'équipe UniShip.`;
+      break;
+    
+    default:
+      break;
+  }
+
+  if (clientSubject && clientBody && o.clientEmail) {
+    dbStore.sendEmail(o.clientEmail, clientSubject, clientBody);
+  }
+
+  // 2. Partner Companies notification
+  const distinctCompanyIds = Array.from(new Set(o.items.map(item => item.companyId)));
+  
+  for (const compId of distinctCompanyIds) {
+    const companyUser = await UserRepository.getById(compId);
+    if (companyUser && companyUser.email) {
+      const companyItems = o.items.filter(item => item.companyId === compId);
+      const companyItemsText = companyItems.map(item => `- ${item.productName} (x${item.quantity})`).join('\n');
+      const companyAmount = companyItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      let pSubject = '';
+      let pBody = '';
+
+      if (newStatus === 'delivered') {
+        pSubject = `🎉 Succès : Les produits de la commande #${o.id} ont été livrés !`;
+        pBody = `Bonjour ${companyUser.name},\n\nNous vous informons que les articles de la commande #${o.id} ont été livrés avec succès au client ${o.clientName}.\n\nVos articles vendus :\n${companyItemsText}\n\nMontant à créditer (hors commissions) : ${companyAmount.toFixed(2)} DTN\n\nMerci de votre précieuse collaboration !\nL'équipe UniShip.`;
+      } else if (newStatus === 'preparing') {
+        pSubject = `📦 Préparation requise : Commande #${o.id}`;
+        pBody = `Bonjour ${companyUser.name},\n\nLe client ${o.clientName} a passé commande de vos produits. Le statut de l'ordre est passé en PRÉPARATION.\n\nVeuillez préparer ces articles pour le livreur ${o.driverName} :\n${companyItemsText}\n\nMerci,\nL'équipe UniShip.`;
+      } else if (newStatus === 'cancelled') {
+        pSubject = `❌ Annulation : Commande #${o.id}`;
+        pBody = `Bonjour ${companyUser.name},\n\nLa commande #${o.id} a été annulée. Les produits suivants ont été réintégrés dans votre stock actif :\n${companyItemsText}\n\nCordialement,\nL'équipe UniShip.`;
+      }
+
+      if (pSubject && pBody) {
+        dbStore.sendEmail(companyUser.email, pSubject, pBody);
+      }
+    }
+  }
+
+  // 3. Admin Notification
+  if (newStatus === 'delivered') {
+    const adminEmail = 'admin@market.com';
+    const adminSubject = `📢 Notification Admin : Commande #${o.id} Livrée`;
+    const adminBody = `Bonjour l'administrateur UniShip,\n\nLa commande #${o.id} a été marquée comme livrée par le livreur ${o.driverName}.\n\n- Client : ${o.clientName} (${o.clientEmail})\n- Total Articles : ${o.total.toFixed(2)} DTN\n- Frais Livreur : ${o.driverFee.toFixed(2)} DTN\n- Mode de Paiement : ${o.paymentMethod.toUpperCase()}\n\nLes tableaux de bord et rapports financiers ont été actualisés.\n\nSystème UniShip Automatisation.`;
+    
+    dbStore.sendEmail(adminEmail, adminSubject, adminBody);
+  }
+}
+
