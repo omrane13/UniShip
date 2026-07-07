@@ -1,5 +1,6 @@
 import { isMongoEnabled } from './connection';
 import { MongoUser } from './models/user';
+import { MongoCompany } from './models/company';
 import { MongoProduct } from './models/product';
 import { MongoOrder } from './models/order';
 import { MongoDriver } from './models/driver';
@@ -9,7 +10,7 @@ import { MongoStockRequest } from './models/stock-request';
 import { MongoTicket } from './models/ticket';
 import { MongoAuditLog } from './models/audit-log';
 import { MongoSimulatedEmail } from './models/simulated-email';
-import { dbStore, User, Product, Order, Driver, SubAccount, Offer, StockRequest, SupportTicket, AuditLog, SimulatedEmail } from '../store';
+import { dbStore, User, Company, Product, Order, Driver, SubAccount, Offer, StockRequest, SupportTicket, AuditLog, SimulatedEmail } from '../store';
 
 /**
  * Professional Repository Layer — UniShip
@@ -109,6 +110,85 @@ export const UserRepository = {
     return idx !== -1;
   }
 };
+
+// ==========================================
+// COMPANY REPOSITORY
+// ==========================================
+export const CompanyRepository = {
+  async getAll(filters?: { status?: string }): Promise<Company[]> {
+    if (isMongoEnabled()) {
+      try {
+        const query: Record<string, unknown> = { role: 'company' };
+        if (filters?.status) query['status'] = filters.status;
+        const companies = await MongoCompany.find(query).sort({ createdAt: -1 });
+        return companies.map(c => c.toJSON() as Company);
+      } catch (err) {
+        console.error('[CompanyRepository] getAll fallback:', err);
+      }
+    }
+    // Fallback to memory
+    let list = [...dbStore.companies];
+    if (filters?.status) list = list.filter(c => c.status === filters.status);
+    return list;
+  },
+
+  async getById(id: string): Promise<Company | undefined> {
+    if (isMongoEnabled()) {
+      try {
+        const company = await MongoCompany.findOne({ id });
+        if (company) return company.toJSON() as Company;
+      } catch (err) {
+        console.error('[CompanyRepository] getById fallback:', err);
+      }
+    }
+    return dbStore.companies.find(c => c.id === id);
+  },
+
+  async create(company: Company): Promise<Company> {
+    dbStore.companies.push(company);
+    if (isMongoEnabled()) {
+      try {
+        const c = new MongoCompany(company);
+        await c.save();
+        return c.toJSON() as Company;
+      } catch (err) {
+        console.error('[CompanyRepository] create error:', err);
+      }
+    }
+    return company;
+  },
+
+  async update(id: string, updates: Partial<Company>): Promise<Company | undefined> {
+    const company = dbStore.companies.find(c => c.id === id);
+    if (company) Object.assign(company, updates);
+
+    if (isMongoEnabled()) {
+      try {
+        const updated = await MongoCompany.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        if (updated) return updated.toJSON() as Company;
+      } catch (err) {
+        console.error('[CompanyRepository] update error:', err);
+      }
+    }
+    return company;
+  },
+
+  async delete(id: string): Promise<boolean> {
+    const idx = dbStore.companies.findIndex(c => c.id === id);
+    if (idx !== -1) dbStore.companies.splice(idx, 1);
+
+    if (isMongoEnabled()) {
+      try {
+        const res = await MongoCompany.deleteOne({ id });
+        return res.deletedCount > 0;
+      } catch (err) {
+        console.error('[CompanyRepository] delete error:', err);
+      }
+    }
+    return idx !== -1;
+  }
+};
+
 
 // ==========================================
 // PRODUCT REPOSITORY

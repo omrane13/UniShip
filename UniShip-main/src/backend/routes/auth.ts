@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { User, SubAccount } from '../store';
 import { getCurrentUser } from './helpers';
-import { UserRepository, SubAccountRepository, AuditLogRepository, SimulatedEmailRepository, ProductRepository, DriverRepository } from '../db/repository';
+import { UserRepository, SubAccountRepository, AuditLogRepository, SimulatedEmailRepository, ProductRepository, DriverRepository, CompanyRepository } from '../db/repository';
 
 export const authRouter = Router();
 
@@ -228,13 +228,15 @@ authRouter.get('/users', async (req: Request, res: Response): Promise<void> => {
 
   const { role, status } = req.query;
   
-  // 1. Get standard users from repository
-  const list: User[] = await UserRepository.getAll();
+  // 1. Get standard users and companies from repository
+  const usersList = await UserRepository.getAll();
+  const companiesList = await CompanyRepository.getAll();
+  const list: User[] = [...usersList, ...(companiesList as any[])];
 
   // 2. Fetch and map subaccounts (collaborators) so the Admin can view & activate them!
   const subList: User[] = [];
   for (const s of await SubAccountRepository.getAll()) {
-    const parentCompany = await UserRepository.getById(s.companyId);
+    const parentCompany = await CompanyRepository.getById(s.companyId) || await UserRepository.getById(s.companyId);
     const compName = parentCompany ? parentCompany.name : 'Inconnu';
     subList.push({
       id: s.id,

@@ -5,7 +5,6 @@ import { ProductRepository, UserRepository, StockRequestRepository, AuditLogRepo
 
 export const productsRouter = Router();
 
-
 // ==========================================
 // 2. MODULE CATALOGUE & CONTRATS & PRODUITS
 // ==========================================

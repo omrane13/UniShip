@@ -11,6 +11,7 @@ import {join} from 'node:path';
 import { apiRouter } from './backend/routes';
 import { connectMongoDB } from './backend/db/connection';
 import { seedDatabase } from './backend/db/seed';
+import { migrateCompanies } from './backend/db/migrate-companies';
 
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -66,6 +67,7 @@ connectMongoDB()
   .then(async status => {
     if (status.isConnected) {
       console.log('💚 [MongoDB] Connexion active — les données seront persistées dans MongoDB Atlas.');
+      await migrateCompanies();
       await seedDatabase();
     } else if (!status.uriConfigured) {
       console.warn('🟡 [MongoDB] MONGODB_URI manquant — fonctionnement en mémoire uniquement.');
