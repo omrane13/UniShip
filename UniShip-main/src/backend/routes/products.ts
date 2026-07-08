@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Product, StockRequest } from '../store';
 import { getCurrentUser, getCompanyOwnerId } from './helpers';
-import { ProductRepository, UserRepository, StockRequestRepository, AuditLogRepository } from '../db/repository';
+import { ProductRepository, UserRepository, CompanyRepository, StockRequestRepository, AuditLogRepository } from '../db/repository';
 
 export const productsRouter = Router();
 
@@ -54,7 +54,7 @@ productsRouter.post('/products', async (req: Request, res: Response): Promise<vo
 
   const isCompOrCollab = u.role === 'company' || u.role === 'collaborator';
   const ownerId = isCompOrCollab ? getCompanyOwnerId(u) : 'usr_company1';
-  const ownerUser = await UserRepository.getById(ownerId);
+  const ownerUser = await CompanyRepository.getById(ownerId) || await UserRepository.getById(ownerId);
   const ownerName = ownerUser ? ownerUser.name : 'EcoShop Bio';
   const ownerColor = ownerUser ? (ownerUser.color || '#10b981') : '#10b981';
 
@@ -195,7 +195,7 @@ productsRouter.post('/products/:id/stock-request', async (req: Request, res: Res
   }
 
   const ownerId = getCompanyOwnerId(u);
-  const ownerUser = await UserRepository.getById(ownerId);
+  const ownerUser = await CompanyRepository.getById(ownerId) || await UserRepository.getById(ownerId);
   const ownerName = ownerUser ? ownerUser.name : u.name;
 
   const reqObj: StockRequest = {

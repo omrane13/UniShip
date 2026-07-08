@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { dbStore, User, Order } from '../store';
-import { UserRepository } from '../db/repository';
+import { UserRepository, CompanyRepository } from '../db/repository';
 
 // Helper to get the actual company owner ID (since collaborators act on behalf of their parent company)
 export function getCompanyOwnerId(u: User): string {
@@ -94,7 +94,7 @@ export async function notifyOrderStatusChange(o: Order, oldStatus: string, newSt
   const distinctCompanyIds = Array.from(new Set(o.items.map(item => item.companyId)));
   
   for (const compId of distinctCompanyIds) {
-    const companyUser = await UserRepository.getById(compId);
+    const companyUser = await CompanyRepository.getById(compId) || await UserRepository.getById(compId);
     if (companyUser && companyUser.email) {
       const companyItems = o.items.filter(item => item.companyId === compId);
       const companyItemsText = companyItems.map(item => `- ${item.productName} (x${item.quantity})`).join('\n');

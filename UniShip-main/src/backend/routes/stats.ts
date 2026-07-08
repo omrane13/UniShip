@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getCurrentUser, getCompanyOwnerId } from './helpers';
 import {
   UserRepository, ProductRepository, OrderRepository,
-  DriverRepository, AuditLogRepository, SimulatedEmailRepository, SubAccountRepository
+  DriverRepository, AuditLogRepository, SimulatedEmailRepository, SubAccountRepository, CompanyRepository
 } from '../db/repository';
 
 export const statsRouter = Router();
@@ -114,7 +114,8 @@ statsRouter.get('/simulated-emails', async (req: Request, res: Response): Promis
     return;
   }
 
-  const standardUser = await UserRepository.getById(userId);
+  let standardUser: any = await UserRepository.getById(userId);
+  if (!standardUser) standardUser = await CompanyRepository.getById(userId);
   if (standardUser) {
     if (standardUser.role === 'admin') {
       res.json(await SimulatedEmailRepository.getAll());

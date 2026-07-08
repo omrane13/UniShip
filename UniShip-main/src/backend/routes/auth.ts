@@ -19,7 +19,10 @@ authRouter.post('/auth/login', async (req: Request, res: Response): Promise<void
   }
 
   // Find user by email or subaccount email
-  let user = await UserRepository.getByEmail(email);
+  let user: any = await UserRepository.getByEmail(email);
+  if (!user) {
+    user = await CompanyRepository.getByEmail(email);
+  }
   let isCollab = false;
 
   if (!user) {
@@ -100,7 +103,7 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
     return;
   }
 
-  const existing = await UserRepository.getByEmail(email);
+  const existing = await UserRepository.getByEmail(email) || await CompanyRepository.getByEmail(email);
   if (existing) {
     res.status(400).json({ error: 'Cet email est déjà enregistré' });
     return;
@@ -129,7 +132,7 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
       return;
     }
     // Check if color is already used by an active company
-    const activeCompanies = await UserRepository.getAll('company', 'active');
+    const activeCompanies = await CompanyRepository.getAll({ status: 'active' });
     const conflict = activeCompanies.find(u => u.color && u.color.toLowerCase() === selectedColor.toLowerCase());
     if (conflict) {
       res.status(409).json({ error: `Cette couleur est déjà utilisée par ${conflict.name}` });
@@ -139,7 +142,11 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
     newUser.logo = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop';
   }
 
-  await UserRepository.create(newUser);
+  if (role === 'company') {
+    await CompanyRepository.create(newUser as any);
+  } else {
+    await UserRepository.create(newUser);
+  }
 
   // If driver registered, create driver profile in MongoDB too
   if (role === 'driver') {
@@ -271,7 +278,9 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
     return;
   }
 
-  const targetUser = await UserRepository.getById(req.params['id'] as string);
+  let targetUser: any = await UserRepository.getById(req.params['id'] as string);
+  if (!targetUser) targetUser = await CompanyRepository.getById(req.params['id'] as string);
+  
   if (!targetUser) {
     const targetSub = await SubAccountRepository.getById(req.params['id'] as string);
     if (targetSub) {
@@ -320,9 +329,8 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
     }
     const targetStatus = status || targetUser.status;
     if (targetStatus === 'active') {
-      const allUsers = await UserRepository.getAll();
-      const conflict = allUsers.find(u => 
-        u.role === 'company' && 
+      const allCompanies = await CompanyRepository.getAll();
+      const conflict = allCompanies.find(u => 
         u.status === 'active' && 
         u.id !== targetUser.id && 
         u.color && u.color.toLowerCase() === color.toLowerCase()
@@ -337,9 +345,8 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
   if (status === 'active' && targetUser.role === 'company') {
     const colorToCheck = color || targetUser.color;
     if (colorToCheck) {
-      const allUsers = await UserRepository.getAll();
-      const conflict = allUsers.find(u => 
-        u.role === 'company' && 
+      const allCompanies = await CompanyRepository.getAll();
+      const conflict = allCompanies.find(u => 
         u.status === 'active' && 
         u.id !== targetUser.id && 
         u.color && u.color.toLowerCase() === colorToCheck.toLowerCase()
@@ -403,7 +410,11 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
   }
 
   await AuditLogRepository.log(adminUser.id, adminUser.name, 'UPDATE_USER', `Mise à jour utilisateur ${targetUser.name} (${targetUser.id})`);
-  await UserRepository.create(targetUser);
+  if (targetUser.role === 'company') {
+    await CompanyRepository.update(targetUser.id, targetUser);
+  } else {
+    await UserRepository.update(targetUser.id, targetUser);
+  }
   res.json(targetUser);
 });
 
@@ -422,9 +433,8 @@ authRouter.put('/profile', async (req: Request, res: Response): Promise<void> =>
 
   // Validate or enforce email uniqueness if it's being modified
   if (email && email.toLowerCase() !== u.email.toLowerCase()) {
-    const allUsers = await UserRepository.getAll();
-    const emailConflict = allUsers.find(usr => usr.email.toLowerCase() === email.toLowerCase() && usr.id !== u.id);
-    if (emailConflict) {
+    const emailConflict = (await UserRepository.getByEmail(email)) || (await CompanyRepository.getByEmail(email));
+    if (emailConflict && emailConflict.id !== u.id) {
       res.status(400).json({ error: 'Cette adresse email est déjà utilisée.' });
       return;
     }
@@ -485,7 +495,7 @@ authRouter.put('/profile', async (req: Request, res: Response): Promise<void> =>
   await AuditLogRepository.log(u.id, u.name, 'UPDATE_PROFILE', `Mise à jour du profil personnel (Rôle: ${u.role})`);
 
   // Re-fetch decorated user to return updated status/driver attributes
-  const updatedUser = (await UserRepository.getById(u.id)) || u;
+  const updatedUser = (await UserRepository.getById(u.id)) || (await CompanyRepository.getById(u.id)) || u;
   if (updatedUser.role === 'driver') {
     const drv = await DriverRepository.getByUserId(updatedUser.id);
     if (drv) {
@@ -498,6 +508,10 @@ authRouter.put('/profile', async (req: Request, res: Response): Promise<void> =>
     }
   }
 
-  await UserRepository.create(updatedUser);
+  if (updatedUser.role === 'company') {
+    await CompanyRepository.update(updatedUser.id, updatedUser as any);
+  } else {
+    await UserRepository.update(updatedUser.id, updatedUser as any);
+  }
   res.json({ message: 'Profil mis à jour avec succès', user: updatedUser });
 });

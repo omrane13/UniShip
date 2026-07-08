@@ -144,6 +144,18 @@ export const CompanyRepository = {
     return dbStore.companies.find(c => c.id === id);
   },
 
+  async getByEmail(email: string): Promise<Company | undefined> {
+    if (isMongoEnabled()) {
+      try {
+        const company = await MongoCompany.findOne({ email: email.toLowerCase() });
+        if (company) return company.toJSON() as Company;
+      } catch (err) {
+        console.error('[CompanyRepository] getByEmail fallback:', err);
+      }
+    }
+    return dbStore.companies.find(c => c.email.toLowerCase() === email.toLowerCase());
+  },
+
   async create(company: Company): Promise<Company> {
     dbStore.companies.push(company);
     if (isMongoEnabled()) {
