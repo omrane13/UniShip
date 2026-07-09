@@ -71,7 +71,7 @@ export const UserRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoUser.findOneAndUpdate({ id: user.id }, user, { upsert: true, new: true });
+        await MongoUser.findOneAndUpdate({ id: user.id }, user, { upsert: true, returnDocument: 'after' });
         console.log(`[UserRepository] User '${user.name}' (${user.role}) persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[UserRepository] create error:', err);
@@ -86,7 +86,7 @@ export const UserRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoUser.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoUser.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as User;
       } catch (err) {
         console.error('[UserRepository] update error:', err);
@@ -176,7 +176,7 @@ export const CompanyRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoCompany.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoCompany.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as Company;
       } catch (err) {
         console.error('[CompanyRepository] update error:', err);
@@ -255,7 +255,7 @@ export const ProductRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoProduct.findOneAndUpdate({ id: product.id }, product, { upsert: true, new: true });
+        await MongoProduct.findOneAndUpdate({ id: product.id }, product, { upsert: true, returnDocument: 'after' });
         console.log(`[ProductRepository] Product '${product.name}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[ProductRepository] create error:', err);
@@ -270,7 +270,7 @@ export const ProductRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoProduct.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoProduct.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as Product;
       } catch (err) {
         console.error('[ProductRepository] update error:', err);
@@ -334,7 +334,7 @@ export const OrderRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoOrder.findOneAndUpdate({ id: order.id }, order, { upsert: true, new: true });
+        await MongoOrder.findOneAndUpdate({ id: order.id }, order, { upsert: true, returnDocument: 'after' });
         console.log(`[OrderRepository] Order '${order.id}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[OrderRepository] create error:', err);
@@ -349,7 +349,7 @@ export const OrderRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoOrder.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoOrder.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as Order;
       } catch (err) {
         console.error('[OrderRepository] update error:', err);
@@ -406,7 +406,7 @@ export const DriverRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoDriver.findOneAndUpdate({ id: driver.id }, driver, { upsert: true, new: true });
+        await MongoDriver.findOneAndUpdate({ id: driver.id }, driver, { upsert: true, returnDocument: 'after' });
         console.log(`[DriverRepository] Driver '${driver.name}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[DriverRepository] create error:', err);
@@ -421,7 +421,7 @@ export const DriverRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoDriver.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoDriver.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as Driver;
       } catch (err) {
         console.error('[DriverRepository] update error:', err);
@@ -482,7 +482,7 @@ export const SubAccountRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoSubAccount.findOneAndUpdate({ id: sub.id }, sub, { upsert: true, new: true });
+        await MongoSubAccount.findOneAndUpdate({ id: sub.id }, sub, { upsert: true, returnDocument: 'after' });
         console.log(`[SubAccountRepository] SubAccount '${sub.name}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[SubAccountRepository] create error:', err);
@@ -497,7 +497,7 @@ export const SubAccountRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoSubAccount.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoSubAccount.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as SubAccount;
       } catch (err) {
         console.error('[SubAccountRepository] update error:', err);
@@ -530,7 +530,7 @@ export const OfferRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoOffer.findOneAndUpdate({ id: offer.id }, offer, { upsert: true, new: true });
+        await MongoOffer.findOneAndUpdate({ id: offer.id }, offer, { upsert: true, returnDocument: 'after' });
         console.log(`[OfferRepository] Offer '${offer.title}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[OfferRepository] create error:', err);
@@ -590,7 +590,7 @@ export const StockRequestRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoStockRequest.findOneAndUpdate({ id: req.id }, req, { upsert: true, new: true });
+        await MongoStockRequest.findOneAndUpdate({ id: req.id }, req, { upsert: true, returnDocument: 'after' });
         console.log(`[StockRequestRepository] StockRequest '${req.id}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[StockRequestRepository] create error:', err);
@@ -605,7 +605,7 @@ export const StockRequestRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoStockRequest.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoStockRequest.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as StockRequest;
       } catch (err) {
         console.error('[StockRequestRepository] update error:', err);
@@ -654,7 +654,7 @@ export const TicketRepository = {
 
     if (isMongoEnabled()) {
       try {
-        await MongoTicket.findOneAndUpdate({ id: ticket.id }, ticket, { upsert: true, new: true });
+        await MongoTicket.findOneAndUpdate({ id: ticket.id }, ticket, { upsert: true, returnDocument: 'after' });
         console.log(`[TicketRepository] Ticket '${ticket.id}' persisté → MongoDB ✅`);
       } catch (err) {
         console.error('[TicketRepository] create error:', err);
@@ -669,7 +669,7 @@ export const TicketRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoTicket.findOneAndUpdate({ id }, { $set: updates }, { new: true });
+        const updated = await MongoTicket.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as SupportTicket;
       } catch (err) {
         console.error('[TicketRepository] update error:', err);
@@ -759,7 +759,7 @@ export const SimulatedEmailRepository = {
 
     if (isMongoEnabled()) {
       try {
-        const updated = await MongoSimulatedEmail.findOneAndUpdate({ id }, { $set: { read: true } }, { new: true });
+        const updated = await MongoSimulatedEmail.findOneAndUpdate({ id }, { $set: { read: true } }, { returnDocument: 'after' });
         if (updated) return updated.toJSON() as SimulatedEmail;
       } catch (err) {
         console.error('[SimulatedEmailRepository] markAsRead error:', err);

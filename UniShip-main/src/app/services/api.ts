@@ -197,6 +197,7 @@ export class ApiClient {
   
   // App-wide state signals
   currentUser = signal<User | null>(null);
+  authToken = signal<string | null>(null);
   cart = signal<{ product: Product; quantity: number }[]>([]);
   
   constructor() {
@@ -210,6 +211,11 @@ export class ApiClient {
         }
       }
 
+      const persistedToken = localStorage.getItem('ecom_auth_token');
+      if (persistedToken) {
+        this.authToken.set(persistedToken);
+      }
+
       // Persist user changes
       effect(() => {
         const user = this.currentUser();
@@ -219,15 +225,25 @@ export class ApiClient {
           localStorage.removeItem('ecom_current_user');
         }
       });
+
+      // Persist token changes
+      effect(() => {
+        const token = this.authToken();
+        if (token) {
+          localStorage.setItem('ecom_auth_token', token);
+        } else {
+          localStorage.removeItem('ecom_auth_token');
+        }
+      });
     }
   }
 
-  // Helper fetch wrapper to inject Simulated User Header
+  // Helper fetch wrapper to inject the JWT bearer token
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const userObj = this.currentUser();
+    const token = this.authToken();
     const headers = {
       'Content-Type': 'application/json',
-      ...(userObj ? { 'x-user-id': userObj.id } : {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(options.headers || {})
     };
 
@@ -252,6 +268,7 @@ export class ApiClient {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
+    this.authToken.set(data.token);
     this.currentUser.set(data.user);
     return data.user;
   }
@@ -265,6 +282,7 @@ export class ApiClient {
 
   logout() {
     this.currentUser.set(null);
+    this.authToken.set(null);
     this.cart.set([]);
   }
 

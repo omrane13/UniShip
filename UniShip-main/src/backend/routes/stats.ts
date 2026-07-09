@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getCurrentUser, getCompanyOwnerId } from './helpers';
 import {
   UserRepository, ProductRepository, OrderRepository,
-  DriverRepository, AuditLogRepository, SimulatedEmailRepository, SubAccountRepository, CompanyRepository
+  DriverRepository, AuditLogRepository, SimulatedEmailRepository
 } from '../db/repository';
 
 export const statsRouter = Router();
@@ -107,31 +107,19 @@ statsRouter.get('/audit-logs', async (req: Request, res: Response): Promise<void
 
 // Simulated Emails endpoints
 statsRouter.get('/simulated-emails', async (req: Request, res: Response): Promise<void> => {
-  const userId = req.headers['x-user-id'] as string;
+  const u = getCurrentUser(req);
 
-  if (!userId) {
+  if (!u) {
+    res.status(403).json({ error: 'Authentification obligatoire' });
+    return;
+  }
+
+  if (u.role === 'admin') {
     res.json(await SimulatedEmailRepository.getAll());
     return;
   }
 
-  let standardUser: any = await UserRepository.getById(userId);
-  if (!standardUser) standardUser = await CompanyRepository.getById(userId);
-  if (standardUser) {
-    if (standardUser.role === 'admin') {
-      res.json(await SimulatedEmailRepository.getAll());
-    } else {
-      res.json(await SimulatedEmailRepository.getAll(standardUser.email));
-    }
-    return;
-  }
-
-  const subUser = await SubAccountRepository.getById(userId);
-  if (subUser) {
-    res.json(await SimulatedEmailRepository.getAll(subUser.email));
-    return;
-  }
-
-  res.json(await SimulatedEmailRepository.getAll());
+  res.json(await SimulatedEmailRepository.getAll(u.email));
 });
 
 statsRouter.put('/simulated-emails/:id/read', async (req: Request, res: Response): Promise<void> => {

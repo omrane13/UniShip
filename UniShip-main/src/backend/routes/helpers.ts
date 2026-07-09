@@ -1,6 +1,73 @@
 import { Request } from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { dbStore, User, Order } from '../store';
 import { UserRepository, CompanyRepository } from '../db/repository';
+
+// ==========================================
+// JWT CONFIGURATION
+// ==========================================
+const JWT_SECRET = process.env['JWT_SECRET'] || (() => {
+  console.warn(
+    "⚠️  [Auth] JWT_SECRET manquant dans les variables d'environnement (.env). " +
+    "Utilisation d'un secret de développement non sécurisé — à NE JAMAIS utiliser en production."
+  );
+  return 'dev-insecure-secret-change-me-in-.env';
+})();
+
+const TOKEN_EXPIRY = '24h';
+
+interface AuthTokenPayload {
+  sub: string;  // user id
+  role: string;
+}
+
+/** Génère un JWT signé pour un utilisateur venant de s'authentifier avec succès. */
+export function generateAuthToken(userId: string, role: string): string {
+  return jwt.sign({ sub: userId, role }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
+}
+
+/** Retire le champ password de tout objet utilisateur avant de le renvoyer au client. */
+export function sanitizeUser<T extends { password?: string }>(user: T): Omit<T, 'password'> {
+  const { password: _password, ...safe } = user;
+  return safe;
+}
+
+const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$/;
+
+export interface PasswordVerification {
+  matches: boolean;
+  /** Présent uniquement quand un ancien mot de passe en clair vient d'être validé — il doit être persisté à la place de l'ancien. */
+  migratedHash?: string;
+}
+
+/**
+ * Vérifie un mot de passe contre la valeur stockée.
+ * Gère la transition en douceur : les comptes créés avant l'introduction de bcrypt
+ * ont encore un mot de passe en clair en base (Mongo ou mémoire). Si la valeur stockée
+ * ne ressemble pas à un hash bcrypt, on compare en clair par compatibilité, et si ça
+ * correspond, on renvoie un nouveau hash à sauvegarder — migrant ainsi le compte
+ * silencieusement, sans script ni intervention manuelle sur la base.
+ */
+export async function verifyPassword(plainPassword: string, storedPassword: string | undefined): Promise<PasswordVerification> {
+  if (!storedPassword) return { matches: false };
+
+  if (BCRYPT_HASH_PATTERN.test(storedPassword)) {
+    try {
+      const matches = await bcrypt.compare(plainPassword, storedPassword);
+      return { matches };
+    } catch {
+      return { matches: false };
+    }
+  }
+
+  // Ancien compte : mot de passe encore en clair en base.
+  const matches = storedPassword === plainPassword;
+  if (!matches) return { matches: false };
+
+  const migratedHash = await bcrypt.hash(plainPassword, 10);
+  return { matches: true, migratedHash };
+}
 
 // Helper to get the actual company owner ID (since collaborators act on behalf of their parent company)
 export function getCompanyOwnerId(u: User): string {
@@ -8,16 +75,43 @@ export function getCompanyOwnerId(u: User): string {
 }
 
 
-// Helper to check standard tokens or custom header for simulating session roles
+// Résout l'utilisateur courant STRICTEMENT à partir d'un JWT valide
+// envoyé via le header `Authorization: Bearer <token>`.
+// Ne retourne jamais d'utilisateur par défaut : une requête sans jeton
+// valide donne undefined (→ 401 côté route), jamais un compte de secours.
 export function getCurrentUser(req: Request): User | undefined {
-  const userId = req.headers['x-user-id'] || 'usr_client1'; // default backup
-  let u = dbStore.users.find(u => u.id === userId);
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || Array.isArray(authHeader) || !authHeader.startsWith('Bearer ')) {
+    return undefined;
+  }
+
+  const token = authHeader.slice('Bearer '.length).trim();
+  if (!token) return undefined;
+
+  let payload: AuthTokenPayload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+  } catch {
+    // Signature invalide, jeton expiré, ou malformé → non authentifié.
+    return undefined;
+  }
+
+  const userId = payload.sub;
+
+  let u: any = dbStore.users.find(usr => usr.id === userId);
+
+  if (!u) {
+    // BUGFIX: les entreprises vivent dans dbStore.companies depuis la migration,
+    // pas dans dbStore.users — sans cette recherche, aucune entreprise connectée
+    // n'était jamais reconnue comme utilisateur courant.
+    u = dbStore.companies.find(c => c.id === userId);
+  }
 
   if (!u) {
     // Check if the user is a collaborator (subaccount)
     const sub = dbStore.subAccounts.find(s => s.id === userId);
     if (sub) {
-      const parentCompany = dbStore.users.find(usr => usr.id === sub.companyId);
+      const parentCompany = dbStore.companies.find(c => c.id === sub.companyId) || dbStore.users.find(usr => usr.id === sub.companyId);
       u = {
         id: sub.id,
         name: sub.name,
@@ -34,7 +128,9 @@ export function getCurrentUser(req: Request): User | undefined {
     }
   }
 
-  if (u && u.role === 'driver') {
+  if (!u) return undefined;
+
+  if (u.role === 'driver') {
     const drv = dbStore.drivers.find(d => d.userId === u.id);
     if (drv) {
       u.baseFee = drv.baseFee;
@@ -45,7 +141,7 @@ export function getCurrentUser(req: Request): User | undefined {
       u.rating = drv.rating;
     }
   }
-  return u;
+  return u as User;
 }
 
 // Automated notification engine for order status changes
@@ -129,4 +225,3 @@ export async function notifyOrderStatusChange(o: Order, oldStatus: string, newSt
     dbStore.sendEmail(adminEmail, adminSubject, adminBody);
   }
 }
-

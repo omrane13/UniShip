@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { User, SubAccount } from '../store';
-import { getCurrentUser } from './helpers';
+import { getCurrentUser, generateAuthToken, sanitizeUser, verifyPassword } from './helpers';
 import { UserRepository, SubAccountRepository, AuditLogRepository, SimulatedEmailRepository, ProductRepository, DriverRepository, CompanyRepository } from '../db/repository';
 
 export const authRouter = Router();
@@ -57,9 +58,25 @@ authRouter.post('/auth/login', async (req: Request, res: Response): Promise<void
     return;
   }
 
-  if (user.password !== password) {
+  const storedHash = user.password || '';
+  const { matches: passwordMatches, migratedHash } = await verifyPassword(password, storedHash);
+
+  if (!passwordMatches) {
     res.status(401).json({ error: 'Mot de passe incorrect' });
     return;
+  }
+
+  if (migratedHash) {
+    // Compte encore en mot de passe clair (créé avant l'introduction de bcrypt) :
+    // on persiste discrètement le hash désormais que le mot de passe vient d'être vérifié.
+    user.password = migratedHash;
+    if (isCollab) {
+      await SubAccountRepository.update(user.id, { password: migratedHash });
+    } else if (user.role === 'company') {
+      await CompanyRepository.update(user.id, { password: migratedHash });
+    } else {
+      await UserRepository.update(user.id, { password: migratedHash });
+    }
   }
 
   if (user.status === 'pending') {
@@ -73,7 +90,7 @@ authRouter.post('/auth/login', async (req: Request, res: Response): Promise<void
   }
 
   await AuditLogRepository.log(user.id, user.name, 'LOGIN', isCollab ? 'Connexion réussie en tant que Collaborateur' : 'Connexion réussie à la plateforme');
-  res.json({ token: 'mock-jwt-token-xyz', user });
+  res.json({ token: generateAuthToken(user.id, user.role), user: sanitizeUser(user) });
 });
 
 // Register simulation
@@ -87,6 +104,15 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
 
   const creator = getCurrentUser(req);
   const isCreatorAdmin = creator && creator.role === 'admin';
+
+  // Seuls client / company / driver sont ouverts à l'inscription publique.
+  // 'admin' et 'collaborator' ne peuvent être créés que par un Administrateur authentifié
+  // (les collaborateurs passent d'ailleurs par /auth/subaccounts, pas par cette route).
+  const allowedPublicRoles = ['client', 'company', 'driver'];
+  if (!isCreatorAdmin && !allowedPublicRoles.includes(role)) {
+    res.status(403).json({ error: 'Rôle non autorisé pour une inscription publique.' });
+    return;
+  }
 
   let finalPassword = password;
   if (!finalPassword) {
@@ -112,12 +138,13 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
   // Auto-activate client accounts, companies and drivers need validation
   const status = (role === 'client') ? 'active' : 'pending';
   const id = `usr_${role}_${Date.now()}`;
+  const passwordHash = await bcrypt.hash(finalPassword, 10);
 
   const newUser: User = {
     id,
     name,
     email,
-    password: finalPassword,
+    password: passwordHash,
     role,
     status,
     phone,
@@ -176,7 +203,7 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
     message: role === 'client' 
       ? 'Compte créé avec succès ! Un email de vérification a été simulé.' 
       : 'Compte enregistré ! En attente de validation préalable par l’Administrateur.',
-    user: newUser
+    user: sanitizeUser(newUser)
   });
 });
 
@@ -222,7 +249,7 @@ authRouter.post('/auth/subaccounts', async (req: Request, res: Response): Promis
 
   await SubAccountRepository.create(sub);
   await AuditLogRepository.log(user.id, user.name, 'CREATE_SUBACCOUNT', `Création sous-compte: ${name}`);
-  res.json(sub);
+  res.json(sanitizeUser(sub));
 });
 
 // List users for Admin
@@ -266,7 +293,7 @@ authRouter.get('/users', async (req: Request, res: Response): Promise<void> => {
     fullList = fullList.filter(u => u.status === status);
   }
 
-  res.json(fullList);
+  res.json(fullList.map(sanitizeUser));
 });
 
 
@@ -290,11 +317,12 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
 
         if (status === 'active' && previousStatus === 'pending') {
           const generatedPassword = 'Collab-' + Math.floor(1000 + Math.random() * 9000);
+          const generatedPasswordHash = await bcrypt.hash(generatedPassword, 10);
           const parentCompany = await UserRepository.getById(targetSub.companyId);
           const companyName = parentCompany ? parentCompany.name : 'Inconnue';
           const companyEmail = parentCompany ? parentCompany.email : '';
 
-          await SubAccountRepository.update(targetSub.id, { status, password: generatedPassword });
+          await SubAccountRepository.update(targetSub.id, { status, password: generatedPasswordHash });
 
           const emailBody = `Bonjour ${targetSub.name},\n\nFélicitations ! Votre sous-compte Collaborateur (${targetSub.role}) rattaché à l'entreprise ${companyName} a été activé.\n\nIdentifiants :\n- Email : ${targetSub.email}\n- Mot de passe : ${generatedPassword}\n\nCordialement,\nL'équipe UniShip.`;
           await SimulatedEmailRepository.send(targetSub.email, `Activation de votre compte Collaborateur UniShip 🎉`, emailBody);
@@ -370,8 +398,10 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
     }
     
     if (status === 'active' && previousStatus === 'pending') {
-      const activePassword = targetUser.password || 'UniShip-' + Math.floor(1000 + Math.random() * 9000);
-      targetUser.password = activePassword;
+      // On génère toujours un nouveau mot de passe en clair ici : targetUser.password
+      // contient désormais un hash bcrypt, jamais un mot de passe lisible qu'on pourrait renvoyer.
+      const activePassword = 'UniShip-' + Math.floor(1000 + Math.random() * 9000);
+      targetUser.password = await bcrypt.hash(activePassword, 10);
       const emailBody = `Bonjour ${targetUser.name},\n\nFélicitations ! Votre compte ${targetUser.role === 'company' ? 'Entreprise 🏢' : 'Livreur 🚴'} a été activé avec succès par l'Administrateur UniShip.\n\nIdentifiants :\n- Email : ${targetUser.email}\n- Mot de passe : ${activePassword}\n\nCordialement,\nL'équipe UniShip.`;
       await SimulatedEmailRepository.send(targetUser.email, `Activation de votre compte UniShip 🎉`, emailBody);
       await AuditLogRepository.log('system', 'Système Mail', 'SEND_ACTIVATION_EMAIL', `Email activation → ${targetUser.email}`);
@@ -415,7 +445,7 @@ authRouter.put('/users/:id', async (req: Request, res: Response): Promise<void> 
   } else {
     await UserRepository.update(targetUser.id, targetUser);
   }
-  res.json(targetUser);
+  res.json(sanitizeUser(targetUser));
 });
 
 // Update logged in user's profile self-care
@@ -451,7 +481,7 @@ authRouter.put('/profile', async (req: Request, res: Response): Promise<void> =>
       res.status(400).json({ error: 'Le mot de passe doit contenir au moins 4 caractères.' });
       return;
     }
-    u.password = password;
+    u.password = await bcrypt.hash(password, 10);
   }
 
   // Subscriptions & Tunisia specific fields (if company)
@@ -513,5 +543,5 @@ authRouter.put('/profile', async (req: Request, res: Response): Promise<void> =>
   } else {
     await UserRepository.update(updatedUser.id, updatedUser as any);
   }
-  res.json({ message: 'Profil mis à jour avec succès', user: updatedUser });
+  res.json({ message: 'Profil mis à jour avec succès', user: sanitizeUser(updatedUser) });
 });

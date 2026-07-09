@@ -1,3 +1,5 @@
+import bcrypt from 'bcryptjs';
+
 export interface Company {
   id: string;
   name: string;
@@ -216,7 +218,8 @@ class InMemoryStore {
       id: 'usr_admin',
       name: 'Super Admin',
       email: 'admin@market.com',
-      password: 'admin123',
+      // Hashé au démarrage — ne jamais stocker de mot de passe en clair, même pour les données de seed.
+      password: bcrypt.hashSync('admin123', 10),
       role: 'admin',
       status: 'active',
       phone: '+33 6 12 34 56 78',
