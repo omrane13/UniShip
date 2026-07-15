@@ -1,4 +1,4 @@
-    <!-- Case D: CLIENT HUB & BROWSING CATALOGUE AND BACKOFFICE COEXISTENCE -->
+<!-- Case D: CLIENT HUB & BROWSING CATALOGUE AND BACKOFFICE COEXISTENCE -->
     @if (!app.api.currentUser() || app.api.currentUser()?.role === 'client') {
       
       @if (app.api.currentUser()) {
@@ -153,61 +153,85 @@
             </div>
           </div>
 
-          <!-- Active Order steps tracker for clients -->
-          @if (app.api.currentUser()?.role === 'client') {
-            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left space-y-4">
-              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suivi Commandes en Direct</h3>
+          <!-- Premium Sponsor / Advertising Panels -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 select-none">Nos Partenaires & Sponsors</h3>
+
+            <!-- Vitalait Sponsor Card -->
+            <div class="bg-cover bg-center text-white p-5 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300"
+                 style="background-image: linear-gradient(135deg, rgba(4, 47, 31, 0.92), rgba(13, 74, 77, 0.95)), url('https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&q=80&w=400');">
+              <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
               
-              <div class="space-y-3 max-h-8d0 overflow-y-auto">
-                @for (ord of app.orders(); track ord.id) {
-                  <div class="border border-slate-100 p-3.5 rounded-xl space-y-2 text-xs text-left bg-white">
-                    <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border">
-                      <strong class="font-mono text-xs">{{ ord.id }}</strong>
-                      <span class="font-extrabold text-indigo-700">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</span>
-                    </div>
-
-                    <!-- Steps display -->
-                    <div class="flex items-center justify-between text-[10px] font-bold py-1 select-none font-sans">
-                      <span [class]="ord.status === 'pending' ? 'text-amber-500 font-extrabold': 'text-slate-300'">1. En attente</span>
-                      <span class="text-slate-300">➔</span>
-                      <span [class]="ord.status === 'preparing' ? 'text-blue-500 font-extrabold': 'text-slate-300'">2. Préparation</span>
-                      <span class="text-slate-300">➔</span>
-                      <span [class]="ord.status === 'transit' ? 'text-indigo-500 font-extrabold': 'text-slate-300'">3. En Route</span>
-                      <span class="text-slate-300">➔</span>
-                      <span [class]="ord.status === 'delivered' ? 'text-emerald-600 font-extrabold': 'text-slate-300'">4. Livré</span>
-                    </div>
-
-                    <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
-                      <span>Livreur: <strong>{{ ord.driverName }}</strong></span>
-                      <span class="uppercase font-bold tracking-wide" [class]="ord.status === 'cancelled'?'text-rose-700 bg-rose-50 px-1 py-0.5 rounded':'text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded'">
-                        {{ ord.status }}
-                      </span>
-                    </div>
-
-                    <div class="flex gap-1">
-                      <a 
-                        [href]="ord.invoiceUrl" 
-                        target="_blank" 
-                        class="bg-white border border-slate-300 hover:bg-slate-50 text-[10px] font-bold py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 w-full justify-center transition-all">
-                        <mat-icon class="text-[12px]">download</mat-icon> Facture PDF
-                      </a>
-                      
-                      @if (ord.status === 'pending') {
-                        <button 
-                          (click)="app.cancelOrder(ord.id)"
-                          class="hover:bg-rose-50 border border-slate-200 text-rose-600 text-[10px] font-bold px-2 py-1 rounded-lg leading-none whitespace-nowrap bg-transparent cursor-pointer">
-                          Annuler
-                        </button>
-                      }
-                    </div>
-                  </div>
-                } @empty {
-                  <p class="text-[11px] text-slate-400 italic">Aucune commande historique.</p>
-                }
+              <div class="relative z-10 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="inline-block bg-emerald-500/25 text-emerald-300 font-extrabold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded border border-emerald-500/20">
+                    PROMO PRODUIT
+                  </span>
+                  <mat-icon class="text-emerald-300 text-xs">verified</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-black text-sm tracking-tight text-emerald-50">Vitalait Tunisie</h4>
+                  <p class="text-[11px] text-emerald-100/90 mt-1 leading-snug font-medium">Pour votre santé et votre plaisir, découvrez notre gamme de yaourts et laits frais locaux.</p>
+                </div>
+                <div class="pt-1.5 flex items-center justify-between border-t border-emerald-800/40">
+                  <span class="text-[10px] text-emerald-300 font-semibold font-mono">vitalait.com.tn</span>
+                  <a href="https://vitalait.com.tn" target="_blank" class="bg-white text-emerald-950 hover:bg-emerald-50 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-all no-underline inline-flex items-center gap-1 shadow-sm">
+                    Découvrir <mat-icon class="text-[10px] h-2.5 w-2.5">open_in_new</mat-icon>
+                  </a>
+                </div>
               </div>
             </div>
-          }
 
+            <!-- Coca-Cola Sponsor Card -->
+            <div class="bg-cover bg-center text-white p-5 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300"
+                 style="background-image: linear-gradient(135deg, rgba(76, 5, 25, 0.92), rgba(127, 29, 29, 0.95)), url('https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=80&w=400');">
+              <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+              
+              <div class="relative z-10 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="inline-block bg-rose-500/25 text-rose-300 font-extrabold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded border border-rose-500/20">
+                    NOUVEAUTÉ
+                  </span>
+                  <mat-icon class="text-rose-300 text-xs">local_fire_department</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-black text-sm tracking-tight text-rose-50">Coca-Cola Tunisie</h4>
+                  <p class="text-[11px] text-rose-100/90 mt-1 leading-snug font-medium">Partagez du bonheur à chaque repas. Rafraîchissez votre quotidien avec une boisson iconique.</p>
+                </div>
+                <div class="pt-1.5 flex items-center justify-between border-t border-rose-800/40">
+                  <span class="text-[10px] text-rose-300 font-semibold font-mono">coca-cola.tn</span>
+                  <a href="https://coca-cola.tn" target="_blank" class="bg-white text-rose-950 hover:bg-rose-50 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-all no-underline inline-flex items-center gap-1 shadow-sm">
+                    Visiter <mat-icon class="text-[10px] h-2.5 w-2.5">open_in_new</mat-icon>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chahia Sponsor Card -->
+            <div class="bg-cover bg-center text-white p-5 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300"
+                 style="background-image: linear-gradient(135deg, rgba(120, 53, 4, 0.92), rgba(69, 26, 3, 0.95)), url('https://images.unsplash.com/photo-1606728035253-49e196321de5?auto=format&fit=crop&q=80&w=400');">
+              <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-all duration-500"></div>
+              
+              <div class="relative z-10 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="inline-block bg-amber-500/25 text-amber-300 font-extrabold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded border border-amber-500/20">
+                    OFFRE LOCALE
+                  </span>
+                  <mat-icon class="text-amber-300 text-xs">restaurant</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-black text-sm tracking-tight text-amber-50">Chahia Terroir</h4>
+                  <p class="text-[11px] text-amber-100/90 mt-1 leading-snug font-medium">Des volailles saines, contrôlées et 100% fraîches. Le goût de la tradition dans vos plats.</p>
+                </div>
+                <div class="pt-1.5 flex items-center justify-between border-t border-amber-800/40">
+                  <span class="text-[10px] text-amber-300 font-semibold font-mono">chahia.com.tn</span>
+                  <a href="https://chahia.com.tn" target="_blank" class="bg-white text-amber-950 hover:bg-amber-50 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-all no-underline inline-flex items-center gap-1 shadow-sm">
+                    Découvrir <mat-icon class="text-[10px] h-2.5 w-2.5">open_in_new</mat-icon>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Right Side: Catalogue Items Display Grid -->
@@ -317,53 +341,6 @@
               </div>
             }
           </div>
-
-          <!-- Support Tickets form dialog for Client -->
-          @if (app.api.currentUser(); as user) {
-            <hr class="border-slate-100" />
-            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 text-left">
-              <div>
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-1">Passer une réclamation / Contacter l’aide</h3>
-                <p class="text-xs text-slate-500 font-medium">Parlez directement aux administrateurs si vous repérez des anomalies ou désirez un remboursement.</p>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-2.5">
-                  <input 
-                    [value]="app.ticketSubject()" 
-                    (input)="app.ticketSubject.set($any($event.target).value)" 
-                    placeholder="Sujet de votre message" 
-                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs" />
-                  <textarea 
-                    [value]="app.ticketMessage()" 
-                    (input)="app.ticketMessage.set($any($event.target).value)" 
-                    placeholder="Saisissez votre réclamation..." 
-                    rows="3"
-                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-xs"></textarea>
-                  <button 
-                    (click)="app.createSupportTicket()"
-                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg border-0 cursor-pointer leading-none">
-                    Envoyer le Ticket
-                  </button>
-                </div>
-
-                <div class="space-y-2.5 max-h-56 overflow-y-auto">
-                  @for (t of app.tickets(); track t.id) {
-                    <div class="border border-slate-150 p-2.5 rounded-lg text-xs bg-slate-50/50 text-left">
-                      <div class="flex justify-between items-center bg-slate-101 p-1.5 rounded border border-slate-200 bg-white">
-                        <strong class="font-bold">{{ t.subject }}</strong>
-                        <span class="text-[9px] uppercase font-bold" [class]="t.status === 'open'?'text-amber-700':'text-slate-500'">{{ t.status }}</span>
-                      </div>
-                      <p class="text-[11px] text-slate-500 italic mt-1 bg-white p-1 rounded font-medium">"{{ t.message }}"</p>
-                      @if (t.replies.length) {
-                        <div class="pl-2 border-l border-slate-200 text-[10px] text-indigo-700 font-medium mt-1">Admin: {{ t.replies[0].message }}</div>
-                      }
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          }
 
         </div>
 
@@ -680,4 +657,3 @@
       </div>
     </div>
   }
-
