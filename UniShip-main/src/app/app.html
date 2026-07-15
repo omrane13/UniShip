@@ -1,7 +1,7 @@
 <!-- Top Live Role Playground Switcher Banner -->
 @if (api.currentUser()?.role === 'admin') {
   <div class="bg-slate-900 text-slate-100 py-3 px-4 shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+    <div class="w-full px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
       <div class="flex items-center gap-2">
         <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="font-medium tracking-wide">
@@ -54,7 +54,7 @@
   
   <!-- Main Header with Brand and Active Session Badge -->
   <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-sm">
-    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+    <div class="w-full px-4 md:px-8 flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-3">
         <div class="bg-slate-950 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center">
           <mat-icon class="text-white">hub</mat-icon>
@@ -89,6 +89,21 @@
               <p class="text-[11px] text-slate-500 leading-tight mt-1 font-mono font-medium">{{ user.email }}</p>
             </div>
             
+            <!-- Cart Icon Button -->
+            @if (!user || user.role === 'client') {
+              <button 
+                (click)="showCartDrawer.set(!showCartDrawer())"
+                class="relative bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center shadow-sm"
+                title="Mon Panier">
+                <mat-icon class="text-lg">shopping_cart</mat-icon>
+                @if (api.cart().length > 0) {
+                  <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-white leading-none">
+                    {{ api.cart().reduce((sum, item) => sum + item.quantity, 0) }}
+                  </span>
+                }
+              </button>
+            }
+
             <button 
               (click)="triggerLogout()" 
               class="ml-2 bg-transparent hover:bg-red-50 text-red-500 p-1.5 rounded-lg transition-colors border-0 cursor-pointer"
@@ -99,10 +114,23 @@
           </div>
         } @else {
           <!-- Simple login prompt badge -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-505 font-medium text-slate-500 font-sans">Non authentifié</span>
+          <div class="flex items-center gap-3">
+            <!-- Visitor Cart Icon Button -->
             <button 
-              (click)="activeAuthMode.set('login')" 
+              (click)="showCartDrawer.set(!showCartDrawer())"
+              class="relative bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center shadow-sm"
+              title="Mon Panier">
+              <mat-icon class="text-lg">shopping_cart</mat-icon>
+              @if (api.cart().length > 0) {
+                <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-white leading-none">
+                  {{ api.cart().reduce((sum, item) => sum + item.quantity, 0) }}
+                </span>
+              }
+            </button>
+
+            <span class="text-xs text-slate-505 font-medium text-slate-500 font-sans">Mode Visiteur</span>
+            <button 
+              (click)="showAuthModal.set(true); activeAuthMode.set('login')" 
               class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2 border-0 cursor-pointer"
               id="btn-open-login">
               <mat-icon class="text-sm">login</mat-icon> S'authentifier
@@ -114,7 +142,7 @@
   </header>
 
   <!-- Global Operation Messages -->
-  <div class="max-w-7xl w-full mx-auto px-6 mt-4">
+  <div class="w-full px-4 md:px-8 mt-4">
     @if (errorMessage()) {
       <div class="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between mb-2">
         <div class="flex items-center gap-2.5">
@@ -150,7 +178,7 @@
   }
 
   <!-- APP CONTENT ROUTING -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-4">
+  <main class="flex-1 w-full px-4 md:px-8 py-4">
 
     <!-- Case A: ADMIN INTERFACE -->
     @if (api.currentUser()?.role === 'admin') {
@@ -176,7 +204,7 @@
 
   <!-- Footer Info -->
   <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="w-full px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
       <p>© 2026 UniShip - Gestion Logistique &amp; E-Commerce Tunisien. Tous droits réservés.</p>
       <div class="flex gap-4">
         <span class="hover:underline hover:cursor-pointer">Conditions Générales</span>
@@ -301,7 +329,7 @@
   }
 
   <!-- Login Forms Box Dialog Modal -->
-  @if (!api.currentUser() && activeAuthMode() === 'login') {
+  @if (!api.currentUser() && showAuthModal() && activeAuthMode() === 'login') {
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left animate-in fade-in zoom-in-95 duration-200">
         
@@ -310,7 +338,8 @@
             <h3 class="text-base font-extrabold text-slate-900">S'authentifier à la Plateforme</h3>
             <p class="text-xs text-slate-500 leading-normal font-medium">Saisissez l'email d'un compte validé ou utilisez les raccourcis de test rapide ci-dessous.</p>
           </div>
-          <button (click)="activeAuthMode.set('login')" class="text-slate-405 hover:text-slate-600 bg-transparent border-0">
+          <button (click)="showAuthModal.set(false)" class="text-slate-400 hover:text-slate-600 bg-transparent border-0 cursor-pointer p-1" title="Fermer et continuer en tant que visiteur">
+            <mat-icon>close</mat-icon>
           </button>
         </div>
 
@@ -359,7 +388,7 @@
   }
 
   <!-- Registration modal form -->
-  @if (!api.currentUser() && activeAuthMode() === 'register') {
+  @if (!api.currentUser() && showAuthModal() && activeAuthMode() === 'register') {
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-left">
         
@@ -473,4 +502,138 @@
     </div>
   }
 
+  <!-- Slide-over Cart Drawer Modal -->
+  @if (showCartDrawer()) {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-end z-50">
+      <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col border-l border-slate-100 transition-all duration-300">
+        
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-150 flex items-center justify-between bg-slate-900 text-white">
+          <div class="flex items-center gap-2 text-left">
+            <mat-icon class="text-amber-400">shopping_cart</mat-icon>
+            <div class="text-left">
+              <h3 class="font-extrabold text-sm tracking-wide">Mon Panier</h3>
+              <p class="text-[10px] text-slate-300 font-medium">{{ api.cart().length }} références ajoutées</p>
+            </div>
+          </div>
+          <button (click)="showCartDrawer.set(false)" class="text-slate-400 hover:text-white transition-colors cursor-pointer bg-transparent border-0">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Cart Body -->
+        <div class="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-4">
+          @if (api.cart().length > 0) {
+            <!-- Items list -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-150 shadow-sm space-y-3">
+              @for (item of api.cart(); track item.product.id) {
+                <div class="flex items-center justify-between gap-3 text-xs border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                  <div class="flex-1 text-left">
+                    <strong class="text-slate-800 line-clamp-1 font-bold text-left">{{ item.product.name }}</strong>
+                    <span class="text-slate-400 text-[10px] block leading-none text-left mt-0.5">{{ item.product.price?.toFixed(2) }} DTN l'unité</span>
+                  </div>
+
+                  <!-- Incrementors -->
+                  <div class="flex items-center gap-1.5 bg-slate-50 p-1 border rounded-lg select-none">
+                    <button (click)="decrementCartItem(item.product.id)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-200 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">-</button>
+                    <span class="font-mono font-bold leading-none">{{ item.quantity }}</span>
+                    <button (click)="incrementCartItem(item.product.id, item.product.stock)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-200 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">+</button>
+                  </div>
+
+                  <!-- Delete -->
+                  <button 
+                    (click)="removeFromCart(item.product.id)"
+                    class="text-slate-400 hover:text-rose-600 pl-1 border-0 bg-transparent cursor-pointer">
+                    <mat-icon class="text-[18px]">delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Checkout Details Form -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-150 shadow-sm space-y-3.5 text-left">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-505 font-medium">Sous-total :</span>
+                <strong class="text-slate-800 text-sm font-extrabold">{{ getCartTotal() }} DTN</strong>
+              </div>
+
+              <!-- Geolocation shipping address simulator -->
+              <div class="flex flex-col gap-1 text-xs text-slate-550 text-left">
+                <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Adresse de Livraison</span>
+                <input 
+                  [value]="deliveryAddress()" 
+                  (input)="deliveryAddress.set($any($event.target).value)"
+                  placeholder="Saisissez votre rue, ville..." 
+                  class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs outline-none" />
+              </div>
+
+              <!-- Driver Selection -->
+              <div class="flex flex-col gap-1 text-xs text-slate-550 text-left">
+                <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Sélectionner un Livreur</span>
+                <div class="flex gap-2">
+                  <select 
+                    [value]="selectedDriver()?.id" 
+                    (change)="selectedDriver.set(drivers()[$any($event.target).selectedIndex] || null)"
+                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs outline-none flex-1">
+                    @for (d of drivers(); track d.id) {
+                      <option [value]="d.id">{{ d.name }} - {{ d.calculatedFee || d.baseFee }} DTN ({{ d.zone }})</option>
+                    }
+                  </select>
+                  <button 
+                    (click)="refreshDriversLocation()" 
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl border-0 cursor-pointer flex items-center justify-center" 
+                    title="Actualiser les livreurs">
+                    <mat-icon class="text-sm">refresh</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Payment methods -->
+              <div class="flex flex-col gap-1 text-xs text-slate-550 text-left">
+                <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Mode de Paiement</span>
+                <div class="grid grid-cols-3 gap-1 select-none">
+                  <button 
+                    (click)="paymentMethod.set('stripe')"
+                    [class]="paymentMethod() === 'stripe' ? 'py-2 bg-slate-900 text-white font-bold rounded-lg text-[10px] border-0 cursor-pointer' : 'py-2 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded-lg text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                    Stripe
+                  </button>
+                  <button 
+                    (click)="paymentMethod.set('paypal')"
+                    [class]="paymentMethod() === 'paypal' ? 'py-2 bg-slate-900 text-white font-bold rounded-lg text-[10px] border-0 cursor-pointer' : 'py-2 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded-lg text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                    Paypal
+                  </button>
+                  <button 
+                    (click)="paymentMethod.set('cash')"
+                    [class]="paymentMethod() === 'cash' ? 'py-2 bg-slate-900 text-white font-bold rounded-lg text-[10px] border-0 cursor-pointer' : 'py-2 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded-lg text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
+                    Cash
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                (click)="triggerCheckout(); showCartDrawer.set(false)"
+                class="bg-rose-500 hover:bg-rose-600 text-white font-bold w-full py-3 rounded-2xl text-xs shadow-md transition-all flex items-center justify-center gap-2 border-0 cursor-pointer mt-2">
+                <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer la Commande
+              </button>
+            </div>
+          @} @else {
+            <div class="py-16 text-center select-none space-y-3">
+              <div class="mx-auto w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
+                <mat-icon class="text-2xl">shopping_basket</mat-icon>
+              </div>
+              <h4 class="text-xs font-bold text-slate-705">Votre panier est vide</h4>
+              <p class="text-[10px] text-slate-400 max-w-xs mx-auto leading-relaxed">Parcourez le catalogue boutique, ajoutez des produits frais et commandez en quelques clics.</p>
+            </div>
+          }
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-150 text-center text-[10px] text-slate-400 font-mono font-medium">
+          UniShip • Livraison de Proximité
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>
+

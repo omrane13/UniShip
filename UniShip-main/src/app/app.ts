@@ -19,6 +19,8 @@ export class App implements OnInit {
 
   // App-wide interactive UI views
   activeAuthMode = signal<'login' | 'register'>('login');
+  showAuthModal = signal(false);
+  showCartDrawer = signal(false);
   
   // Registration Form Signals
   regName = signal('');
@@ -263,6 +265,7 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       await this.api.login(this.manualEmail(), this.manualPassword());
+      this.showAuthModal.set(false);
       this.successMessage.set('Connexion réussie !');
       this.manualEmail.set('');
       this.manualPassword.set('');
@@ -276,6 +279,7 @@ export class App implements OnInit {
   // Logouts
   triggerLogout() {
     this.api.logout();
+    this.showAuthModal.set(false);
     this.loadVisitorData();
     this.simulatedEmails.set([]);
     this.showEmailsInbox.set(false);

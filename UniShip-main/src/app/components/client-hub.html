@@ -41,6 +41,52 @@
         </div>
       }
 
+      <!-- Promotional Sliding Announcement Banner -->
+      @if (!app.api.currentUser() || app.clientCurrentTab() === 'browse') {
+        <div class="mb-6 relative overflow-hidden rounded-3xl shadow-lg bg-gradient-to-r text-white p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500 ease-in-out"
+             [class]="slides[currentSlide()].bgClass">
+          
+          <!-- Slider Content -->
+          <div class="flex-1 text-left space-y-2 animate-in fade-in duration-300">
+            <span class="inline-block bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3 py-1 rounded-full border border-white/20">
+              {{ slides[currentSlide()].badge }}
+            </span>
+            <h2 class="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2">
+              <mat-icon>{{ slides[currentSlide()].icon }}</mat-icon>
+              {{ slides[currentSlide()].title }}
+            </h2>
+            <p class="text-xs md:text-sm text-slate-100 max-w-2xl leading-relaxed">
+              {{ slides[currentSlide()].desc }}
+            </p>
+          </div>
+
+          <!-- Controls and CTA -->
+          <div class="flex flex-col sm:flex-row items-center gap-3 select-none">
+            <div class="flex gap-1.5">
+              <button (click)="prevSlide()" class="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-0 cursor-pointer transition-colors">
+                <mat-icon class="text-sm">chevron_left</mat-icon>
+              </button>
+              <button (click)="nextSlide()" class="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-0 cursor-pointer transition-colors">
+                <mat-icon class="text-sm">chevron_right</mat-icon>
+              </button>
+            </div>
+            <button class="bg-white text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-all border-0 cursor-pointer shadow-sm">
+              {{ slides[currentSlide()].linkText }}
+            </button>
+          </div>
+
+          <!-- Bottom Dots Indicator -->
+          <div class="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+            @for (slide of slides; track $index) {
+              <span 
+                (click)="currentSlide.set($index)"
+                class="h-1.5 w-1.5 rounded-full cursor-pointer transition-all duration-300"
+                [class]="currentSlide() === $index ? 'bg-white w-4' : 'bg-white/40'"></span>
+            }
+          </div>
+        </div>
+      }
+
       @if (!app.api.currentUser() || app.clientCurrentTab() === 'browse') {
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-200">
         
@@ -105,93 +151,6 @@
                 }
               }
             </div>
-          </div>
-
-          <!-- Checkout / Basket Cart overlay panel -->
-          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-left">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Mon Panier d'Achat</span>
-              <span class="bg-indigo-50 text-indigo-700 font-extrabold text-[11px] px-2 py-0.5 rounded-full select-none">
-                {{ app.api.cart().length }} références
-              </span>
-            </h3>
-
-            @if (app.api.cart().length > 0) {
-              <!-- items loop -->
-              <div class="flex flex-col gap-3 max-h-56 overflow-y-auto mb-4 border-b border-slate-100 pb-3">
-                @for (item of app.api.cart(); track item.product.id) {
-                  <div class="flex items-center justify-between gap-1.5 text-xs text-left">
-                    <div class="flex-1 text-left">
-                      <strong class="text-slate-800 line-clamp-1 font-bold text-left">{{ item.product.name }}</strong>
-                      <span class="text-slate-400 text-[10px] block leading-none text-left mt-0.5">{{ item.product.price?.toFixed(2) }} DTN l'unité</span>
-                    </div>
-
-                    <!-- incrementors -->
-                    <div class="flex items-center gap-1.5 bg-slate-50 p-1 border rounded-lg select-none">
-                      <button (click)="app.decrementCartItem(item.product.id)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-250 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">-</button>
-                      <span class="font-mono font-bold leading-none">{{ item.quantity }}</span>
-                      <button (click)="app.incrementCartItem(item.product.id, item.product.stock)" class="px-1.5 py-0.5 text-slate-500 font-bold hover:bg-slate-250 rounded leading-none text-xs border-0 bg-transparent cursor-pointer">+</button>
-                    </div>
-
-                    <button 
-                      (click)="app.removeFromCart(item.product.id)"
-                      class="text-slate-400 hover:text-rose-600 pl-1 border-0 bg-transparent cursor-pointer">
-                      <mat-icon class="text-[14px]">delete</mat-icon>
-                    </button>
-                  </div>
-                }
-              </div>
-
-              <!-- totals and checkout controls -->
-              <div class="space-y-3.5">
-                <div class="flex justify-between items-center text-xs">
-                  <span class="text-slate-500">Sous-total marchandises:</span>
-                  <strong class="text-slate-800 text-sm font-extrabold">{{ app.getCartTotal() }} DTN</strong>
-                </div>
-
-                <!-- Geolocation shipping address simulator -->
-                <div class="flex flex-col gap-1 text-xs text-slate-500 text-left">
-                  <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Adresse de Livraison</span>
-                  <input 
-                    [value]="app.deliveryAddress()" 
-                    (input)="app.deliveryAddress.set($any($event.target).value)"
-                    placeholder="Saisissez votre rue, ville..." 
-                    class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs" />
-                </div>
-
-                <!-- Payment methods -->
-                <div class="flex flex-col gap-1 text-xs text-slate-400 text-left">
-                  <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Mode de Paiement</span>
-                  <div class="grid grid-cols-3 gap-1 grid-flow-col select-none">
-                    <button 
-                      (click)="app.paymentMethod.set('stripe')"
-                      [class]="app.paymentMethod() === 'stripe' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
-                      Stripe
-                    </button>
-                    <button 
-                      (click)="app.paymentMethod.set('paypal')"
-                      [class]="app.paymentMethod() === 'paypal' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
-                      Paypal
-                    </button>
-                    <button 
-                      (click)="app.paymentMethod.set('cash')"
-                      [class]="app.paymentMethod() === 'cash' ? 'py-1 bg-slate-900 text-white font-bold rounded text-[10px] border-0 cursor-pointer' : 'py-1 bg-slate-50 border text-[10px] hover:bg-slate-100 rounded text-slate-600 cursor-pointer border-slate-200 bg-transparent'">
-                      Cash
-                    </button>
-                  </div>
-                </div>
-
-                <button 
-                  (click)="app.triggerCheckout()"
-                  class="bg-rose-500 hover:bg-rose-600 text-white font-bold w-full py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
-                  <mat-icon class="text-xs">shopping_cart_checkout</mat-icon> Confirmer ({{ app.getCartTotal().toFixed(2) }} DTN)
-                </button>
-              </div>
-            } @else {
-              <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-xl mt-2 bg-white">
-                <p class="text-[11px] text-slate-400 italic font-medium leading-normal">Votre panier est vide. Parcourez nos produits et ajoutez-les pour commander !</p>
-              </div>
-            }
           </div>
 
           <!-- Active Order steps tracker for clients -->
@@ -639,5 +598,86 @@
           </div>
         </div>
       }
-
+ 
     }
+
+  <!-- Product Detail Modal Dialog -->
+  @if (app.selectedProduct(); as p) {
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 text-left animate-in zoom-in-95 duration-200">
+        
+        <!-- Header Image & Badges -->
+        <div class="relative h-64 bg-slate-100">
+          <img [src]="p.image" alt="Image du produit" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+          
+          <!-- Close Button -->
+          <button 
+            (click)="app.selectedProduct.set(null)" 
+            class="absolute top-4 right-4 bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-md transition-all border-0 cursor-pointer flex items-center justify-center">
+            <mat-icon class="text-lg">close</mat-icon>
+          </button>
+
+          <!-- Category Badge -->
+          <span class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-extrabold px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider">
+            {{ p.category }}
+          </span>
+        </div>
+
+        <!-- Body Content -->
+        <div class="p-6 space-y-5">
+          <div class="space-y-1.5">
+            <!-- Brand Partner Badge -->
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-[10px] font-extrabold shadow-xs inline-flex items-center gap-1 leading-none" 
+                    [style.backgroundColor]="p.companyColor" 
+                    [style.color]="app.getTextColor(p.companyColor)">
+                🏬 {{ p.companyName }}
+              </span>
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Produit certifié</span>
+            </div>
+            
+            <h3 class="text-xl font-black text-slate-900 leading-tight">{{ p.name }}</h3>
+          </div>
+
+          <p class="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-150">
+            {{ p.description }}
+          </p>
+
+          <!-- Price and Stock Row -->
+          <div class="flex items-center justify-between bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold block leading-none mb-1">Prix Unitaire</span>
+              <strong class="text-slate-900 font-black text-xl">{{ p.price?.toFixed(2) }} DTN</strong>
+            </div>
+
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold leading-none mb-1">Disponibilité</span>
+              <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg"
+                    [class]="p.stock <= 0 ? 'bg-rose-50 text-rose-700' : p.stock <= p.threshold ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'">
+                <span class="w-1.5 h-1.5 rounded-full" [class]="p.stock <= 0 ? 'bg-rose-500' : p.stock <= p.threshold ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                {{ p.stock <= 0 ? 'Rupture de stock' : p.stock + ' articles restants' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-2">
+            <button 
+              (click)="app.selectedProduct.set(null)"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs py-3.5 rounded-2xl transition-all border-0 cursor-pointer text-center">
+              Fermer
+            </button>
+            <button 
+              (click)="app.addToCart(p); app.selectedProduct.set(null)"
+              [disabled]="p.stock <= 0"
+              class="flex-[2] bg-slate-950 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-xs py-3.5 rounded-2xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 shadow-md">
+              <mat-icon class="text-sm">add_shopping_cart</mat-icon>
+              Ajouter au panier
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
