@@ -128,7 +128,7 @@
                       <div class="space-y-1">
                         <div class="flex justify-between items-center text-xs font-semibold">
                           <span class="text-slate-800">{{ u.name }}</span>
-                          <span class="font-mono text-slate-900 font-bold">{{ app.getCompanyRevenue(u.id)?.toFixed(2) }} DTN</span>
+                          <span class="font-mono text-slate-900 font-bold">{{ app.getCompanyRevenue(u.id).toFixed(2) }} DTN</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-black/5">
                           <div class="h-full rounded-full transition-all duration-500" 
@@ -736,7 +736,7 @@
                               <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded text-white" [style.backgroundColor]="prod.companyColor">
                                 {{ prod.companyName }}
                               </span>
-                              <span class="text-xs font-bold">{{ prod.price?.toFixed(2) }} DTN</span>
+                              <span class="text-xs font-bold">{{ prod.price.toFixed(2) }} DTN</span>
                             </div>
                             <h4 class="text-sm font-bold text-slate-800">{{ prod.name }}</h4>
                             <p class="text-[11px] text-slate-500 line-clamp-2 leading-tight">{{ prod.description }}</p>

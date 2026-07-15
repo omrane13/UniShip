@@ -290,6 +290,12 @@ export class ApiClient {
     return this.request<SubAccount[]>('/api/auth/subaccounts');
   }
 
+  /** Retourne les entreprises actives pour le filtre "Partenaire" du catalogue client.
+   *  N'exige pas d'authentification — ne renvoie que les champs publics. */
+  async getPublicCompanies(): Promise<Pick<User, 'id' | 'name' | 'color' | 'logo' | 'role' | 'status'>[]> {
+    return this.request('/api/companies/public');
+  }
+
   async createSubAccount(payload: { name: string; email: string; pRole?: string; permissions?: string }): Promise<SubAccount> {
     return this.request<SubAccount>('/api/auth/subaccounts', {
       method: 'POST',

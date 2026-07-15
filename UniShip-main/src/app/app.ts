@@ -415,17 +415,20 @@ export class App implements OnInit {
   async loadClientData() {
     this.loading.set(true);
     try {
-      const [prodList, ords, drvs, tkts] = await Promise.all([
+      const [prodList, ords, drvs, tkts, companiesList] = await Promise.all([
         this.api.getProducts(),
         this.api.getOrders(),
         this.api.getDrivers(),
-        this.api.getTickets()
+        this.api.getTickets(),
+        this.api.getPublicCompanies(),
       ]);
 
       this.products.set(prodList);
       this.orders.set(ords);
       this.drivers.set(drvs);
       this.tickets.set(tkts);
+      // Peuple app.users() avec les entreprises actives pour le filtre "Partenaire" du catalogue client.
+      this.users.set(companiesList as any);
 
       // set default address for convenience
       const u = this.api.currentUser();

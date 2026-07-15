@@ -207,6 +207,21 @@ authRouter.post('/auth/register', async (req: Request, res: Response): Promise<v
   });
 });
 
+// Public endpoint — liste des entreprises actives pour le filtre "Partenaire" du catalogue client.
+// Aucune authentification requise : ne renvoie que les champs publics (pas de password, email, données financières).
+authRouter.get('/companies/public', async (_req: Request, res: Response): Promise<void> => {
+  const allCompanies = await CompanyRepository.getAll({ status: 'active' });
+  const safeList = allCompanies.map(c => ({
+    id: c.id,
+    name: c.name,
+    color: c.color || '#10b981',
+    logo: c.logo || null,
+    role: 'company' as const,
+    status: c.status,
+  }));
+  res.json(safeList);
+});
+
 // Company sub-account support
 authRouter.get('/auth/subaccounts', async (req: Request, res: Response): Promise<void> => {
   const user = getCurrentUser(req);
