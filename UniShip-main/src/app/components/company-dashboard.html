@@ -1,4 +1,4 @@
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         <!-- Navigation tab rail -->
         <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-1.55 select-none">
@@ -119,10 +119,10 @@
 
                       <div class="text-right flex flex-col items-end gap-1">
                         @if (o.driverFee > 0) {
-                          <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} DTN (+ {{ o.driverFee?.toFixed(2) }} DTN livraison)</span>
+                          <span class="text-xs font-extrabold text-slate-900">{{ o.total.toFixed(2) }} DTN (+ {{ o.driverFee.toFixed(2) }} DTN livraison)</span>
                         } @else {
                           <span class="text-xs font-extrabold text-slate-900">
-                            {{ o.total?.toFixed(2) }} DTN
+                            {{ o.total.toFixed(2) }} DTN
                             <span class="text-amber-600 font-bold text-[10px] ml-1">(+ frais livraison à fixer)</span>
                           </span>
                         }
@@ -154,7 +154,7 @@
                             <div class="p-2.5 text-xs flex justify-between items-center bg-slate-50/50">
                               <div>
                                 <strong class="text-slate-800 font-bold">{{ item.productName }}</strong>
-                                <span class="text-slate-400 block text-[10px]">{{ item.price?.toFixed(2) }} DTN x {{ item.quantity }}</span>
+                                <span class="text-slate-400 block text-[10px]">{{ item.price.toFixed(2) }} DTN x {{ item.quantity }}</span>
                               </div>
                               <span class="font-mono font-bold text-slate-700">{{ (item.price * item.quantity)?.toFixed(2) }} DTN</span>
                             </div>
@@ -218,7 +218,7 @@
                                 </div>
                                 <div class="text-xs">
                                   <p class="font-bold text-slate-800">{{ o.driverName }}</p>
-                                  <p class="text-[10px] text-slate-400">Course payée : +{{ o.driverFee?.toFixed(2) }} DTN</p>
+                                  <p class="text-[10px] text-slate-400">Course payée : +{{ o.driverFee.toFixed(2) }} DTN</p>
                                 </div>
                               </div>
 
@@ -376,7 +376,7 @@
                           </div>
                         </td>
                         <td class="py-3 px-4 text-slate-500 font-medium">{{ p.category }}</td>
-                        <td class="py-3 px-4 font-bold">{{ p.price?.toFixed(2) }} DTN</td>
+                        <td class="py-3 px-4 font-bold">{{ p.price.toFixed(2) }} DTN</td>
                         <td class="py-3 px-4">
                           <div class="flex items-center gap-1.5 font-bold">
                             <span class="h-1.5 w-1.5 rounded-full" [class]="p.stock <= p.threshold ? 'bg-rose-500 animate-ping':'bg-emerald-500'"></span>
