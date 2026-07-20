@@ -82,6 +82,7 @@ export class App implements OnInit {
   deliveryAddress = signal('');
   selectedDriver = signal<Driver | null>(null);
   paymentMethod = signal<'stripe' | 'paypal' | 'cash'>('stripe');
+  feeEstimateVisible = signal(false);
 
   // Form Signals: Add Product
   newProdName = signal('');
@@ -390,13 +391,15 @@ export class App implements OnInit {
   async loadCompanyData() {
     this.loading.set(true);
     try {
-      const [prodList, sReqs, offerList, subs, tkts, stats] = await Promise.all([
+      const [prodList, sReqs, offerList, subs, tkts, stats, ords, drvs] = await Promise.all([
         this.api.getProducts({ all: false }), // company owns
         this.api.getStockRequests(),
         this.api.getOffers(),
         this.api.getSubAccounts(),
         this.api.getTickets(),
-        this.api.getStats()
+        this.api.getStats(),
+        this.api.getOrders(),
+        this.api.getDrivers()
       ]);
 
       this.products.set(prodList);
@@ -405,6 +408,8 @@ export class App implements OnInit {
       this.subAccounts.set(subs);
       this.tickets.set(tkts);
       this.globalStats.set(stats);
+      this.orders.set(ords);
+      this.drivers.set(drvs);
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set('Erreur d’initialisation Entreprise : ' + error.message);
     } finally {
@@ -415,17 +420,18 @@ export class App implements OnInit {
   async loadClientData() {
     this.loading.set(true);
     try {
+      // Charger les livreurs disponibles pour l'estimation des frais (bulle info)
       const [prodList, ords, drvs, tkts, companiesList] = await Promise.all([
         this.api.getProducts(),
         this.api.getOrders(),
-        this.api.getDrivers(),
+        this.api.getDrivers(), // utilisé uniquement pour les estimations de frais
         this.api.getTickets(),
         this.api.getPublicCompanies(),
       ]);
 
       this.products.set(prodList);
       this.orders.set(ords);
-      this.drivers.set(drvs);
+      this.drivers.set(drvs); // stocké pour l'estimation, pas pour la sélection
       this.tickets.set(tkts);
       // Peuple app.users() avec les entreprises actives pour le filtre "Partenaire" du catalogue client.
       this.users.set(companiesList as any);
@@ -440,6 +446,30 @@ export class App implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // Calcule des estimations de frais de livraison par tranches de distance
+  getDeliveryFeeEstimates(): { label: string; minFee: number; maxFee: number; icon: string }[] {
+    const drvs = this.drivers();
+    if (!drvs.length) {
+      // Estimations par défaut si aucun livreur chargé
+      return [
+        { label: '< 2 km (Zone proche)', minFee: 2.5, maxFee: 5.0, icon: 'near_me' },
+        { label: '2 – 5 km (Zone standard)', minFee: 5.0, maxFee: 9.0, icon: 'directions_bike' },
+        { label: '5 – 10 km (Zone élargie)', minFee: 9.0, maxFee: 15.0, icon: 'local_shipping' },
+        { label: '> 10 km (Zone distante)', minFee: 15.0, maxFee: 25.0, icon: 'route' },
+      ];
+    }
+    // Calculer min/max basés sur les tarifaires réels des livreurs
+    const avgBase = drvs.reduce((s, d) => s + d.baseFee, 0) / drvs.length;
+    const avgKm   = drvs.reduce((s, d) => s + d.perKmFee, 0) / drvs.length;
+    const calc = (km: number) => parseFloat((avgBase + km * avgKm).toFixed(2));
+    return [
+      { label: '< 2 km — Zone de proximité', minFee: calc(0.5), maxFee: calc(2), icon: 'near_me' },
+      { label: '2 – 5 km — Zone standard',     minFee: calc(2),   maxFee: calc(5), icon: 'directions_bike' },
+      { label: '5 – 10 km — Zone élargie',     minFee: calc(5),   maxFee: calc(10), icon: 'local_shipping' },
+      { label: '> 10 km — Zone distante',       minFee: calc(10),  maxFee: calc(18), icon: 'route' },
+    ];
   }
 
   async loadDriverData() {
@@ -547,24 +577,18 @@ export class App implements OnInit {
     );
   }
 
-  // Handle order checkout
+  // Handle order checkout — le livreur est assigné par l'entreprise après commande
   async triggerCheckout() {
     this.clearMessages();
+    this.feeEstimateVisible.set(false);
     const userObj = this.api.currentUser();
     if (!userObj) {
-      // Force instant client setup for easy testing
       this.errorMessage.set('Veuillez vous authentifier en tant que Client pour commander.');
       return;
     }
 
     if (!this.deliveryAddress()) {
       this.errorMessage.set('Veuillez spécifier l’adresse de livraison.');
-      return;
-    }
-
-    const drv = this.selectedDriver();
-    if (!drv) {
-      this.errorMessage.set('Veuillez sélectionner un livreur disponible.');
       return;
     }
 
@@ -575,12 +599,13 @@ export class App implements OnInit {
 
     this.loading.set(true);
     try {
+      // Le livreur sera assigné par l'entreprise (driverId vide = "En attente d'attribution")
       const res = await this.api.checkout({
         items: itemsPayload,
         deliveryAddress: this.deliveryAddress(),
-        driverId: drv.id,
-        driverName: drv.name,
-        driverFee: drv.calculatedFee || drv.baseFee,
+        driverId: '',
+        driverName: '',
+        driverFee: 0,
         paymentMethod: this.paymentMethod()
       });
 

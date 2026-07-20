@@ -102,17 +102,30 @@
                   <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     
                     <!-- Header -->
-                    <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 font-sans text-left">
+                    <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 font-sans text-left"
+                         [class]="o.status === 'pending' && !o.driverId ? 'bg-amber-50 border-amber-200' : ''">
                       <div>
                         <div class="flex items-center gap-2">
                           <span class="font-mono font-extrabold text-[11px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">No {{ o.id }}</span>
                           <span class="text-xs text-slate-400 font-medium">{{ o.createdAt | date:'shortTime' }}</span>
+                          @if (o.status === 'pending' && !o.driverId) {
+                            <span class="bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">
+                              ⚡ À ASSIGNER
+                            </span>
+                          }
                         </div>
                         <p class="text-xs text-slate-500 mt-1 font-semibold">Client : {{ o.clientName }} ({{ o.clientEmail }})</p>
                       </div>
 
                       <div class="text-right flex flex-col items-end gap-1">
-                        <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} DTN (+ {{ o.driverFee?.toFixed(2) }} DTN de livraison)</span>
+                        @if (o.driverFee > 0) {
+                          <span class="text-xs font-extrabold text-slate-900">{{ o.total?.toFixed(2) }} DTN (+ {{ o.driverFee?.toFixed(2) }} DTN livraison)</span>
+                        } @else {
+                          <span class="text-xs font-extrabold text-slate-900">
+                            {{ o.total?.toFixed(2) }} DTN
+                            <span class="text-amber-600 font-bold text-[10px] ml-1">(+ frais livraison à fixer)</span>
+                          </span>
+                        }
                         
                         <!-- Status Pills -->
                         <span class="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded leading-none"

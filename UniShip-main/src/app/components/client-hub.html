@@ -364,8 +364,18 @@
                     <strong class="font-mono text-sm text-slate-850 block mt-1">{{ ord.id }}</strong>
                   </div>
                   <div class="text-left md:text-right">
-                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none font-sans">Montant Total Payé</span>
-                    <strong class="text-indigo-750 text-lg font-black font-sans text-indigo-700 block mt-1">{{ (ord.total + ord.driverFee)?.toFixed(2) }} DTN</strong>
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase leading-none font-sans">Montant Produits</span>
+                    <strong class="text-indigo-750 text-lg font-black font-sans text-indigo-700 block mt-1">{{ ord.total.toFixed(2) }} DTN</strong>
+                    @if (ord.driverFee > 0) {
+                      <span class="text-[10px] text-slate-400 font-medium block">
+                        + {{ ord.driverFee.toFixed(2) }} DTN livraison
+                      </span>
+                    } @else {
+                      <span class="text-[10px] text-amber-500 font-bold block flex items-center gap-0.5 justify-end">
+                        <mat-icon style="font-size:11px;width:11px;height:11px;">schedule</mat-icon>
+                        Livraison à confirmer
+                      </span>
+                    }
                   </div>
                 </div>
 
@@ -391,8 +401,15 @@
 
                 <div class="flex flex-wrap md:flex-nowrap items-center justify-between text-xs text-slate-505 border-t border-slate-100 pt-3 gap-3 font-sans text-slate-500">
                   <div class="flex items-center gap-2 text-left">
-                    <mat-icon class="text-sm text-slate-400">local_shipping</mat-icon>
-                    <span>Livreur Assigné : <strong class="text-slate-800">{{ ord.driverName }}</strong></span>
+                    <mat-icon class="text-sm" [class]="!ord.driverId ? 'text-amber-400' : 'text-slate-400'">local_shipping</mat-icon>
+                    @if (ord.driverId) {
+                      <span>Livreur : <strong class="text-slate-800">{{ ord.driverName }}</strong></span>
+                    } @else {
+                      <span class="flex items-center gap-1 text-amber-600 font-semibold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block"></span>
+                        En attente d’assignation par l’entreprise
+                      </span>
+                    }
                   </div>
                   <div class="flex items-center gap-2 text-left">
                     <mat-icon class="text-sm text-slate-400">place</mat-icon>

@@ -671,7 +671,7 @@
             <!-- Checkout Details Form -->
             <div class="bg-white rounded-2xl p-4 border border-slate-150 shadow-sm space-y-3.5 text-left">
               <div class="flex justify-between items-center text-xs">
-                <span class="text-slate-505 font-medium">Sous-total :</span>
+                <span class="text-slate-505 font-medium">Sous-total produits :</span>
                 <strong class="text-slate-800 text-sm font-extrabold">{{ getCartTotal() }} DTN</strong>
               </div>
 
@@ -685,26 +685,73 @@
                   class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs outline-none" />
               </div>
 
-              <!-- Driver Selection -->
-              <div class="flex flex-col gap-1 text-xs text-slate-550 text-left">
-                <span class="font-bold text-slate-400 uppercase text-[9px] text-left">Sélectionner un Livreur</span>
-                <div class="flex gap-2">
-                  <select 
-                    [value]="selectedDriver()?.id" 
-                    (change)="selectedDriver.set(drivers()[$any($event.target).selectedIndex] || null)"
-                    class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs outline-none flex-1">
-                    @for (d of drivers(); track d.id) {
-                      <option [value]="d.id">{{ d.name }} - {{ d.calculatedFee || d.baseFee }} DTN ({{ d.zone }})</option>
-                    }
-                  </select>
-                  <button 
-                    (click)="refreshDriversLocation()" 
-                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl border-0 cursor-pointer flex items-center justify-center" 
-                    title="Actualiser les livreurs">
-                    <mat-icon class="text-sm">refresh</mat-icon>
+
+              <!-- Delivery Fee Estimation Row -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-slate-400 uppercase text-[9px]">Frais de Livraison</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">
+                      <mat-icon class="text-xs text-amber-500" style="font-size:14px;width:14px;height:14px;">schedule</mat-icon>
+                      À calculer après assignation du livreur
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Info Button -->
+                <div class="relative">
+                  <button
+                    type="button"
+                    (click)="feeEstimateVisible.set(!feeEstimateVisible())"
+                    class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-600 transition-all cursor-pointer border-0"
+                    title="Voir les estimations de frais par distance">
+                    <mat-icon style="font-size:15px;width:15px;height:15px;">info_outline</mat-icon>
                   </button>
                 </div>
               </div>
+
+              <!-- Fee Estimate Bubble Panel -->
+              @if (feeEstimateVisible()) {
+                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <mat-icon class="text-indigo-500" style="font-size:16px;width:16px;height:16px;">local_shipping</mat-icon>
+                      <span class="text-[10px] font-extrabold text-indigo-800 uppercase tracking-wide">Estimation des Frais de Livraison</span>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="feeEstimateVisible.set(false)"
+                      class="text-indigo-300 hover:text-indigo-600 bg-transparent border-0 cursor-pointer leading-none p-0">
+                      <mat-icon style="font-size:14px;width:14px;height:14px;">close</mat-icon>
+                    </button>
+                  </div>
+
+                  <p class="text-[10px] text-indigo-600 leading-relaxed font-medium">
+                    Ces frais sont <strong>estimatifs</strong> et seront confirmés après que l'entreprise vous assigne un livreur, selon la distance réelle.
+                  </p>
+
+                  <div class="space-y-2">
+                    @for (est of getDeliveryFeeEstimates(); track est.label) {
+                      <div class="flex items-center justify-between bg-white border border-indigo-100 rounded-xl px-3 py-2 shadow-xs">
+                        <div class="flex items-center gap-2">
+                          <mat-icon class="text-indigo-400" style="font-size:15px;width:15px;height:15px;">{{ est.icon }}</mat-icon>
+                          <span class="text-[10px] font-semibold text-slate-700">{{ est.label }}</span>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-indigo-700 whitespace-nowrap">
+                          {{ est.minFee.toFixed(2) }} – {{ est.maxFee.toFixed(2) }} DTN
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="flex items-start gap-1.5 bg-amber-50 border border-amber-100 rounded-xl p-2.5">
+                    <mat-icon class="text-amber-500 shrink-0" style="font-size:14px;width:14px;height:14px;">lightbulb_outline</mat-icon>
+                    <p class="text-[10px] text-amber-700 font-medium leading-relaxed">
+                      Le livreur sera choisi par l'entreprise partenaire selon votre adresse et la disponibilité. Vous serez notifié dès l'assignation.
+                    </p>
+                  </div>
+                </div>
+              }
 
               <!-- Payment methods -->
               <div class="flex flex-col gap-1 text-xs text-slate-550 text-left">
