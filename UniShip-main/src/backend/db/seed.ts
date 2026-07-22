@@ -33,15 +33,21 @@ async function seedCollection<T extends { id: string }>(
     return;
   }
 
-  for (const item of data) {
-    try {
-      await Model.findOneAndUpdate({ id: item.id }, item, { upsert: true, new: true });
-    } catch (err: any) {
-      console.error(`  ❌ [Seed] Erreur sur '${name}' (id=${item.id}):`, err.message);
+  try {
+    // Optimization: Bulk insert when collection is empty instead of individual query loop
+    await Model.insertMany(data);
+    console.log(`  ✅ [Seed] '${name}' — ${data.length} document(s) insérés (Bulk).`);
+  } catch (err: any) {
+    console.error(`  ❌ [Seed] Erreur d'insertion en lot (Bulk) sur '${name}':`, err.message);
+    // Fallback item by item in case of schema validation issues
+    for (const item of data) {
+      try {
+        await Model.findOneAndUpdate({ id: item.id }, item, { upsert: true, new: true });
+      } catch (subErr: any) {
+        console.error(`  ❌ [Seed] Erreur fallback sur '${name}' (id=${item.id}):`, subErr.message);
+      }
     }
   }
-
-  console.log(`  ✅ [Seed] '${name}' — ${data.length} document(s) insérés.`);
 }
 
 export async function seedDatabase(): Promise<void> {

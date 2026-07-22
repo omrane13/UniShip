@@ -39,7 +39,11 @@ export async function connectMongoDB(): Promise<DBStatus> {
       console.log(`📡 [Mongoose Connection] Connecting to MongoDB (Attempt ${attempt}/${maxRetries})...`);
       
       await mongoose.connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 8000, // 8 seconds per attempt
+        serverSelectionTimeoutMS: 5000, // Timeout fast for server selection
+        connectTimeoutMS: 5000,         // Timeout fast for socket connection
+        maxPoolSize: 10,                // Avoid opening 100 default sockets (reduces handshake overhead)
+        minPoolSize: 1,
+        family: 4,                      // FORCE IPv4 — fixes slow DNS resolution/timeouts on Windows & certain networks
       });
 
       isConnected = true;
@@ -66,7 +70,11 @@ export async function connectMongoDB(): Promise<DBStatus> {
       await mongoose.disconnect();
 
       await mongoose.connect(LOCAL_MONGODB_URI, {
-        serverSelectionTimeoutMS: 3000, // Quick timeout for local
+        serverSelectionTimeoutMS: 2000,
+        connectTimeoutMS: 2000,
+        maxPoolSize: 10,
+        minPoolSize: 1,
+        family: 4, // Force IPv4
       });
 
       isConnected = true;
