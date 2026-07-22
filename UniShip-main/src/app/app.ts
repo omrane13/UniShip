@@ -119,6 +119,10 @@ export class App implements OnInit {
   selectedProdForStock = signal<Product | null>(null);
   stockReqQty = signal<number>(50);
   stockReqJustif = signal('');
+  stockReqNewPrice = signal<number | null>(null); // Optional price change
+
+  // Price change quick-inputs in products table (productId → new price)
+  prodPriceEdits = signal<Record<string, number>>({});
 
   constructor() {
     // Re-fetch data whenever current user changes
@@ -864,15 +868,23 @@ export class App implements OnInit {
 
     this.loading.set(true);
     try {
-      await this.api.createStockRequest(prod.id, {
+      const newPrice = this.stockReqNewPrice();
+      const payload: { quantity: number; justification: string; requestedPrice?: number } = {
         quantity: this.stockReqQty(),
         justification: this.stockReqJustif()
-      });
+      };
+      if (newPrice && newPrice > 0 && newPrice !== prod.price) {
+        payload.requestedPrice = newPrice;
+      }
 
-      this.successMessage.set('Demande d’augmentation de stock enregistrée avec succès.');
+      await this.api.createStockRequest(prod.id, payload);
+
+      const priceMsg = payload.requestedPrice ? ` + demande de changement de prix à ${payload.requestedPrice.toFixed(2)} DTN soumise.` : '';
+      this.successMessage.set(`Demande d’augmentation de stock enregistrée avec succès.${priceMsg}`);
       this.selectedProdForStock.set(null);
       this.stockReqQty.set(50);
       this.stockReqJustif.set('');
+      this.stockReqNewPrice.set(null);
       await this.loadCompanyData();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);

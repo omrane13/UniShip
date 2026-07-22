@@ -13,6 +13,8 @@ const StockRequestSchema = new Schema<MongoStockRequestDoc>({
   justification: { type: String, required: true },
   status:        { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
   createdAt:     { type: String },
+  requestedPrice: { type: Number },
+  currentPrice:   { type: Number },
 }, {
   toJSON: {
     transform: (doc, ret) => {

@@ -481,8 +481,8 @@
                   </h4>
                   <p class="text-xs text-slate-500 mb-4">Votre stock actuel est de {{ product.stock }} unités. Quel quantité désirez-vous ajouter ?</p>
 
-                  <div class="flex flex-col md:flex-row gap-4 mb-4">
-                    <div class="flex flex-col gap-1 w-full md:w-1/4 text-xs font-bold text-slate-500">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="flex flex-col gap-1 text-xs font-bold text-slate-500">
                       <span>Quantité Additionnelle</span>
                       <input 
                         type="number" 
@@ -490,7 +490,7 @@
                         (input)="app.stockReqQty.set($any($event.target).value)" 
                         class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs" />
                     </div>
-                    <div class="flex flex-col gap-1 flex-1 text-xs font-bold text-slate-500">
+                    <div class="flex flex-col gap-1 flex-1 text-xs font-bold text-slate-500 md:col-span-2">
                       <span>Justification et Motif (requis pour validation)</span>
                       <input 
                         [value]="app.stockReqJustif()" 
@@ -500,20 +500,56 @@
                     </div>
                   </div>
 
+                  <!-- Optional Price Change Row -->
+                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <mat-icon class="text-amber-500 text-sm">sell</mat-icon>
+                      <span class="text-xs font-bold text-amber-700">Demander un Changement de Prix <span class="font-normal text-amber-600">(optionnel)</span></span>
+                    </div>
+                    <p class="text-[11px] text-amber-600 mb-2">Prix actuel : <strong>{{ product.price.toFixed(2) }} DTN</strong>. Si vous souhaitez proposer un nouveau prix, saisissez-le ci-dessous. L'admin pourra l'approuver ou l'ignorer.</p>
+                    <div class="flex items-center gap-3">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        [value]="app.stockReqNewPrice() ?? ''"
+                        (input)="app.stockReqNewPrice.set($any($event.target).value ? +$any($event.target).value : null)"
+                        placeholder="Nouveau prix (DTN)..."
+                        class="w-48 bg-white border border-amber-300 px-3 py-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        id="stock-req-new-price-input"
+                      />
+                      @if (app.stockReqNewPrice()) {
+                        <span class="text-xs text-amber-700 font-semibold flex items-center gap-1">
+                          <mat-icon class="text-sm">arrow_forward</mat-icon>
+                          {{ product.price.toFixed(2) }} → {{ app.stockReqNewPrice()!.toFixed(2) }} DTN
+                        </span>
+                        <button (click)="app.stockReqNewPrice.set(null)" class="text-amber-500 hover:text-amber-700 cursor-pointer bg-transparent border-none leading-none">
+                          <mat-icon class="text-sm">close</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
                   <div class="flex justify-end gap-2">
                     <button 
-                      (click)="app.selectedProdForStock.set(null)"
-                      class="bg-white border border-slate-300 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-50">
+                      (click)="app.selectedProdForStock.set(null); app.stockReqNewPrice.set(null)"
+                      class="bg-white border border-slate-300 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                       Annuler
                     </button>
                     <button 
                       (click)="app.raiseStockIncreaseRequest()"
-                      class="bg-slate-900 text-white text-xs font-bold px-5 py-2 rounded-lg hover:bg-slate-800">
-                      Envoyer la Demande de Stock
+                      class="bg-slate-900 text-white text-xs font-bold px-5 py-2 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1.5">
+                      <mat-icon class="text-sm">send</mat-icon>
+                      @if (app.stockReqNewPrice()) {
+                        Envoyer Demande Stock + Prix
+                      } @else {
+                        Envoyer la Demande de Stock
+                      }
                     </button>
                   </div>
                 </div>
               }
+
 
               <!-- Stock requests tracker -->
               <div>

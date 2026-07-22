@@ -786,7 +786,8 @@
                     </thead>
                     <tbody>
                       @for (sr of app.stockRequests(); track sr.id) {
-                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <!-- Special highlight for price change requests -->
+                        <tr [class]="sr.requestedPrice ? 'border-b border-amber-200 bg-amber-50/60 hover:bg-amber-50' : 'border-b border-slate-100 hover:bg-slate-50'">
                           <td class="py-3 px-4 whitespace-nowrap">
                             <span class="px-2.5 py-1 rounded text-[10px] font-extrabold shadow-sm inline-flex items-center gap-1 leading-none" 
                               [style.backgroundColor]="app.getCompanyColor(sr.companyId)" 
@@ -794,7 +795,17 @@
                               🏬 {{ sr.companyName }}
                             </span>
                           </td>
-                          <td class="py-3 px-4 font-bold">{{ sr.productName }}</td>
+                          <td class="py-3 px-4 font-bold">
+                            <div class="flex flex-col gap-1">
+                              <span>{{ sr.productName }}</span>
+                              <!-- Price Change Alert Badge -->
+                              @if (sr.requestedPrice) {
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full w-fit animate-pulse">
+                                  🏷️ DEMANDE PRIX : {{ sr.currentPrice?.toFixed(2) }} → {{ sr.requestedPrice.toFixed(2) }} DTN
+                                </span>
+                              }
+                            </div>
+                          </td>
                           <td class="py-3 px-4 text-indigo-600 font-extrabold">+{{ sr.quantity }}</td>
                           <td class="py-3 px-4 text-slate-500 italic">"{{ sr.justification }}"</td>
                           <td class="py-3 px-4 uppercase text-[10px] font-bold">
@@ -804,17 +815,26 @@
                           </td>
                           <td class="py-3 px-4 text-right">
                             @if (sr.status === 'pending') {
-                              <div class="flex justify-end gap-1">
+                              <div class="flex justify-end gap-1 flex-wrap">
                                 <button 
                                   (click)="app.decideOnStockRequest(sr, 'rejected')"
-                                  class="bg-white border border-slate-300 text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-50">
+                                  class="bg-white border border-slate-300 text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-50 cursor-pointer">
                                   Refuser
                                 </button>
-                                <button 
-                                  (click)="app.decideOnStockRequest(sr, 'approved')"
-                                  class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-800">
-                                  Approuver
-                                </button>
+                                @if (sr.requestedPrice) {
+                                  <!-- Approve stock + price -->
+                                  <button 
+                                    (click)="app.decideOnStockRequest(sr, 'approved')"
+                                    class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] px-2 py-1 rounded font-bold cursor-pointer transition-colors">
+                                    ✓ Stock + Prix
+                                  </button>
+                                } @else {
+                                  <button 
+                                    (click)="app.decideOnStockRequest(sr, 'approved')"
+                                    class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-slate-800 cursor-pointer">
+                                    Approuver
+                                  </button>
+                                }
                               </div>
                             } @else {
                               <span class="text-slate-400 text-[10px] italic">Traité</span>

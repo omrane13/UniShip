@@ -188,9 +188,15 @@ productsRouter.post('/products/:id/stock-request', async (req: Request, res: Res
     return;
   }
 
-  const { quantity, justification } = req.body;
+  const { quantity, justification, requestedPrice } = req.body;
   if (!quantity || !justification) {
     res.status(400).json({ error: 'Veuillez saisir la quantité et la justification' });
+    return;
+  }
+
+  // Validate requestedPrice if provided
+  if (requestedPrice !== undefined && (isNaN(Number(requestedPrice)) || Number(requestedPrice) <= 0)) {
+    res.status(400).json({ error: 'Le prix demandé doit être un nombre positif.' });
     return;
   }
 
@@ -208,10 +214,13 @@ productsRouter.post('/products/:id/stock-request', async (req: Request, res: Res
     justification,
     status: 'pending',
     createdAt: new Date().toISOString(),
+    currentPrice: prod.price,
+    ...(requestedPrice !== undefined && { requestedPrice: Number(requestedPrice) }),
   };
 
   await StockRequestRepository.create(reqObj);
-  await AuditLogRepository.log(u.id, u.name, 'STOCK_REQUEST', `Demande de +${quantity} pour ${prod.name}`);
+  const priceNote = requestedPrice ? ` + demande de prix à ${Number(requestedPrice).toFixed(2)} DTN` : '';
+  await AuditLogRepository.log(u.id, u.name, 'STOCK_REQUEST', `Demande de +${quantity} pour ${prod.name}${priceNote}`);
   res.json(reqObj);
 });
 
@@ -234,11 +243,17 @@ productsRouter.put('/stock-requests/:id', async (req: Request, res: Response): P
   if (status === 'approved') {
     const prod = await ProductRepository.getById(reqObj.productId);
     if (prod) {
-      await ProductRepository.update(prod.id, { stock: prod.stock + reqObj.quantity });
+      const updates: Partial<{ stock: number; price: number }> = { stock: prod.stock + reqObj.quantity };
+      // Also apply price change if requested
+      if (reqObj.requestedPrice && reqObj.requestedPrice > 0) {
+        updates.price = reqObj.requestedPrice;
+      }
+      await ProductRepository.update(prod.id, updates);
     }
   }
 
-  await AuditLogRepository.log(u.id, u.name, `STOCK_REQUEST_${status.toUpperCase()}`, `La demande ${reqObj.id} a été ${status}`);
+  const priceNote = reqObj.requestedPrice ? ` (prix mis à jour : ${reqObj.requestedPrice} DTN)` : '';
+  await AuditLogRepository.log(u.id, u.name, `STOCK_REQUEST_${status.toUpperCase()}`, `La demande ${reqObj.id} a été ${status}${priceNote}`);
   res.json(updatedReq);
 });
 

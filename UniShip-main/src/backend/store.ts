@@ -114,6 +114,8 @@ export interface StockRequest {
   justification: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
+  requestedPrice?: number;  // Optional price change request
+  currentPrice?: number;    // Price at time of request (for admin reference)
 }
 
 export interface NewProductRequest {

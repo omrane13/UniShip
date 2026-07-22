@@ -100,6 +100,8 @@ export interface StockRequest {
   justification: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
+  requestedPrice?: number;  // Optional price change request
+  currentPrice?: number;    // Price at time of request (for admin reference)
 }
 
 export interface Category {
@@ -389,7 +391,7 @@ export class ApiClient {
     return this.request<StockRequest[]>('/api/stock-requests');
   }
 
-  async createStockRequest(productId: string, payload: { quantity: number; justification: string }): Promise<StockRequest> {
+  async createStockRequest(productId: string, payload: { quantity: number; justification: string; requestedPrice?: number }): Promise<StockRequest> {
     return this.request<StockRequest>(`/api/products/${productId}/stock-request`, {
       method: 'POST',
       body: JSON.stringify(payload)
