@@ -10,7 +10,9 @@ import { MongoStockRequest } from './models/stock-request';
 import { MongoTicket } from './models/ticket';
 import { MongoAuditLog } from './models/audit-log';
 import { MongoSimulatedEmail } from './models/simulated-email';
-import { dbStore, User, Company, Product, Order, Driver, SubAccount, Offer, StockRequest, SupportTicket, AuditLog, SimulatedEmail } from '../store';
+import { MongoCategory } from './models/category';
+import { MongoCategoryRequest } from './models/category-request';
+import { dbStore, User, Company, Product, Order, Driver, SubAccount, Offer, StockRequest, SupportTicket, AuditLog, SimulatedEmail, Category, CategoryRequest } from '../store';
 
 /**
  * Professional Repository Layer — UniShip
@@ -787,5 +789,97 @@ export const SimulatedEmailRepository = {
         console.error('[SimulatedEmailRepository] send error:', err);
       }
     }
+  }
+};
+
+// ==========================================
+// CATEGORY REPOSITORY
+// ==========================================
+export const CategoryRepository = {
+  async getAll(): Promise<Category[]> {
+    if (isMongoEnabled()) {
+      try {
+        const categories = await MongoCategory.find({});
+        // Si la collection MongoDB est vide, on initialise avec les catégories de base du store mémoire
+        if (categories.length === 0) {
+          for (const cat of dbStore.categories) {
+            await MongoCategory.create(cat);
+          }
+          return dbStore.categories;
+        }
+        return categories.map(c => c.toJSON() as Category);
+      } catch (err) {
+        console.error('[CategoryRepository] getAll fallback:', err);
+      }
+    }
+    return dbStore.categories;
+  },
+
+  async create(category: Category): Promise<Category> {
+    dbStore.categories.push(category);
+    if (isMongoEnabled()) {
+      try {
+        await MongoCategory.create(category);
+      } catch (err) {
+        console.error('[CategoryRepository] create error:', err);
+      }
+    }
+    return category;
+  }
+};
+
+// ==========================================
+// CATEGORY REQUEST REPOSITORY
+// ==========================================
+export const CategoryRequestRepository = {
+  async getAll(): Promise<CategoryRequest[]> {
+    if (isMongoEnabled()) {
+      try {
+        const reqs = await MongoCategoryRequest.find({}).sort({ createdAt: -1 });
+        return reqs.map(r => r.toJSON() as CategoryRequest);
+      } catch (err) {
+        console.error('[CategoryRequestRepository] getAll fallback:', err);
+      }
+    }
+    return dbStore.categoryRequests;
+  },
+
+  async getById(id: string): Promise<CategoryRequest | undefined> {
+    if (isMongoEnabled()) {
+      try {
+        const r = await MongoCategoryRequest.findOne({ id });
+        if (r) return r.toJSON() as CategoryRequest;
+      } catch (err) {
+        console.error('[CategoryRequestRepository] getById fallback:', err);
+      }
+    }
+    return dbStore.categoryRequests.find(r => r.id === id);
+  },
+
+  async create(req: CategoryRequest): Promise<CategoryRequest> {
+    dbStore.categoryRequests.push(req);
+    if (isMongoEnabled()) {
+      try {
+        await MongoCategoryRequest.create(req);
+      } catch (err) {
+        console.error('[CategoryRequestRepository] create error:', err);
+      }
+    }
+    return req;
+  },
+
+  async update(id: string, updates: Partial<CategoryRequest>): Promise<CategoryRequest | undefined> {
+    const req = dbStore.categoryRequests.find(r => r.id === id);
+    if (req) Object.assign(req, updates);
+
+    if (isMongoEnabled()) {
+      try {
+        const updated = await MongoCategoryRequest.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: 'after' });
+        if (updated) return updated.toJSON() as CategoryRequest;
+      } catch (err) {
+        console.error('[CategoryRequestRepository] update error:', err);
+      }
+    }
+    return req;
   }
 };

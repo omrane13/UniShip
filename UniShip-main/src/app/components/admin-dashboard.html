@@ -886,6 +886,91 @@
                 </div>
               </div>
 
+              <hr class="border-slate-100" />
+
+              <!-- Segment D: Demandes de Nouvelles Catégories -->
+              <div class="text-left">
+                <h3 class="text-base font-extrabold text-slate-900 mb-1">Demandes de Nouvelles Catégories</h3>
+                <p class="text-xs text-slate-500 mb-4">Des entreprises partenaires ont proposé ces catégories. Approuvez-les pour les rendre disponibles dans le catalogue, ou rejetez-les.</p>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-amber-50 text-amber-700 font-bold uppercase tracking-wider border-b border-amber-200">
+                        <th class="py-2.5 px-4">Catégorie Proposée</th>
+                        <th class="py-2.5 px-4">Proposée par</th>
+                        <th class="py-2.5 px-4">Date</th>
+                        <th class="py-2.5 px-4">Statut</th>
+                        <th class="py-2.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (cr of app.categoryRequests(); track cr.id) {
+                        <tr class="border-b border-slate-100 hover:bg-amber-50/30">
+                          <td class="py-3 px-4 font-bold text-slate-800">
+                            <span class="flex items-center gap-1.5">
+                              <mat-icon class="text-amber-500 text-sm">label</mat-icon>
+                              {{ cr.name }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-4 text-slate-500">🏬 {{ cr.companyName }}</td>
+                          <td class="py-3 px-4 text-slate-400">{{ cr.createdAt | date:'shortDate' }}</td>
+                          <td class="py-3 px-4 uppercase text-[10px] font-bold">
+                            @if (cr.status === 'pending') {
+                              <span class="text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded">⏳ EN ATTENTE</span>
+                            } @else if (cr.status === 'approved') {
+                              <span class="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded">✅ APPROUVÉE</span>
+                            } @else {
+                              <span class="text-rose-700 bg-rose-50 px-2.5 py-1 rounded">❌ REJETÉE</span>
+                            }
+                          </td>
+                          <td class="py-3 px-4 text-right">
+                            @if (cr.status === 'pending') {
+                              <div class="flex justify-end gap-1.5">
+                                <button
+                                  (click)="app.decideOnCategoryRequest(cr.id, 'rejected')"
+                                  class="bg-white border border-slate-300 text-slate-700 text-[10px] px-3 py-1 rounded-lg font-bold hover:bg-slate-50 leading-none cursor-pointer">
+                                  Rejeter
+                                </button>
+                                <button
+                                  (click)="app.decideOnCategoryRequest(cr.id, 'approved')"
+                                  class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] px-3 py-1 rounded-lg font-bold leading-none cursor-pointer transition-colors">
+                                  ✓ Approuver
+                                </button>
+                              </div>
+                            } @else {
+                              <span class="text-slate-400 text-[10px] italic">Traité</span>
+                            }
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="5" class="py-8 text-center text-slate-400">
+                            <mat-icon class="text-slate-300 text-4xl block mx-auto mb-2">label_off</mat-icon>
+                            Aucune demande de nouvelle catégorie en attente.
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Catalogue actuel des catégories approuvées -->
+                @if (app.categories().length > 0) {
+                  <div class="mt-4 pt-4 border-t border-slate-100">
+                    <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Catalogue actuel — {{ app.categories().length }} catégorie(s) approuvée(s)</p>
+                    <div class="flex flex-wrap gap-2">
+                      @for (cat of app.categories(); track cat.id) {
+                        <span class="bg-slate-100 text-slate-600 text-[11px] font-medium px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1">
+                          <mat-icon class="text-xs text-slate-400">label</mat-icon>
+                          {{ cat.name }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
             </div>
           }
 

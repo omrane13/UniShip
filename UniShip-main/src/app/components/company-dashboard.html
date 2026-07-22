@@ -315,9 +315,14 @@
                       [value]="app.newProdCategory()" 
                       (change)="app.newProdCategory.set($any($event.target).value)"
                       class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs">
-                      <option value="Fruits & Légumes">Fruits & Légumes</option>
-                      <option value="Boulangerie & Pâtisserie">Boulangerie & Pâtisserie</option>
-                      <option value="Boissons & Jus">Boissons & Jus</option>
+                      @if (app.categories().length === 0) {
+                        <option value="Fruits & Légumes">Fruits &amp; Légumes</option>
+                        <option value="Boulangerie & Pâtisserie">Boulangerie &amp; Pâtisserie</option>
+                        <option value="Boissons & Jus">Boissons &amp; Jus</option>
+                      }
+                      @for (cat of app.categories(); track cat.id) {
+                        <option [value]="cat.name">{{ cat.name }}</option>
+                      }
                     </select>
                   </div>
                 </div>
@@ -348,6 +353,60 @@
                     Proposer l’Ajout de Produit
                   </button>
                 </div>
+              </div>
+
+              <!-- ====== Demande d'Ajout de Nouvelle Catégorie ====== -->
+              <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl flex flex-col gap-4 text-left">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <span class="text-xs font-bold uppercase text-amber-600 flex items-center gap-1.5">
+                      <mat-icon class="text-sm">label</mat-icon>
+                      Demander l'Ajout d'une Nouvelle Catégorie
+                    </span>
+                    <p class="text-[11px] text-amber-700/70 mt-0.5">Proposez une nouvelle catégorie pour vos produits. Elle sera soumise à validation par l'administrateur avant d'être disponible.</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <input
+                    [value]="app.newCategoryName()"
+                    (input)="app.newCategoryName.set($any($event.target).value)"
+                    placeholder="Ex: Produits Laitiers, Épices & Condiments..."
+                    class="flex-1 bg-white border border-amber-300 px-4 py-2.5 rounded-lg text-xs text-slate-800 placeholder-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    id="new-category-name-input"
+                  />
+                  <button
+                    (click)="app.submitCategoryRequest()"
+                    id="submit-category-request-btn"
+                    class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5">
+                    <mat-icon class="text-sm">send</mat-icon>
+                    Soumettre la Demande
+                  </button>
+                </div>
+
+                <!-- Category Requests History -->
+                @if (app.categoryRequests().length > 0) {
+                  <div class="border-t border-amber-200 pt-3 mt-1">
+                    <p class="text-[10px] font-bold uppercase text-amber-600 mb-2">Historique de mes demandes de catégories</p>
+                    <div class="flex flex-col gap-1.5">
+                      @for (cr of app.categoryRequests(); track cr.id) {
+                        <div class="flex items-center justify-between bg-white border border-amber-100 rounded-lg px-3 py-2 text-xs">
+                          <span class="font-semibold text-slate-700">{{ cr.name }}</span>
+                          <div class="flex items-center gap-2">
+                            <span class="text-slate-400 text-[10px]">{{ cr.createdAt | date:'shortDate' }}</span>
+                            @if (cr.status === 'pending') {
+                              <span class="bg-amber-100 text-amber-700 font-bold text-[10px] px-2 py-0.5 rounded uppercase">⏳ EN ATTENTE</span>
+                            } @else if (cr.status === 'approved') {
+                              <span class="bg-emerald-100 text-emerald-700 font-bold text-[10px] px-2 py-0.5 rounded uppercase">✅ APPROUVÉE</span>
+                            } @else {
+                              <span class="bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5 rounded uppercase">❌ REFUSÉE</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
 
               <!-- My Products list table -->

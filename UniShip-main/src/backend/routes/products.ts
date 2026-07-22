@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { Product, StockRequest } from '../store';
+import { Product, StockRequest, Category, CategoryRequest } from '../store';
 import { getCurrentUser, getCompanyOwnerId } from './helpers';
-import { ProductRepository, UserRepository, CompanyRepository, StockRequestRepository, AuditLogRepository } from '../db/repository';
+import { ProductRepository, UserRepository, CompanyRepository, StockRequestRepository, AuditLogRepository, CategoryRepository, CategoryRequestRepository } from '../db/repository';
 
 export const productsRouter = Router();
 
@@ -239,5 +239,119 @@ productsRouter.put('/stock-requests/:id', async (req: Request, res: Response): P
   }
 
   await AuditLogRepository.log(u.id, u.name, `STOCK_REQUEST_${status.toUpperCase()}`, `La demande ${reqObj.id} a été ${status}`);
+  res.json(updatedReq);
+});
+
+// ==========================================
+// CATEGORY ENDPOINTS
+// ==========================================
+
+// Get all approved categories
+productsRouter.get('/categories', async (req: Request, res: Response): Promise<void> => {
+  const list = await CategoryRepository.getAll();
+  res.json(list);
+});
+
+// Get all category requests
+productsRouter.get('/categories/requests', async (req: Request, res: Response): Promise<void> => {
+  const u = getCurrentUser(req);
+  if (!u) {
+    res.status(403).json({ error: 'Authentification obligatoire' });
+    return;
+  }
+  let list = await CategoryRequestRepository.getAll();
+  if (u.role === 'company' || u.role === 'collaborator') {
+    list = list.filter(r => r.companyId === getCompanyOwnerId(u));
+  }
+  res.json(list);
+});
+
+// Submit a new category request
+productsRouter.post('/categories/request', async (req: Request, res: Response): Promise<void> => {
+  const u = getCurrentUser(req);
+  if (!u || (u.role !== 'company' && u.role !== 'collaborator')) {
+    res.status(403).json({ error: 'Seules les entreprises partenaires peuvent proposer une catégorie' });
+    return;
+  }
+
+  if (u.role === 'collaborator' && u.permissions === 'read') {
+    res.status(403).json({ error: 'Permissions de collaborateur insuffisantes (Lecture seule)' });
+    return;
+  }
+
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    res.status(400).json({ error: 'Le nom de la catégorie est requis' });
+    return;
+  }
+
+  const cleanName = name.trim();
+
+  // Check if it already exists in approved categories
+  const approved = await CategoryRepository.getAll();
+  if (approved.some(c => c.name.toLowerCase() === cleanName.toLowerCase())) {
+    res.status(400).json({ error: 'Cette catégorie existe déjà dans le catalogue.' });
+    return;
+  }
+
+  // Check if it's already pending in requests
+  const requests = await CategoryRequestRepository.getAll();
+  if (requests.some(r => r.name.toLowerCase() === cleanName.toLowerCase() && r.status === 'pending')) {
+    res.status(400).json({ error: 'Une demande pour cette catégorie est déjà en attente de validation.' });
+    return;
+  }
+
+  const ownerId = getCompanyOwnerId(u);
+  const ownerUser = await CompanyRepository.getById(ownerId) || await UserRepository.getById(ownerId);
+  const ownerName = ownerUser ? ownerUser.name : u.name;
+
+  const reqObj: CategoryRequest = {
+    id: `catreq_${Date.now()}`,
+    name: cleanName,
+    companyId: ownerId,
+    companyName: ownerName,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  await CategoryRequestRepository.create(reqObj);
+  await AuditLogRepository.log(u.id, u.name, 'CATEGORY_REQUEST', `Propose la catégorie : '${cleanName}'`);
+  res.json(reqObj);
+});
+
+// Admin decides on category requests
+productsRouter.put('/categories/requests/:id', async (req: Request, res: Response): Promise<void> => {
+  const u = getCurrentUser(req);
+  if (!u || u.role !== 'admin') {
+    res.status(403).json({ error: 'Administrateur requis' });
+    return;
+  }
+
+  const reqObj = await CategoryRequestRepository.getById(req.params['id'] as string);
+  if (!reqObj) {
+    res.status(404).json({ error: 'Demande introuvable' });
+    return;
+  }
+
+  const { status } = req.body; // 'approved' or 'rejected'
+  if (status !== 'approved' && status !== 'rejected') {
+    res.status(400).json({ error: 'Statut invalide' });
+    return;
+  }
+
+  const updatedReq = await CategoryRequestRepository.update(reqObj.id, { status }) || reqObj;
+
+  if (status === 'approved') {
+    const categories = await CategoryRepository.getAll();
+    if (!categories.some(c => c.name.toLowerCase() === reqObj.name.toLowerCase())) {
+      await CategoryRepository.create({
+        id: `cat_${Date.now()}`,
+        name: reqObj.name,
+        createdAt: new Date().toISOString()
+      });
+    }
+  }
+
+  await AuditLogRepository.log(u.id, u.name, `CATEGORY_REQUEST_${status.toUpperCase()}`, `La demande de catégorie '${reqObj.name}' a été ${status}`);
   res.json(updatedReq);
 });

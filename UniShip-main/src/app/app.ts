@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats, SimulatedEmail } from './services/api';
+import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats, SimulatedEmail, Category, CategoryRequest } from './services/api';
 import { AdminDashboard } from './components/admin-dashboard';
 import { CompanyDashboard } from './components/company-dashboard';
 import { DriverConsole } from './components/driver-console';
@@ -62,6 +62,8 @@ export class App implements OnInit {
   orders = signal<Order[]>([]);
   offers = signal<Offer[]>([]);
   stockRequests = signal<StockRequest[]>([]);
+  categories = signal<Category[]>([]);
+  categoryRequests = signal<CategoryRequest[]>([]);
   auditLogs = signal<AuditLog[]>([]);
   tickets = signal<SupportTicket[]>([]);
   subAccounts = signal<SubAccount[]>([]);
@@ -71,6 +73,9 @@ export class App implements OnInit {
   simulatedEmails = signal<SimulatedEmail[]>([]);
   showEmailsInbox = signal(false);
   activeEmailDetails = signal<SimulatedEmail | null>(null);
+
+  // Form Signals: Category Requests
+  newCategoryName = signal('');
 
   // Client search and filters
   searchQuery = signal('');
@@ -348,11 +353,16 @@ export class App implements OnInit {
   // ==========================================
   // Dynamic Load Functions
   // ==========================================
+  // ==========================================
   async loadVisitorData() {
     this.loading.set(true);
     try {
-      const prods = await this.api.getProducts();
+      const [prods, cats] = await Promise.all([
+        this.api.getProducts(),
+        this.api.getCategories()
+      ]);
       this.products.set(prods);
+      this.categories.set(cats);
       this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
@@ -364,14 +374,16 @@ export class App implements OnInit {
   async loadAdminData() {
     this.loading.set(true);
     try {
-      const [usrList, prodList, offerList, sReqs, audit, tkts, stats] = await Promise.all([
+      const [usrList, prodList, offerList, sReqs, audit, tkts, stats, cats, catReqs] = await Promise.all([
         this.api.getUsers(),
         this.api.getProducts({ all: true }), // see all products
         this.api.getOffers(),
         this.api.getStockRequests(),
         this.api.getAuditLogs(),
         this.api.getTickets(),
-        this.api.getStats()
+        this.api.getStats(),
+        this.api.getCategories(),
+        this.api.getCategoryRequests()
       ]);
 
       this.users.set(usrList);
@@ -381,6 +393,8 @@ export class App implements OnInit {
       this.auditLogs.set(audit);
       this.tickets.set(tkts);
       this.globalStats.set(stats);
+      this.categories.set(cats);
+      this.categoryRequests.set(catReqs);
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set('Erreur d’initialisation Admin : ' + error.message);
     } finally {
@@ -391,7 +405,7 @@ export class App implements OnInit {
   async loadCompanyData() {
     this.loading.set(true);
     try {
-      const [prodList, sReqs, offerList, subs, tkts, stats, ords, drvs] = await Promise.all([
+      const [prodList, sReqs, offerList, subs, tkts, stats, ords, drvs, cats, catReqs] = await Promise.all([
         this.api.getProducts({ all: false }), // company owns
         this.api.getStockRequests(),
         this.api.getOffers(),
@@ -399,7 +413,9 @@ export class App implements OnInit {
         this.api.getTickets(),
         this.api.getStats(),
         this.api.getOrders(),
-        this.api.getDrivers()
+        this.api.getDrivers(),
+        this.api.getCategories(),
+        this.api.getCategoryRequests()
       ]);
 
       this.products.set(prodList);
@@ -410,6 +426,8 @@ export class App implements OnInit {
       this.globalStats.set(stats);
       this.orders.set(ords);
       this.drivers.set(drvs);
+      this.categories.set(cats);
+      this.categoryRequests.set(catReqs);
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set('Erreur d’initialisation Entreprise : ' + error.message);
     } finally {
@@ -421,18 +439,20 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       // Charger les livreurs disponibles pour l'estimation des frais (bulle info)
-      const [prodList, ords, drvs, tkts, companiesList] = await Promise.all([
+      const [prodList, ords, drvs, tkts, companiesList, cats] = await Promise.all([
         this.api.getProducts(),
         this.api.getOrders(),
         this.api.getDrivers(), // utilisé uniquement pour les estimations de frais
         this.api.getTickets(),
         this.api.getPublicCompanies(),
+        this.api.getCategories()
       ]);
 
       this.products.set(prodList);
       this.orders.set(ords);
       this.drivers.set(drvs); // stocké pour l'estimation, pas pour la sélection
       this.tickets.set(tkts);
+      this.categories.set(cats);
       // Peuple app.users() avec les entreprises actives pour le filtre "Partenaire" du catalogue client.
       this.users.set(companiesList as any);
 
@@ -1595,6 +1615,43 @@ export class App implements OnInit {
       await this.loadAdminData();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message || 'Erreur de simulation.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // ==========================================
+  // CATEGORY REQUESTS (Company → Admin)
+  // ==========================================
+
+  async submitCategoryRequest() {
+    const name = this.newCategoryName().trim();
+    if (!name) {
+      this.errorMessage.set('Veuillez saisir un nom de catégorie.');
+      return;
+    }
+    this.loading.set(true);
+    try {
+      await this.api.createCategoryRequest(name);
+      this.newCategoryName.set('');
+      this.successMessage.set(`✅ Demande pour la catégorie "${name}" envoyée à l'administrateur pour validation.`);
+      await this.loadCompanyData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de l\'envoi de la demande.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async decideOnCategoryRequest(id: string, status: 'approved' | 'rejected') {
+    this.loading.set(true);
+    try {
+      await this.api.actionCategoryRequest(id, status);
+      const label = status === 'approved' ? 'approuvée et ajoutée au catalogue' : 'rejetée';
+      this.successMessage.set(`✅ Demande de catégorie ${label}.`);
+      await this.loadAdminData();
+    } catch (err) { const error = err as { message: string };
+      this.errorMessage.set(error.message || 'Erreur lors de la décision.');
     } finally {
       this.loading.set(false);
     }

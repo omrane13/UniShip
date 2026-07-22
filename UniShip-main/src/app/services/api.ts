@@ -102,6 +102,21 @@ export interface StockRequest {
   createdAt: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface CategoryRequest {
+  id: string;
+  name: string;
+  companyId: string;
+  companyName: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+}
+
 export interface Offer {
   id: string;
   title: string;
@@ -383,6 +398,31 @@ export class ApiClient {
 
   async actionStockRequest(id: string, status: 'approved' | 'rejected'): Promise<StockRequest> {
     return this.request<StockRequest>(`/api/stock-requests/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
+
+  // ==========================================
+  // Category / Requests API
+  // ==========================================
+  async getCategories(): Promise<Category[]> {
+    return this.request<Category[]>('/api/categories');
+  }
+
+  async getCategoryRequests(): Promise<CategoryRequest[]> {
+    return this.request<CategoryRequest[]>('/api/categories/requests');
+  }
+
+  async createCategoryRequest(name: string): Promise<CategoryRequest> {
+    return this.request<CategoryRequest>('/api/categories/request', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    });
+  }
+
+  async actionCategoryRequest(id: string, status: 'approved' | 'rejected'): Promise<CategoryRequest> {
+    return this.request<CategoryRequest>(`/api/categories/requests/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ status })
     });

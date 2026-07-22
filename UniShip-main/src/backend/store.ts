@@ -202,6 +202,21 @@ export interface SupportTicket {
   }[];
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface CategoryRequest {
+  id: string;
+  name: string;
+  companyId: string;
+  companyName: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+}
+
 export interface SimulatedEmail {
   id: string;
   to: string;
@@ -236,6 +251,13 @@ class InMemoryStore {
   auditLogs: AuditLog[] = [];
   tickets: SupportTicket[] = [];
   simulatedEmails: SimulatedEmail[] = [];
+  
+  categories: Category[] = [
+    { id: 'cat_1', name: 'Fruits & Légumes', createdAt: new Date().toISOString() },
+    { id: 'cat_2', name: 'Boulangerie & Pâtisserie', createdAt: new Date().toISOString() },
+    { id: 'cat_3', name: 'Boissons & Jus', createdAt: new Date().toISOString() }
+  ];
+  categoryRequests: CategoryRequest[] = [];
 
   // Helper actions
   sendEmail(to: string, subject: string, body: string) {
