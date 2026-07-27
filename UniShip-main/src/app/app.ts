@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, signal, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, signal, effect, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiClient, User, Product, Order, SupportTicket, Offer, StockRequest, Driver, AuditLog, SubAccount, AppStats, SimulatedEmail, Category, CategoryRequest } from './services/api';
 import { AdminDashboard } from './components/admin-dashboard';
@@ -15,6 +15,7 @@ import { ClientHub } from './components/client-hub';
   styleUrl: './app.css',
 })
 export class App implements OnInit {
+  platformId = inject(PLATFORM_ID);
   api = inject(ApiClient);
 
   // App-wide interactive UI views
@@ -132,55 +133,61 @@ export class App implements OnInit {
   constructor() {
     // Re-fetch data whenever current user changes
     effect(() => {
-      const user = this.api.currentUser();
-      this.clearMessages();
-      this.selectedTicket.set(null);
-      this.selectedProduct.set(null);
+      if (isPlatformBrowser(this.platformId)) {
+        const user = this.api.currentUser();
+        this.clearMessages();
+        this.selectedTicket.set(null);
+        this.selectedProduct.set(null);
 
-      if (user) {
-        this.initProfileForm();
-        if (user.role === 'admin') {
-          this.loadAdminData();
-        } else if (user.role === 'company') {
-          this.loadCompanyData();
-          this.initSimulatorFromUser(user);
-        } else if (user.role === 'client') {
-          this.loadClientData();
-        } else if (user.role === 'driver') {
-          this.loadDriverData();
-          this.initDriverSimulatorFromUser(user);
+        if (user) {
+          this.initProfileForm();
+          if (user.role === 'admin') {
+            this.loadAdminData();
+          } else if (user.role === 'company') {
+            this.loadCompanyData();
+            this.initSimulatorFromUser(user);
+          } else if (user.role === 'client') {
+            this.loadClientData();
+          } else if (user.role === 'driver') {
+            this.loadDriverData();
+            this.initDriverSimulatorFromUser(user);
+          }
+          this.loadSimulatedEmails();
+        } else {
+          // Visitor default load
+          this.loadVisitorData();
         }
-        this.loadSimulatedEmails();
-      } else {
-        // Visitor default load
-        this.loadVisitorData();
       }
     });
 
     // React to search/filters for client browsing
     effect(() => {
-      const user = this.api.currentUser();
-      // Only react if we are client or visitor (not admin/company, they have different filters)
-      if (!user || user.role === 'client') {
-        this.categoryFilter();
-        this.companyFilter();
-        this.searchQuery();
+      if (isPlatformBrowser(this.platformId)) {
+        const user = this.api.currentUser();
+        // Only react if we are client or visitor (not admin/company, they have different filters)
+        if (!user || user.role === 'client') {
+          this.categoryFilter();
+          this.companyFilter();
+          this.searchQuery();
 
-        if (this.searchDebounceTimeout) {
-          clearTimeout(this.searchDebounceTimeout);
+          if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+          }
+
+          this.searchDebounceTimeout = setTimeout(() => {
+            this.loadClientProducts(true);
+          }, 300); // 300ms debounce to prevent hammering the server on every keystroke
         }
-
-        this.searchDebounceTimeout = setTimeout(() => {
-          this.loadClientProducts(true);
-        }, 300); // 300ms debounce to prevent hammering the server on every keystroke
       }
     });
   }
 
   ngOnInit() {
     // Trigger initial default query
-    if (!this.api.currentUser()) {
-      this.loadVisitorData();
+    if (isPlatformBrowser(this.platformId)) {
+      if (!this.api.currentUser()) {
+        this.loadVisitorData();
+      }
     }
   }
 
@@ -464,11 +471,45 @@ export class App implements OnInit {
   // Dynamic Load Functions
   // ==========================================
   // ==========================================
-  async loadVisitorData() {
-    this.loading.set(true);
+  // Helper to load categories from API
+  async loadCategories() {
     try {
       const cats = await this.api.getCategories();
       this.categories.set(cats);
+    } catch (err) {
+      console.warn('Erreur lors du chargement des catégories :', err);
+    }
+  }
+
+  // Helper to load public companies from API
+  async loadPublicCompanies() {
+    try {
+      const companiesList = await this.api.getPublicCompanies();
+      this.users.set(companiesList as any);
+    } catch (err) {
+      console.warn('Erreur lors du chargement des partenaires :', err);
+    }
+  }
+
+  // Helper to get category emoji dynamically
+  getCategoryEmoji(name: string): string {
+    const lower = name.toLowerCase();
+    if (lower.includes('fruit') || lower.includes('légume')) return '🍎';
+    if (lower.includes('boulangerie') || lower.includes('pâtisserie') || lower.includes('pain')) return '🥖';
+    if (lower.includes('boisson') || lower.includes('jus') || lower.includes('eau')) return '🍹';
+    if (lower.includes('épice') || lower.includes('condiment')) return '🌶️';
+    if (lower.includes('viande') || lower.includes('poisson')) return '🥩';
+    if (lower.includes('lait') || lower.includes('fromage') || lower.includes('crème')) return '🥛';
+    return '📦';
+  }
+
+  async loadVisitorData() {
+    this.loading.set(true);
+    try {
+      await Promise.all([
+        this.loadCategories(),
+        this.loadPublicCompanies()
+      ]);
       await this.loadClientProducts(true);
       this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
@@ -546,20 +587,21 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       // Charger les livreurs disponibles pour l'estimation des frais (bulle info)
-      const [ords, drvs, tkts, companiesList, cats] = await Promise.all([
+      const [ords, drvs, tkts] = await Promise.all([
         this.api.getOrders(),
         this.api.getDrivers(), // utilisé uniquement pour les estimations de frais
-        this.api.getTickets(),
-        this.api.getPublicCompanies(),
-        this.api.getCategories()
+        this.api.getTickets()
       ]);
 
       this.orders.set(ords);
       this.drivers.set(drvs); // stocké pour l'estimation, pas pour la sélection
       this.tickets.set(tkts);
-      this.categories.set(cats);
-      // Peuple app.users() avec les entreprises actives pour le filtre "Partenaire" du catalogue client.
-      this.users.set(companiesList as any);
+
+      // Charger les filtres via les APIs dédiées
+      await Promise.all([
+        this.loadCategories(),
+        this.loadPublicCompanies()
+      ]);
 
       await this.loadClientProducts(true);
 

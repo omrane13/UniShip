@@ -103,24 +103,14 @@
                 id="btn-cat-all">
                 🌿 Tout Afficher
               </button>
-              <button 
-                (click)="app.categoryFilter.set('Fruits & Légumes')"
-                [class]="app.categoryFilter() === 'Fruits & Légumes' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
-                id="btn-cat-prov">
-                🍎 Fruits & Légumes
-              </button>
-              <button 
-                (click)="app.categoryFilter.set('Boulangerie & Pâtisserie')"
-                [class]="app.categoryFilter() === 'Boulangerie & Pâtisserie' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
-                id="btn-cat-boul">
-                🥖 Boulangerie & Pâtisserie
-              </button>
-              <button 
-                (click)="app.categoryFilter.set('Boissons & Jus')"
-                [class]="app.categoryFilter() === 'Boissons & Jus' ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
-                id="btn-cat-boiss">
-                🍹 Boissons & Jus
-              </button>
+              @for (cat of app.categories(); track cat.id) {
+                <button 
+                  (click)="app.categoryFilter.set(cat.name)"
+                  [class]="app.categoryFilter() === cat.name ? 'px-3 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl text-left border-0 cursor-pointer' : 'px-3 py-2 text-slate-650 hover:bg-slate-50 text-xs text-left rounded-xl bg-transparent border-0 cursor-pointer'"
+                  [id]="'btn-cat-' + cat.id">
+                  {{ app.getCategoryEmoji(cat.name) }} {{ cat.name }}
+                </button>
+              }
             </div>
           </div>
 
