@@ -262,19 +262,34 @@ export class App implements OnInit {
     }
 
     try {
+      const email = this.regEmail();
+      const password = this.regPassword();
+      const role = this.regRole();
+
       const res = await this.api.register({
         name: this.regName(),
-        email: this.regEmail(),
-        password: this.regPassword() || undefined,
-        role: this.regRole(),
+        email: email,
+        password: password || undefined,
+        role: role,
         phone: this.regPhone(),
         address: this.regAddress(),
-        companyColor: this.regRole() === 'company' ? this.regColor() : undefined
+        companyColor: role === 'company' ? this.regColor() : undefined
       });
 
       this.successMessage.set(res.message);
-      this.activeAuthMode.set('login');
       this.loadSimulatedEmails();
+
+      if (!isCreatorAdmin && role === 'client' && password) {
+        await this.api.login(email, password);
+        this.showAuthModal.set(false);
+        this.successMessage.set('Inscription et connexion réussies !');
+        if (this.api.cart().length > 0) {
+          this.showCartDrawer.set(true);
+        }
+      } else {
+        this.activeAuthMode.set('login');
+      }
+
       // Reset registration form
       this.regName.set('');
       this.regEmail.set('');
@@ -303,6 +318,9 @@ export class App implements OnInit {
       this.successMessage.set('Connexion réussie !');
       this.manualEmail.set('');
       this.manualPassword.set('');
+      if (this.api.cart().length > 0) {
+        this.showCartDrawer.set(true);
+      }
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
     } finally {
@@ -692,7 +710,9 @@ export class App implements OnInit {
     this.feeEstimateVisible.set(false);
     const userObj = this.api.currentUser();
     if (!userObj) {
-      this.errorMessage.set('Veuillez vous authentifier en tant que Client pour commander.');
+      this.activeAuthMode.set('login');
+      this.showAuthModal.set(true);
+      this.showCartDrawer.set(false);
       return;
     }
 
@@ -721,6 +741,7 @@ export class App implements OnInit {
       this.successMessage.set(res.message);
       this.clientCurrentTab.set('orders');
       await this.loadClientData();
+      this.showCartDrawer.set(false);
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message || 'Erreur lors de la validation du panier');
     } finally {
