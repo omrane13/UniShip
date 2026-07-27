@@ -83,6 +83,11 @@ export class App implements OnInit {
   companyFilter = signal('all');
   selectedProduct = signal<Product | null>(null);
 
+  // Pagination & Infinite Scroll for Client
+  clientProductsPage = signal(1);
+  hasMoreProducts = signal(true);
+  searchDebounceTimeout: any = null;
+
   // Checkout process simulation signals
   deliveryAddress = signal('');
   selectedDriver = signal<Driver | null>(null);
@@ -149,6 +154,25 @@ export class App implements OnInit {
       } else {
         // Visitor default load
         this.loadVisitorData();
+      }
+    });
+
+    // React to search/filters for client browsing
+    effect(() => {
+      const user = this.api.currentUser();
+      // Only react if we are client or visitor (not admin/company, they have different filters)
+      if (!user || user.role === 'client') {
+        this.categoryFilter();
+        this.companyFilter();
+        this.searchQuery();
+
+        if (this.searchDebounceTimeout) {
+          clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+          this.loadClientProducts(true);
+        }, 300); // 300ms debounce to prevent hammering the server on every keystroke
       }
     });
   }
@@ -355,18 +379,79 @@ export class App implements OnInit {
   }
 
   // ==========================================
+  // Client Paginated Products Loading
+  // ==========================================
+  async loadClientProducts(reset = false) {
+    if (reset) {
+      this.clientProductsPage.set(1);
+      this.hasMoreProducts.set(true);
+    }
+
+    // If we've already loaded everything and aren't resetting, skip
+    if (!this.hasMoreProducts() && !reset) return;
+
+    this.loading.set(true);
+    try {
+      const page = this.clientProductsPage();
+      const limit = 10;
+      const skip = (page - 1) * limit;
+
+      const category = this.categoryFilter();
+      const companyId = this.companyFilter();
+      const search = this.searchQuery().trim();
+
+      const newProds = await this.api.getProducts({
+        category: category !== 'all' ? category : undefined,
+        companyId: companyId !== 'all' ? companyId : undefined,
+        search: search ? search : undefined,
+        limit,
+        skip
+      });
+
+      if (reset) {
+        this.products.set(newProds);
+      } else {
+        const currentList = this.products();
+        // Prevent duplicate IDs if any overlaps happen
+        const merged = [...currentList];
+        for (const p of newProds) {
+          if (!merged.some(m => m.id === p.id)) {
+            merged.push(p);
+          }
+        }
+        this.products.set(merged);
+      }
+
+      // If we received fewer items than limit, we reached the end of the collection
+      if (newProds.length < limit) {
+        this.hasMoreProducts.set(false);
+      } else {
+        this.hasMoreProducts.set(true);
+      }
+    } catch (err) {
+      const error = err as { message: string };
+      this.errorMessage.set('Erreur lors du chargement des produits : ' + error.message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadNextProductsPage() {
+    if (this.loading() || !this.hasMoreProducts()) return;
+    this.clientProductsPage.update(p => p + 1);
+    await this.loadClientProducts(false);
+  }
+
+  // ==========================================
   // Dynamic Load Functions
   // ==========================================
   // ==========================================
   async loadVisitorData() {
     this.loading.set(true);
     try {
-      const [prods, cats] = await Promise.all([
-        this.api.getProducts(),
-        this.api.getCategories()
-      ]);
-      this.products.set(prods);
+      const cats = await this.api.getCategories();
       this.categories.set(cats);
+      await this.loadClientProducts(true);
       this.loadSimulatedEmails();
     } catch (err) { const error = err as { message: string };
       this.errorMessage.set(error.message);
@@ -443,8 +528,7 @@ export class App implements OnInit {
     this.loading.set(true);
     try {
       // Charger les livreurs disponibles pour l'estimation des frais (bulle info)
-      const [prodList, ords, drvs, tkts, companiesList, cats] = await Promise.all([
-        this.api.getProducts(),
+      const [ords, drvs, tkts, companiesList, cats] = await Promise.all([
         this.api.getOrders(),
         this.api.getDrivers(), // utilisé uniquement pour les estimations de frais
         this.api.getTickets(),
@@ -452,13 +536,14 @@ export class App implements OnInit {
         this.api.getCategories()
       ]);
 
-      this.products.set(prodList);
       this.orders.set(ords);
       this.drivers.set(drvs); // stocké pour l'estimation, pas pour la sélection
       this.tickets.set(tkts);
       this.categories.set(cats);
       // Peuple app.users() avec les entreprises actives pour le filtre "Partenaire" du catalogue client.
       this.users.set(companiesList as any);
+
+      await this.loadClientProducts(true);
 
       // set default address for convenience
       const u = this.api.currentUser();
@@ -1031,22 +1116,7 @@ export class App implements OnInit {
 
   // Helper getters
   getFilteredProducts(): Product[] {
-    let prods = this.products();
-    const query = this.searchQuery().trim().toLowerCase();
-    const cat = this.categoryFilter();
-    const company = this.companyFilter();
-
-    if (query) {
-      prods = prods.filter(p => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
-    }
-    if (cat !== 'all') {
-      prods = prods.filter(p => p.category === cat);
-    }
-    if (company !== 'all') {
-      prods = prods.filter(p => p.companyId === company);
-    }
-
-    return prods;
+    return this.products();
   }
 
   // Auto-contrast calculation (WCAG)

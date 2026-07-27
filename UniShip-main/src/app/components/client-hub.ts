@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import type { App } from '../app';
@@ -11,6 +11,18 @@ import type { App } from '../app';
 })
 export class ClientHub {
   @Input({ required: true }) app!: App;
+  
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    // Detect when user is close to the bottom (180px threshold)
+    const threshold = 180;
+    const position = window.innerHeight + window.scrollY;
+    const height = document.documentElement.scrollHeight;
+    
+    if (position >= height - threshold) {
+      this.app.loadNextProductsPage();
+    }
+  }
   
   currentSlide = signal(0);
   slides = [

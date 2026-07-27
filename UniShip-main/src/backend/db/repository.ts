@@ -208,7 +208,7 @@ export const CompanyRepository = {
 // PRODUCT REPOSITORY
 // ==========================================
 export const ProductRepository = {
-  async getAll(filters?: { category?: string; search?: string; companyId?: string; status?: string }): Promise<Product[]> {
+  async getAll(filters?: { category?: string; search?: string; companyId?: string; status?: string; limit?: number; skip?: number }): Promise<Product[]> {
     if (isMongoEnabled()) {
       try {
         const query: Record<string, unknown> = {};
@@ -221,7 +221,14 @@ export const ProductRepository = {
             { description: { $regex: filters.search, $options: 'i' } }
           ];
         }
-        const products = await MongoProduct.find(query).sort({ createdAt: -1 });
+        let queryBuilder = MongoProduct.find(query).sort({ createdAt: -1 });
+        if (filters?.skip !== undefined) {
+          queryBuilder = queryBuilder.skip(filters.skip);
+        }
+        if (filters?.limit !== undefined) {
+          queryBuilder = queryBuilder.limit(filters.limit);
+        }
+        const products = await queryBuilder;
         return products.map(p => p.toJSON() as Product);
       } catch (err) {
         console.error('[ProductRepository] getAll fallback:', err);
@@ -235,6 +242,13 @@ export const ProductRepository = {
       list = list.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
     }
     if (filters?.companyId) list = list.filter(p => p.companyId === filters.companyId);
+    
+    if (filters?.skip !== undefined) {
+      list = list.slice(filters.skip);
+    }
+    if (filters?.limit !== undefined) {
+      list = list.slice(0, filters.limit);
+    }
     return list;
   },
 

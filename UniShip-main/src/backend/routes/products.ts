@@ -11,21 +11,28 @@ export const productsRouter = Router();
 
 productsRouter.get('/products', async (req: Request, res: Response): Promise<void> => {
   const u = getCurrentUser(req);
-  const { category, search, companyId, all } = req.query;
+  const { category, search, companyId, all, limit, skip } = req.query;
 
-  let list = await ProductRepository.getAll({
+  let statusFilter: string | undefined = undefined;
+  let targetCompanyId = companyId as string;
+
+  if (!u || u.role === 'client') {
+    statusFilter = 'active';
+  } else if (u && (u.role === 'company' || u.role === 'collaborator') && !all) {
+    targetCompanyId = getCompanyOwnerId(u);
+  }
+
+  const parsedLimit = limit ? Number(limit) : undefined;
+  const parsedSkip = skip ? Number(skip) : undefined;
+
+  const list = await ProductRepository.getAll({
     category: category as string,
     search: search as string,
-    companyId: companyId as string
+    companyId: targetCompanyId,
+    status: statusFilter,
+    limit: parsedLimit,
+    skip: parsedSkip
   });
-
-  // Clients can only see ACTIVE products. Admin/Company can see all unless specified
-  if (!u || u.role === 'client') {
-    list = list.filter(p => p.status === 'active');
-  } else if (u && (u.role === 'company' || u.role === 'collaborator') && !all) {
-    // By default, companies see only their own products
-    list = list.filter(p => p.companyId === getCompanyOwnerId(u));
-  }
 
   res.json(list);
 });

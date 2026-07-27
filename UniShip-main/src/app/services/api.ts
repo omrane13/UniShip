@@ -353,13 +353,15 @@ export class ApiClient {
   // ==========================================
   // Products / Catalog API
   // ==========================================
-  async getProducts(filters?: { category?: string; search?: string; companyId?: string; all?: boolean }): Promise<Product[]> {
+  async getProducts(filters?: { category?: string; search?: string; companyId?: string; all?: boolean; limit?: number; skip?: number }): Promise<Product[]> {
     const params = new URLSearchParams();
     if (filters) {
       if (filters.category) params.append('category', filters.category);
       if (filters.search) params.append('search', filters.search);
       if (filters.companyId) params.append('companyId', filters.companyId);
       if (filters.all) params.append('all', 'true');
+      if (filters.limit !== undefined) params.append('limit', String(filters.limit));
+      if (filters.skip !== undefined) params.append('skip', String(filters.skip));
     }
     return this.request<Product[]>(`/api/products?${params.toString()}`);
   }
